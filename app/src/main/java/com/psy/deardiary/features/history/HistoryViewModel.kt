@@ -17,7 +17,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 data class HistoryUiState(
@@ -38,6 +37,7 @@ class HistoryViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(HistoryUiState())
     val uiState = _uiState.asStateFlow()
+    private var cachedEntries: List<JournalEntry> = emptyList()
 
     init {
         observeJournalData()
@@ -47,9 +47,11 @@ class HistoryViewModel @Inject constructor(
         journalRepository.journals
             .onEach { entries ->
                 if (entries.isNotEmpty()) {
+                    cachedEntries = entries
                     processJournalData(entries)
                 } else {
-                    _uiState.update { it.copy(isLoading = false) }
+                    cachedEntries = emptyList()
+                    _uiState.update { it.copy(isLoading = false, moodCalendarData = emptyMap()) }
                 }
             }
             .launchIn(viewModelScope)
@@ -117,8 +119,12 @@ class HistoryViewModel @Inject constructor(
 
     fun changeDisplayMonth(offset: Long) {
         val newMonth = _uiState.value.currentDisplayMonth.plusMonths(offset)
-        _uiState.update { it.copy(currentDisplayMonth = newMonth) }
-        // Proses ulang data untuk bulan yang baru
-        observeJournalData()
+        val moodCalendarData = generateMoodCalendarData(cachedEntries, newMonth)
+        _uiState.update {
+            it.copy(
+                currentDisplayMonth = newMonth,
+                moodCalendarData = moodCalendarData
+            )
+        }
     }
 }
