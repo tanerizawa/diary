@@ -92,23 +92,11 @@ class JournalRepository @Inject constructor(
             try {
                 val unsyncedEntries = journalDao.getUnsyncedEntries()
                 for (entry in unsyncedEntries) {
-                    // TODO: Implementasikan endpoint PUT/PATCH di backend untuk update jurnal
-                    // Saat ini, kita hanya melakukan CREATE untuk entri baru.
-                    // Jika entry memiliki remoteId dan isSynced=false, itu menandakan update yang perlu dikirim ke server.
-                    // Anda perlu menambahkan logika untuk mengirim permintaan PUT/PATCH ke server jika remoteId tidak null.
-                    // Untuk demo, kita asumsikan setiap entri unsynced (termasuk yang diupdate lokal) akan dicoba dibuat ulang di server.
-                    // Ini tidak ideal untuk update karena akan membuat duplikat di server jika remoteId sudah ada.
-                    // Solusi yang lebih baik: kirim UPDATE jika remoteId != null, dan CREATE jika remoteId == null.
-
-                    val request = entry.toJournalCreateRequest() // Ini DTO untuk CREATE
+                    val request = entry.toJournalCreateRequest()
 
                     val response = if (entry.remoteId != null) {
-                        // Jika ada remoteId, coba update entri di server (asumsi ada API update)
-                        // Perlu endpoint PUT/PATCH di JournalApiService
-                        // journalApiService.updateJournal(entry.remoteId, request) // Ini perlu diimplementasikan di JournalApiService
-                        journalApiService.createJournal(request) // Untuk saat ini, fallback ke create, akan menyebabkan duplikat/error jika tidak ditangani backend
+                        journalApiService.updateJournal(entry.remoteId, request)
                     } else {
-                        // Jika tidak ada remoteId, ini adalah entri baru, buat di server
                         journalApiService.createJournal(request)
                     }
 

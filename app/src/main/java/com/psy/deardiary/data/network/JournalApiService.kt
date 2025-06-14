@@ -10,6 +10,8 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface JournalApiService {
@@ -22,4 +24,10 @@ interface JournalApiService {
         @Query("skip") skip: Int = 0,
         @Query("limit") limit: Int = 100
     ): Response<List<JournalResponse>>
+
+    @PUT("api/v1/journal/{id}")
+    suspend fun updateJournal(
+        @Path("id") id: Int,
+        @Body journal: JournalCreateRequest
+    ): Response<JournalResponse>
 }
