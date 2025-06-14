@@ -80,6 +80,7 @@ htmlcov/
 # Static & media (Django/Flask/etc.)
 staticfiles/
 media/
+!app/src/main/java/com/psy/deardiary/features/media/
 
 # Uvicorn / Gunicorn sockets
 gunicorn.sock
