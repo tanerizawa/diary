@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Tema dasar untuk aplikasi.
+      Karena seluruh UI ada di Compose, tema ini terutama digunakan
+      untuk splash screen dan window background sebelum Compose dimuat.
+      Menggunakan Theme.SplashScreen adalah praktik terbaik modern.
+    -->
+    <style name="Theme.DearDiary" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Anda bisa menyesuaikan warna splash screen di sini jika perlu -->
+        <!-- <item name="android:windowSplashScreenBackground">@color/your_splash_color</item> -->
+    </style>
+</resources>

@@ -1,0 +1,89 @@
+# =========================
+# Android / Java / Kotlin
+# =========================
+
+# Android Studio & IntelliJ
+*.iml
+.idea/
+/.idea/caches/
+/.idea/libraries/
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+
+# Gradle
+.gradle/
+gradle/
+gradle-wrapper.jar
+
+# Build outputs
+**/build/
+*/build/
+/captures/
+/.externalNativeBuild/
+/.cxx/
+/obj/
+/*.so
+
+# Local config
+local.properties
+/local.properties
+
+# Signing keys
+*.jks
+*.keystore
+
+# Kotlin
+*.kotlin_module
+
+# Profiling
+*.hprof
+
+# macOS Finder
+.DS_Store
+
+# =========================
+# Python Backend
+# =========================
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Python package metadata
+pip-wheel-metadata/
+*.egg-info/
+
+# Environment variables
+.env
+.env.*
+
+# Logs and reports
+*.log
+*.out
+*.err
+coverage.xml
+htmlcov/
+
+# Database files
+*.sqlite3
+*.db
+
+# Static & media (Django/Flask/etc.)
+staticfiles/
+media/
+
+# Uvicorn / Gunicorn sockets
+gunicorn.sock
+
+# IDE/editor folders
+.vscode/
+/.idea/   # sudah diabaikan di atas, tapi aman untuk backend juga
