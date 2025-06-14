@@ -1,5 +1,74 @@
-# diary
-Dear Diary adalah aplikasi jurnal pribadi untuk Android yang dirancang untuk membantu Anda merefleksikan hari Anda dengan aman dan pribadi. Dibangun dengan Jetpack Compose modern dan filosofi offline-first, aplikasi ini memastikan pikiran dan emosi Anda selalu dapat diakses, kapan pun dan di mana pun.
+# 🌿 Dear Diary
+> Aplikasi Pendamping Kesehatan Mental yang Interaktif & Komprehensif
+
+---
+
+## 🎯 Gambaran Umum
+**Dear Diary** merupakan aplikasi kesehatan mental yang tidak sekadar menyediakan jurnal harian, namun juga terintegrasi dengan berbagai fitur penting untuk mendukung pertumbuhan pribadi dan kesejahteraan emosional. Dengan kombinasi desain modern, intuitif, dan konten berkualitas tinggi, Dear Diary membantu pengguna membangun kebiasaan positif dan mendapatkan bantuan profesional dengan lebih mudah.
+
+---
+
+## ✨ Fitur Utama
+
+### 🏠 Tab Beranda
+- **Quick Input Card**: Tulis jurnal harian dengan mudah melalui kartu input intuitif, mirip gaya Facebook.
+- **Feed Jurnal Harian**: Tampilkan riwayat jurnal Anda dengan desain yang rapi dan nyaman dibaca.
+- **Pengaturan Cepat**: Akses pengaturan aplikasi langsung dari layar utama.
+
+### 🎵 Tab Media
+- **Musik & Suara Alam**: Playlist relaksasi untuk membantu meditasi dan mengurangi stres.
+- **Artikel & Blog**: Artikel bermanfaat terkait kesehatan mental dari sumber tepercaya.
+- **Jurnal Terpandu**: Prompt khusus yang memandu pengguna ketika kesulitan menulis jurnal.
+
+### ❤️ Tab Layanan
+- **Tes Psikologi**:
+  - Tes Kepribadian (MBTI)
+  - Beck Depression Inventory (BDI)
+  - Tes Minat & Bakat
+- **Direktori Psikolog Profesional**: Temukan dan hubungi psikolog berpengalaman.
+- **Tombol Bantuan Darurat**: Akses cepat ke layanan bantuan krisis.
+
+### 🌳 Tab Pertumbuhan
+- **Pohon Kehidupan**: Visualisasi unik yang tumbuh seiring aktivitas positif pengguna.
+- **Kalender Mood**: Pantau mood harian secara visual melalui kalender intuitif.
+- **Statistik & Pencapaian**: Lihat perkembangan pribadi, total jurnal, runtutan konsistensi, dan lencana penghargaan.
+
+---
+
+## 📱 Visualisasi Navigasi & UI
++------------------------------------------+
+| Dear Diary App (Login) |
+| |
+| +--------------------------------------+ |
+| | | |
+| | KONTEN HALAMAN AKTIF | |
+| | (Beranda/Media/Layanan/Growth) | |
+| | | |
+| +--------------------------------------+ |
+| |
++------------------------------------------+
+| [🏠] [🎵] [❤️] [🌳] |
+| Beranda Media Layanan Pertumbuhan|
++------------------------------------------+
+
+
+---
+
+## 🚧 Teknologi yang Digunakan
+- **Frontend:** Jetpack Compose (Android)
+- **Backend:** FastAPI (Python)
+- **Database:** Room (Android Local DB)
+- **Integrasi AI:** OpenRouter (AI Content Generation)
+
+---
+
+## 📌 Instalasi & Menjalankan Proyek
+
+### 🔧 Backend (FastAPI)
+1. Masuk ke direktori backend:
+```bash
+cd backend
+
 
 ## Konfigurasi Lingkungan
 
@@ -52,3 +121,27 @@ mengaksesnya melalui `http://10.0.2.2:8000`.
    perangkat/emulator yang terhubung.
 
 File APK hasil build dapat ditemukan di `app/build/outputs/apk/`.
+
+.
+
+🌱 Roadmap Pengembangan
+ Integrasi fitur live chat dengan psikolog.
+
+ Peningkatan algoritma rekomendasi konten berbasis AI.
+
+ Notifikasi personalisasi untuk meningkatkan keteraturan pengguna.
+
+ Pengembangan modul komunitas pengguna dalam aplikasi.
+
+🛡️ Lisensi
+Proyek ini dilisensikan di bawah lisensi MIT – lihat LICENSE untuk detail selengkapnya.
+
+📬 Kontak
+Untuk pertanyaan, masukan, atau kontribusi, hubungi kami di:
+
+Email: your.email@example.com
+
+GitHub Issues: [GitHub Repository Link]
+
+❤️ Dibangun dengan semangat untuk meningkatkan kesehatan mental dan kualitas hidup.
+
