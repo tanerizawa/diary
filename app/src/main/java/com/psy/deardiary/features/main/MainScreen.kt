@@ -30,8 +30,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.psy.deardiary.features.diary.DiaryScreen
 import com.psy.deardiary.features.diary.DiaryViewModel
-import com.psy.deardiary.features.history.HistoryScreen // Akan diubah menjadi GrowthScreen
-import com.psy.deardiary.features.history.HistoryViewModel // Akan diubah namanya menjadi GrowthViewModel
+import com.psy.deardiary.features.growth.GrowthScreen
 import com.psy.deardiary.navigation.Screen
 
 data class BottomNavItem(
