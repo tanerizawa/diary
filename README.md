@@ -52,3 +52,24 @@ mengaksesnya melalui `http://10.0.2.2:8000`.
    perangkat/emulator yang terhubung.
 
 File APK hasil build dapat ditemukan di `app/build/outputs/apk/`.
+
+## Konfigurasi Base URL API
+
+URL backend sekarang diatur melalui BuildConfig sehingga dapat berbeda
+antara build *debug* dan *release*.
+
+Secara bawaan, file `app/build.gradle.kts` mendefinisikan:
+
+```kotlin
+buildTypes {
+    debug {
+        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8000/\"")
+    }
+    release {
+        buildConfigField("String", "BASE_URL", "\"https://api.example.com/\"")
+    }
+}
+```
+
+Saat pengembangan menggunakan emulator, biarkan nilai debug seperti di atas.
+Untuk produksi, ganti `https://api.example.com/` dengan alamat server Anda.
