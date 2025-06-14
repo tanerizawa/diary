@@ -11,6 +11,7 @@ import com.psy.deardiary.data.network.AuthInterceptor
 import com.psy.deardiary.data.network.JournalApiService
 import com.psy.deardiary.data.repository.AuthRepository
 import com.psy.deardiary.data.repository.JournalRepository
+import com.psy.deardiary.BuildConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -75,7 +76,7 @@ object AppModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:8000/")
+            .baseUrl(BuildConfig.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

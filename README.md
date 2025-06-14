@@ -121,27 +121,3 @@ mengaksesnya melalui `http://10.0.2.2:8000`.
    perangkat/emulator yang terhubung.
 
 File APK hasil build dapat ditemukan di `app/build/outputs/apk/`.
-
-.
-
-🌱 Roadmap Pengembangan
- Integrasi fitur live chat dengan psikolog.
-
- Peningkatan algoritma rekomendasi konten berbasis AI.
-
- Notifikasi personalisasi untuk meningkatkan keteraturan pengguna.
-
- Pengembangan modul komunitas pengguna dalam aplikasi.
-
-🛡️ Lisensi
-Proyek ini dilisensikan di bawah lisensi MIT – lihat LICENSE untuk detail selengkapnya.
-
-📬 Kontak
-Untuk pertanyaan, masukan, atau kontribusi, hubungi kami di:
-
-Email: your.email@example.com
-
-GitHub Issues: [GitHub Repository Link]
-
-❤️ Dibangun dengan semangat untuk meningkatkan kesehatan mental dan kualitas hidup.
-
