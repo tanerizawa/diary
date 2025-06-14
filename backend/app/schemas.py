@@ -16,6 +16,11 @@ class JournalEntryBase(BaseModel):
 class JournalEntryCreate(JournalEntryBase):
     pass
 
+# Skema untuk memperbarui entri jurnal yang ada. Saat ini sama dengan
+# `JournalEntryCreate` tetapi dipisahkan untuk kejelasan API.
+class JournalEntryUpdate(JournalEntryBase):
+    pass
+
 class JournalEntryResponse(JournalEntryBase):
     id: int
     owner_id: int

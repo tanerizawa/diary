@@ -39,3 +39,16 @@ def read_user_journal_entries(
         db=db, owner_id=current_user.id, skip=skip, limit=limit
     )
     return entries
+
+
+@router.put("/journal/{entry_id}", response_model=schemas.JournalEntryResponse)
+async def update_journal_entry(
+        entry_id: int,
+        journal: schemas.JournalEntryUpdate,
+        db: Session = Depends(database.get_db),
+        current_user: models.User = Depends(security.get_current_user)
+):
+    """Endpoint untuk memperbarui entri jurnal yang ada."""
+    return await crud_journal.update_journal_entry(
+        db=db, entry_id=entry_id, entry_in=journal, owner_id=current_user.id
+)

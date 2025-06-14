@@ -75,3 +75,38 @@ async def create_journal_entry(db: Session, *, entry_in: schemas.JournalEntryCre
 def get_user_entries(db: Session, *, owner_id: int, skip: int = 0, limit: int = 100) -> list[models.JournalEntry]:
     """Membaca daftar entri jurnal milik pengguna dari database."""
     return db.query(models.JournalEntry).filter(models.JournalEntry.owner_id == owner_id).offset(skip).limit(limit).all()
+
+
+async def update_journal_entry(
+    db: Session,
+    *,
+    entry_id: int,
+    entry_in: schemas.JournalEntryUpdate,
+    owner_id: int,
+) -> models.JournalEntry:
+    """Memperbarui entri jurnal yang sudah ada."""
+    db_entry = db.query(models.JournalEntry).filter(
+        models.JournalEntry.id == entry_id,
+        models.JournalEntry.owner_id == owner_id,
+    ).first()
+    if db_entry is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Journal entry not found")
+
+    db_entry.title = entry_in.title
+    db_entry.content = entry_in.content
+    db_entry.mood = entry_in.mood
+    db_entry.timestamp = entry_in.timestamp
+
+    analysis_result_str = await _analyze_text_with_ai(entry_in.content)
+    if analysis_result_str:
+        try:
+            analysis_data = json.loads(analysis_result_str)
+            db_entry.sentiment_score = analysis_data.get("sentiment_score")
+            db_entry.key_emotions = json.dumps(analysis_data.get("key_emotions", []))
+        except json.JSONDecodeError:
+            db_entry.sentiment_score = "invalid_ai_response"
+            db_entry.key_emotions = "[]"
+
+    db.commit()
+    db.refresh(db_entry)
+    return db_entry
