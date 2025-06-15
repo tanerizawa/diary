@@ -30,11 +30,13 @@ fun MediaScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = "Konten media akan tersedia di sini.",
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center
             )
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

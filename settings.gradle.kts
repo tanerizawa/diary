@@ -1,24 +1,20 @@
+// settings.gradle.kts
+
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
-        mavenCentral()
         gradlePluginPortal()
-    }
-}
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        google()
+        google()             // PENTING: Pastikan ini ada!
         mavenCentral()
     }
 }
 
-rootProject.name = "deardiary"
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()             // PENTING: Pastikan ini ada!
+        mavenCentral()
+    }
+}
+
+rootProject.name = "DearDiary"
 include(":app")
- 

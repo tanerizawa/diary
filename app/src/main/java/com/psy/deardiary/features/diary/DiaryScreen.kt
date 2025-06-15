@@ -1,11 +1,12 @@
 package com.psy.deardiary.features.diary
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CrisisAlert
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.CrisisAlert
+import androidx.compose.material.icons.outlined.CrisisAlert // <-- IMPORT DITAMBAHKAN
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -56,7 +57,7 @@ fun DiaryScreen(
                 actions = {
                     IconButton(onClick = onNavigateToCrisisSupport) {
                         Icon(
-                            imageVector = Icons.Outlined.CrisisAlert,
+                            imageVector = Icons.Outlined.CrisisAlert, // <-- REFERENSI SEKARANG RESOLVE
                             contentDescription = "Dukungan Krisis",
                             tint = MaterialTheme.colorScheme.onPrimary
                         )

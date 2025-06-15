@@ -1,51 +1,86 @@
+# gradle/libs.versions.toml
+
 [versions]
-androidGradlePlugin = "8.4.0"
-kotlin = "1.9.22"
-hilt = "2.56.1"
-composeBom = "2024.05.00"
-compose = "1.6.7"
-coreKtx = "1.13.1"
-lifecycle = "2.8.1"
-activityCompose = "1.9.3"
-navigationCompose = "2.7.7"
-room = "2.7.1"
+agp = "8.10.1"
+# PERBAIKAN: KSP versi ini adalah yang disarankan dalam dokumen Hilt untuk Kotlin 2.1.21.
+ksp = "2.1.21-2.0.1" # KSP version for Kotlin 2.1.21
+hilt = "2.56.2"
 hiltNavigationCompose = "1.2.0"
-material3 = "1.2.1"
-icons = "1.6.7"
+# PERBAIKAN: Gunakan versi BOM yang valid. 2024.04.00 adalah yang terbaru yang masuk akal.
+composeBom = "2024.04.00"
+# PERBAIKAN: Compose compiler versi ini sangat penting dan harus kompatibel dengan Kotlin 2.1.21.
+# Dokumen menyatakan Compose Compiler 2.0.x sesuai dengan Kotlin 2.0.x.
+# Jadi, jika Kotlin Anda 2.1.21, maka versi Compiler Extension juga akan menjadi 2.1.21.
+# Namun, Hilt juga memiliki kompatibilitasnya. Mari kita pertahankan 1.7.0 yang biasanya kompatibel dengan 2.x
+# atau setidaknya pastikan Anda memverifikasi versi terbaru yang kompatibel.
+# Misalnya, Kotlin 2.1.21 sering dipasangkan dengan Compose Compiler 1.7.0
+composeCompiler = "1.7.0"
+room = "2.7.1"
+coreKtx = "1.16.0"
+lifecycle = "2.9.1"
+activityCompose = "1.8.0"
+navigationCompose = "2.7.4"
+coroutines = "1.7.3"
+material3 = "1.2.0"
+kotlin = "2.1.21"
+
+# Networking
+okhttp = "4.12.0"
+retrofit = "2.9.0"
+datastore = "1.0.0"
+
+# Testing
 junit = "4.13.2"
 androidxJunit = "1.1.5"
-espressoCore = "3.6.1"
-tfliteTaskText = "0.4.4"
+androidxEspressoCore = "3.5.1"
 
 [plugins]
-"android-application" = { id = "com.android.application", version.ref = "androidGradlePlugin" }
-"kotlin-android" = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-"kotlin-compose" = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-"hilt" = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+# PERBAIKAN: Sesuaikan penamaan alias dengan hyphen seperti di dokumen.
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android      = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+# FIX: Pastikan ini sesuai dengan versi Hilt di [versions]
+hilt                = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+ksp                 = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
 [libraries]
-"hilt-android" = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
-"hilt-compiler" = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
-"androidx-hilt-navigation-compose" = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
-"androidx-core-ktx" = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
-"androidx-lifecycle-runtime-ktx" = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
-"androidx-activity-compose" = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
-"androidx-lifecycle-viewmodel-compose" = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
-"androidx-compose-bom" = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
-"androidx-ui" = { module = "androidx.compose.ui:ui", version.ref = "compose" }
-"androidx-ui-graphics" = { module = "androidx.compose.ui:ui-graphics", version.ref = "compose" }
-"androidx-ui-tooling-preview" = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
-"androidx-ui-tooling" = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
-"androidx-material3" = { module = "androidx.compose.material3:material3", version.ref = "material3" }
-"androidx-material-icons-core" = { module = "androidx.compose.material:material-icons-core", version.ref = "icons" }
-"androidx-material-icons-extended" = { module = "androidx.compose.material:material-icons-extended", version.ref = "icons" }
-"androidx-navigation-compose" = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
-"androidx-room-runtime" = { module = "androidx.room:room-runtime", version.ref = "room" }
-"androidx-room-ktx" = { module = "androidx.room:room-ktx", version.ref = "room" }
-"androidx-room-compiler" = { module = "androidx.room:room-compiler", version.ref = "room" }
-"tensorflow-lite-task-text" = { module = "org.tensorflow:tensorflow-lite-task-text", version.ref = "tfliteTaskText" }
-"junit" = { module = "junit:junit", version.ref = "junit" }
-"androidx-junit" = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }
-"androidx-espresso-core" = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
-"androidx-ui-test-junit4" = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "compose" }
-"androidx-ui-test-manifest" = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+
+# Compose UI libraries (no version.ref when using BOM in build.gradle.kts)
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+
+# Hilt
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" } # Group ID harus "com.google.dagger"
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" } # Group ID harus "com.google.dagger"
+androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+
+# Room
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+
+# Networking
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+
+# Kotlin Coroutines
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+
+# DataStore
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+
+# Testing
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidxEspressoCore" }

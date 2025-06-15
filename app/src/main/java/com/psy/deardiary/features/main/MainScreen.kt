@@ -1,4 +1,3 @@
-// File: main/java/com/psy/deardiary/features/main/MainScreen.kt
 package com.psy.deardiary.features.main
 
 import androidx.compose.foundation.layout.padding
@@ -31,6 +30,8 @@ import androidx.navigation.compose.rememberNavController
 import com.psy.deardiary.features.diary.DiaryScreen
 import com.psy.deardiary.features.diary.DiaryViewModel
 import com.psy.deardiary.features.growth.GrowthScreen
+import com.psy.deardiary.features.media.MediaScreen
+import com.psy.deardiary.features.services.ServicesScreen
 import com.psy.deardiary.navigation.Screen
 
 data class BottomNavItem(
@@ -124,13 +125,13 @@ fun MainScreen(
                 )
             }
             composable(Screen.Media.route) {
-                MediaScreen() // Call the new MediaScreen
+                MediaScreen()
             }
             composable(Screen.Services.route) {
-                ServicesScreen(onNavigateToCrisisSupport = { mainNavController.navigate(Screen.CrisisSupport.route) }) // Call the new ServicesScreen
+                ServicesScreen(onNavigateToCrisisSupport = { mainNavController.navigate(Screen.CrisisSupport.route) })
             }
             composable(Screen.Growth.route) {
-                GrowthScreen() // Call the new GrowthScreen (formerly HistoryScreen)
+                GrowthScreen()
             }
         }
     }

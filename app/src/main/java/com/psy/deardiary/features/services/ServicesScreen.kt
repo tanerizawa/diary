@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,7 +37,7 @@ fun ServicesScreen(onNavigateToCrisisSupport: () -> Unit) {
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = androidx.compose.ui.Modifier.padding(top = 24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onNavigateToCrisisSupport) {
                 Text("Butuh Bantuan Darurat")
             }

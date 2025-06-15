@@ -11,6 +11,9 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.gradle.properties
+/.settings.gradle.kts
+/build.gradle.kts
 
 # Gradle
 .gradle/

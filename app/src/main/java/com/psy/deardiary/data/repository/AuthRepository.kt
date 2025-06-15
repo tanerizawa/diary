@@ -1,68 +1,39 @@
-// File: app/src/main/java/com/psy/deardiary/data/repository/AuthRepository.kt
-package com.psy.deardiary.data.repository
+// File: app/src/main/java/com/psy/deardiary/data/network/AuthApiService.kt
+package com.psy.deardiary.data.network
 
-import com.psy.deardiary.data.datastore.UserPreferencesRepository
-import com.psy.deardiary.data.dto.TokenResponse
-import com.psy.deardiary.data.network.AuthApiService
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import retrofit2.HttpException
-import java.io.IOException
-import javax.inject.Inject
-import javax.inject.Singleton
+import retrofit2.Response
+import retrofit2.http.Body
+import retrofit2.http.POST
 
-@Singleton
-class AuthRepository @Inject constructor(
-    private val authApiService: AuthApiService,
-    private val userPreferencesRepository: UserPreferencesRepository
-) {
+// ---- Data class untuk permintaan (request) ----
+data class RegisterRequest(
+    val email: String,
+    val password: String
+)
 
-    val authTokenFlow = userPreferencesRepository.authToken
+data class LoginRequest(
+    val email: String,
+    val password: String
+)
 
-    suspend fun login(email: String, password: String): Result<TokenResponse> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val response = authApiService.login(email, password)
-                val body = response.body()
+// ---- Data class untuk respons login (contoh, sesuaikan dengan backend Anda) ----
+data class LoginResponse(
+    val access_token: String,
+    val token_type: String
+    // tambahkan field lain jika ada, misal "user", "refresh_token", dsb.
+)
 
-                if (response.isSuccessful && body != null) {
-                    userPreferencesRepository.saveAuthToken(body.accessToken)
-                    Result.Success(body)
-                } else {
-                    Result.Error(response.errorBody()?.string() ?: "Login gagal, silakan coba lagi.")
-                }
-            } catch (e: HttpException) {
-                Result.Error("Terjadi kesalahan pada server. Kode: ${e.code()}")
-            } catch (e: IOException) {
-                Result.Error("Tidak dapat terhubung ke server. Periksa koneksi internet Anda.")
-            } catch (e: Exception) {
-                Result.Error("Terjadi kesalahan yang tidak diketahui.")
-            }
-        }
-    }
+// ---- Interface Retrofit ----
+interface AuthApiService {
 
-    suspend fun register(email: String, password: String): Result<Unit> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val response = authApiService.register(email, password)
-                if (response.isSuccessful) {
-                    Result.Success(Unit)
-                } else {
-                    Result.Error(response.errorBody()?.string() ?: "Pendaftaran gagal, email mungkin sudah digunakan.")
-                }
-            } catch (e: HttpException) {
-                Result.Error("Terjadi kesalahan pada server. Kode: ${e.code()}")
-            } catch (e: IOException) {
-                Result.Error("Tidak dapat terhubung ke server. Periksa koneksi internet Anda.")
-            } catch (e: Exception) {
-                Result.Error("Terjadi kesalahan yang tidak diketahui.")
-            }
-        }
-    }
+    @POST("api/v1/users/register")
+    suspend fun register(
+        @Body body: RegisterRequest
+    ): Response<Unit>
+    // Jika backend mengembalikan respons selain 204/201 kosong, ganti Unit dengan data class sesuai responsnya
 
-    suspend fun logout() {
-        withContext(Dispatchers.IO) {
-            userPreferencesRepository.clearAuthToken()
-        }
-    }
+    @POST("api/v1/users/login")
+    suspend fun login(
+        @Body body: LoginRequest
+    ): Response<LoginResponse>
 }
