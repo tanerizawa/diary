@@ -10,6 +10,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -24,6 +25,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -189,11 +191,27 @@ private fun VoiceJournalSection(
     onStopClick: () -> Unit,
     onPlaybackClick: () -> Unit
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    val pulse = rememberInfiniteTransition(label = "record-pulse").animateFloat(
+        initialValue = 1f,
+        targetValue = 1.4f,
+        animationSpec = infiniteRepeatable(tween(durationMillis = 600), repeatMode = RepeatMode.Reverse),
+        label = "pulseAnim"
+    )
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         if (isRecording) {
             IconButton(onClick = onStopClick) {
                 Icon(Icons.Default.Stop, contentDescription = "Stop Recording")
             }
+            Icon(
+                Icons.Default.FiberManualRecord,
+                contentDescription = "Recording",
+                tint = Crisis,
+                modifier = Modifier.scale(pulse.value)
+            )
         } else {
             IconButton(onClick = onRecordClick) {
                 Icon(Icons.Default.Mic, contentDescription = "Start Recording")

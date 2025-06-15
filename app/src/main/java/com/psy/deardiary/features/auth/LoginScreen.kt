@@ -40,7 +40,10 @@ fun LoginScreen(
     // PERBAIKAN: Typo 'mutableStateof' menjadi 'mutableStateOf'
     var password by remember { mutableStateOf("") }
 
-    val hasError = uiState.errorMessage != null
+    var inputError by remember { mutableStateOf<String?>(null) }
+
+    val hasError = uiState.errorMessage != null || inputError != null
+    val errorMessage = inputError ?: uiState.errorMessage
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -87,7 +90,7 @@ fun LoginScreen(
                     onValueChange = { email = it },
                     label = "Email",
                     isError = hasError,
-                    errorMessage = uiState.errorMessage,
+                    errorMessage = errorMessage,
                     enabled = !uiState.isLoading
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -96,15 +99,22 @@ fun LoginScreen(
                     onValueChange = { password = it },
                     label = "Password",
                     isError = hasError,
-                    errorMessage = uiState.errorMessage,
+                    errorMessage = errorMessage,
                     enabled = !uiState.isLoading
                 )
                 Spacer(modifier = Modifier.height(32.dp))
-                PrimaryButton(
-                    text = "Login",
-                    onClick = { authViewModel.login(email, password) },
-                    enabled = !uiState.isLoading // PrimaryButton memiliki parameter 'enabled'
-                )
+                    PrimaryButton(
+                        text = "Login",
+                        onClick = {
+                            if (email.isBlank() || password.isBlank()) {
+                                inputError = "Email dan password tidak boleh kosong"
+                            } else {
+                                inputError = null
+                                authViewModel.login(email, password)
+                            }
+                        },
+                        enabled = !uiState.isLoading // PrimaryButton memiliki parameter 'enabled'
+                    )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     text = buildAnnotatedString {

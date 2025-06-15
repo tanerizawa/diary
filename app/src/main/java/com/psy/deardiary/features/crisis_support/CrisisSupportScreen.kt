@@ -42,7 +42,16 @@ fun CrisisSupportScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { navController.navigate(Screen.EmergencyContactSettings.route) }) {
+                    IconButton(onClick = {
+                        if (emergencyContact.isNullOrBlank()) {
+                            navController.navigate(Screen.EmergencyContactSettings.route)
+                        } else {
+                            val intent = Intent(Intent.ACTION_DIAL).apply {
+                                data = Uri.parse("tel:$emergencyContact")
+                            }
+                            context.startActivity(intent)
+                        }
+                    }) {
                         Icon(Icons.Filled.ContactEmergency, "Kontak Darurat")
                     }
                 }
