@@ -1,4 +1,5 @@
-// File: app/src/main/java/com/psy/deardiary/data/datastore/UserPreferencesRepository.kt
+// LOKASI: app/src/main/java/com/psy/deardiary/data/datastore/UserPreferencesRepository.kt
+
 package com.psy.deardiary.data.datastore
 
 import android.content.Context
@@ -22,15 +23,29 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext context:
 
     private object PreferencesKeys {
         val AUTH_TOKEN = stringPreferencesKey("auth_token")
+        // PENAMBAHAN BARU: Key untuk menyimpan nomor kontak darurat
+        val EMERGENCY_CONTACT = stringPreferencesKey("emergency_contact_number")
     }
 
     val authToken: Flow<String?> = dataStore.data.map { preferences ->
         preferences[PreferencesKeys.AUTH_TOKEN]
     }
 
+    // PENAMBAHAN BARU: Flow untuk membaca nomor kontak darurat
+    val emergencyContact: Flow<String?> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.EMERGENCY_CONTACT]
+    }
+
     suspend fun saveAuthToken(token: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.AUTH_TOKEN] = token
+        }
+    }
+
+    // PENAMBAHAN BARU: Fungsi untuk menyimpan nomor kontak darurat
+    suspend fun saveEmergencyContact(number: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.EMERGENCY_CONTACT] = number
         }
     }
 

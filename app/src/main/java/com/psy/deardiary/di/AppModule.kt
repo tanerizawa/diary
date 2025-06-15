@@ -1,4 +1,5 @@
-// File: main/java/com/psy/deardiary/di/AppModule.kt
+// LOKASI: app/src/main/java/com/psy/deardiary/di/AppModule.kt
+
 package com.psy.deardiary.di
 
 import android.content.Context
@@ -27,8 +28,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    // --- Provider untuk Database Lokal (Room) ---
-
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -36,7 +35,13 @@ object AppModule {
             context,
             AppDatabase::class.java,
             "dear_diary_database"
-        ).build()
+        )
+            // --- PENAMBAHAN BARU ---
+            // Menambahkan ini akan secara otomatis membuat ulang database
+            // jika versinya berubah, tanpa memerlukan migrasi manual.
+            .fallbackToDestructiveMigration()
+            // --- AKHIR PENAMBAHAN ---
+            .build()
     }
 
     @Provides
@@ -45,8 +50,7 @@ object AppModule {
         return appDatabase.journalDao()
     }
 
-
-    // --- Provider untuk Jaringan (Retrofit & OkHttp) ---
+    // ... sisa file tidak berubah ...
 
     @Provides
     @Singleton
@@ -94,8 +98,6 @@ object AppModule {
         return retrofit.create(JournalApiService::class.java)
     }
 
-    // --- Provider untuk Repository ---
-
     @Provides
     @Singleton
     fun provideAuthRepository(
@@ -113,6 +115,4 @@ object AppModule {
     ): JournalRepository {
         return JournalRepository(journalApiService, journalDao)
     }
-    // Tidak perlu secara eksplisit menyediakan JournalEditorViewModel di sini,
-    // karena Hilt akan otomatis menyediakan ViewModel dengan @HiltViewModel.
 }

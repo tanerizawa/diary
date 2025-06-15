@@ -139,7 +139,8 @@ fun MainScreen(
                 )
             }
             composable(Screen.Services.route) {
-                ServicesScreen()
+                // PERBAIKAN: Teruskan mainNavController ke ServicesScreen
+                ServicesScreen(navController = mainNavController)
             }
             composable(Screen.Growth.route) {
                 GrowthScreen()

@@ -1,5 +1,5 @@
 // File: app/src/main/java/com/psy/deardiary/features/services/ServicesScreen.kt
-// VERSI DIPERBARUI: Menambahkan impor yang hilang secara eksplisit dan merapikan struktur.
+// VERSI DIBERSIHKAN: Impor tidak duplikat dan struktur Compose diperjelas
 
 package com.psy.deardiary.features.services
 
@@ -9,9 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -50,6 +48,7 @@ fun ServicesScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // --- Bagian: Tes Psikologi Mandiri ---
                 item {
                     Text(
                         text = "Tes Psikologi Mandiri",
@@ -59,12 +58,18 @@ fun ServicesScreen(
                 }
                 items(uiState.availableTests) { serviceItem ->
                     ServiceCard(service = serviceItem, onClick = {
-                        if (serviceItem.title.contains("MBTI", ignoreCase = true)) {
-                            navController.navigate(Screen.MbtiTest.route)
+                        when {
+                            serviceItem.title.contains("MBTI", ignoreCase = true) -> {
+                                navController.navigate(Screen.MbtiTest.route)
+                            }
+                            serviceItem.title.contains("Stres", ignoreCase = true) -> {
+                                navController.navigate(Screen.DassTest.route)
+                            }
                         }
                     })
                 }
 
+                // --- Bagian: Bantuan Profesional ---
                 item {
                     Spacer(Modifier.height(16.dp))
                     Text(
@@ -75,11 +80,12 @@ fun ServicesScreen(
                 }
                 items(uiState.professionalServices) { serviceItem ->
                     ServiceCard(service = serviceItem, onClick = {
-                        // TODO: Implementasi navigasi ke direktori layanan profesional
+                        // TODO: Navigasi ke direktori layanan profesional
                     })
                 }
             }
 
+            // --- Tombol Darurat ---
             CrisisButton(
                 text = "Butuh Bantuan Darurat? (119)",
                 onClick = {
@@ -126,13 +132,11 @@ fun ServiceCard(service: ServiceItem, onClick: () -> Unit) {
     }
 }
 
-// Anda perlu membuat dummy NavController & ViewModel untuk preview
 @Preview(showBackground = true)
 @Composable
 fun ServicesScreenPreview() {
     DearDiaryTheme {
-        // Tidak dapat menggunakan navController di preview tanpa setup — kosongkan atau mock
-        // ServicesScreen(navController = rememberNavController())
+        // Preview dummy hanya menampilkan teks karena NavController tidak tersedia
         Text("Preview tidak tersedia karena membutuhkan NavController")
     }
 }

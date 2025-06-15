@@ -1,4 +1,4 @@
-// VERSI DIPERBARUI: Menambahkan parameter voiceNotePath ke metode create dan update.
+// LOKASI: app/src/main/java/com/psy/deardiary/data/repository/JournalRepository.kt
 
 package com.psy.deardiary.data.repository
 
@@ -46,7 +46,7 @@ class JournalRepository @Inject constructor(
         title: String,
         content: String,
         mood: String,
-        voiceNotePath: String? // PERBAIKAN: Parameter ditambahkan
+        voiceNotePath: String?
     ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
@@ -54,7 +54,7 @@ class JournalRepository @Inject constructor(
                     title = title,
                     content = content,
                     mood = mood,
-                    voiceNotePath = voiceNotePath, // PERBAIKAN: Nilai diteruskan
+                    voiceNotePath = voiceNotePath,
                     isSynced = false,
                     tags = emptyList()
                 )
@@ -71,7 +71,7 @@ class JournalRepository @Inject constructor(
         title: String,
         content: String,
         mood: String,
-        voiceNotePath: String? // PERBAIKAN: Parameter ditambahkan
+        voiceNotePath: String?
     ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
@@ -81,9 +81,9 @@ class JournalRepository @Inject constructor(
                         title = title,
                         content = content,
                         mood = mood,
-                        voiceNotePath = voiceNotePath, // PERBAIKAN: Nilai diteruskan
-                        isSynced = false, // Tandai sebagai belum sinkron ulang
-                        timestamp = System.currentTimeMillis() // Perbarui timestamp
+                        voiceNotePath = voiceNotePath,
+                        isSynced = false,
+                        timestamp = System.currentTimeMillis()
                     )
                     journalDao.updateLocalEntry(updatedEntry)
                     Result.Success(Unit)
@@ -95,6 +95,36 @@ class JournalRepository @Inject constructor(
             }
         }
     }
+
+    // --- PENAMBAHAN BARU ---
+    suspend fun deleteJournal(localId: Int): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val entryToDelete = journalDao.getEntryById(localId)
+                val remoteId = entryToDelete?.remoteId
+
+                // Jika sudah pernah sinkron, hapus juga di server
+                if (remoteId != null) {
+                    val response = journalApiService.deleteJournal(remoteId)
+                    if (!response.isSuccessful) {
+                        return@withContext Result.Error("Gagal menghapus jurnal di server.")
+                    }
+                }
+
+                // Hapus dari database lokal
+                journalDao.deleteEntryByLocalId(localId)
+                Result.Success(Unit)
+
+            } catch (e: HttpException) {
+                Result.Error("Terjadi kesalahan pada server. Kode: ${e.code()}")
+            } catch (e: IOException) {
+                Result.Error("Tidak dapat terhubung ke server. Periksa koneksi internet Anda.")
+            } catch (e: Exception) {
+                Result.Error("Terjadi kesalahan: ${e.message}")
+            }
+        }
+    }
+    // --- AKHIR PENAMBAHAN ---
 
     suspend fun getJournalEntryById(id: Int): JournalEntry? {
         return withContext(Dispatchers.IO) {

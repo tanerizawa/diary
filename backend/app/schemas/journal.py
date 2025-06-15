@@ -1,5 +1,4 @@
 # Lokasi: ./app/schemas/journal.py
-# Deskripsi: Skema Pydantic untuk validasi data request/response jurnal.
 
 from pydantic import BaseModel
 
@@ -18,6 +17,12 @@ class JournalUpdate(JournalBase):
 class Journal(JournalBase):
     id: int
     owner_id: int
+
+    # --- PENAMBAHAN BARU ---
+    # Field untuk menampilkan hasil analisis AI di respons API
+    sentiment_score: float | None = None
+    key_emotions: str | None = None
+    # --- AKHIR PENAMBAHAN ---
 
     # Config untuk kompatibilitas dengan ORM
     class Config:

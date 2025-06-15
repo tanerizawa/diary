@@ -1,3 +1,5 @@
+// LOKASI: app/src/main/java/com/psy/deardiary/data/local/JournalDao.kt
+
 package com.psy.deardiary.data.local
 
 import androidx.room.*
@@ -22,13 +24,13 @@ interface JournalDao {
     @Query("SELECT * FROM journal_entries WHERE remoteId = :remoteId LIMIT 1")
     suspend fun getEntryByRemoteId(remoteId: Int?): JournalEntry?
 
-    @Query("SELECT * FROM journal_entries WHERE id = :id LIMIT 1") // BARU: Untuk memuat entri berdasarkan ID lokal
+    @Query("SELECT * FROM journal_entries WHERE id = :id LIMIT 1")
     suspend fun getEntryById(id: Int): JournalEntry?
 
     @Query("UPDATE journal_entries SET remoteId = :remoteId, title = :title, content = :content, mood = :mood, timestamp = :timestamp, tags = :tags, isSynced = :isSynced WHERE id = :id")
     suspend fun updateEntry(id: Int, remoteId: Int?, title: String, content: String, mood: String, timestamp: Long, tags: List<String>, isSynced: Boolean)
 
-    @Update // BARU: Fungsi untuk memperbarui entri lokal, menandainya sebagai belum disinkronkan
+    @Update
     suspend fun updateLocalEntry(entry: JournalEntry)
 
     @Query("DELETE FROM journal_entries")
@@ -37,6 +39,10 @@ interface JournalDao {
     @Query("SELECT * FROM journal_entries")
     suspend fun getAllEntriesOnce(): List<JournalEntry>
 
+    // --- PENAMBAHAN BARU ---
+    @Query("DELETE FROM journal_entries WHERE id = :localId")
+    suspend fun deleteEntryByLocalId(localId: Int)
+    // --- AKHIR PENAMBAHAN ---
 
     @Transaction
     suspend fun upsertAll(entries: List<JournalEntry>) {
@@ -53,7 +59,7 @@ interface JournalDao {
                     mood = entry.mood,
                     timestamp = entry.timestamp,
                     tags = entry.tags,
-                    isSynced = true // Pastikan status sinkronisasi diperbarui
+                    isSynced = true
                 )
             }
         }

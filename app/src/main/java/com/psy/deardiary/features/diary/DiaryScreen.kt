@@ -1,9 +1,15 @@
+// LOKASI: app/src/main/java/com/psy/deardiary/features/diary/DiaryScreen.kt
+
 package com.psy.deardiary.features.diary
 
-import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.CrisisAlert
 import androidx.compose.material.icons.outlined.Settings
@@ -11,13 +17,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.psy.deardiary.data.model.JournalEntry
 import com.psy.deardiary.ui.components.AnimatedFadeIn
-import com.psy.deardiary.ui.components.JournalEntryCard
 import com.psy.deardiary.ui.components.NetworkErrorSnackbar
 import com.psy.deardiary.ui.theme.DearDiaryTheme
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,15 +101,12 @@ fun DiaryScreen(
             contentAlignment = Alignment.Center
         ) {
             when {
-                // Tampilkan loading indicator hanya jika data sedang dimuat DAN belum ada entri sama sekali.
                 state.isLoading && state.entries.isEmpty() -> {
                     CircularProgressIndicator()
                 }
-                // PERBAIKAN: Kondisi disederhanakan. Ini hanya akan tercapai jika isLoading false dan entries kosong.
                 state.entries.isEmpty() -> {
                     EmptyState()
                 }
-                // Jika ada entri, tampilkan list, terlepas dari status loading (untuk refresh di latar belakang).
                 else -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
@@ -105,11 +115,9 @@ fun DiaryScreen(
                     ) {
                         items(items = state.entries, key = { it.id }) { entry ->
                             AnimatedFadeIn {
-                                JournalEntryCard(
-                                    title = entry.title,
-                                    contentPreview = entry.contentPreview,
-                                    mood = entry.mood,
-                                    date = entry.date,
+                                // PERBAIKAN: Memanggil JournalCard yang sudah diperbarui
+                                JournalCard(
+                                    entry = entry, // Langsung meneruskan objek JournalEntry
                                     onClick = { onEntryClick(entry.id) }
                                 )
                             }
@@ -122,20 +130,90 @@ fun DiaryScreen(
 }
 
 @Composable
+fun JournalCard(entry: JournalEntry, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = entry.mood,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.align(Alignment.Top)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = entry.title.ifBlank { "Tanpa Judul" },
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = SimpleDateFormat("d MMMM yyyy, HH:mm", Locale("id", "ID"))
+                            .format(Date(entry.timestamp)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = entry.content,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        lineHeight = 20.sp
+                    )
+                    if (!entry.keyEmotions.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            entry.keyEmotions.split(",").take(3).forEach { emotion ->
+                                SuggestionChip(
+                                    onClick = {},
+                                    label = { Text(emotion.trim().replaceFirstChar { it.uppercase() }) },
+                                )
+                            }
+                        }
+                    }
+                }
+                entry.sentimentScore?.let { score ->
+                    Spacer(modifier = Modifier.width(12.dp))
+                    val sentimentColor = when {
+                        score > 0.15 -> Color(0xFF4CAF50) // Positif
+                        score < -0.15 -> Color(0xFFF44336) // Negatif
+                        else -> Color.Gray
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .clip(CircleShape)
+                            .background(sentimentColor)
+                            .align(Alignment.Top)
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
 private fun EmptyState() {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(32.dp)
     ) {
-        Text(
-            text = "📖",
-            style = MaterialTheme.typography.displayLarge
-        )
+        Text(text = "📖", style = MaterialTheme.typography.displayLarge)
         Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Ruang Amanmu Menanti",
-            style = MaterialTheme.typography.titleLarge
-        )
+        Text(text = "Ruang Amanmu Menanti", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Mulai tulis jurnal pertamamu untuk memulai perjalanan refleksi diri.",
@@ -146,13 +224,31 @@ private fun EmptyState() {
     }
 }
 
-
 @Preview(showBackground = true, name = "Layar dengan Entri")
 @Composable
 private fun DiaryScreenPreview_WithEntries() {
+    // PERBAIKAN: Data sampel sekarang menggunakan JournalEntry secara langsung
     val sampleEntries = listOf(
-        DiaryEntryItem(1, "Hari yang Cerah", "Pagi ini aku bangun dengan...", "😊", "15 Juni 2025"),
-        DiaryEntryItem(2, "Sedikit Resah", "Ada beberapa hal yang mengganggu...", "😟", "14 Juni 2025")
+        JournalEntry(
+            id = 1,
+            title = "Hari yang Cerah",
+            content = "Pagi ini aku bangun dengan perasaan yang sangat ringan. Entah kenapa, semua terasa mungkin...",
+            mood = "😊",
+            timestamp = System.currentTimeMillis(),
+            sentimentScore = 0.8f, // Menggunakan 'f' untuk Float
+            keyEmotions = "syukur, optimis",
+            tags = emptyList() // Memberikan nilai untuk 'tags'
+        ),
+        JournalEntry(
+            id = 2,
+            title = "Sedikit Resah",
+            content = "Ada beberapa hal yang mengganggu pikiranku hari ini. Pekerjaan menumpuk dan aku merasa sedikit kewalahan.",
+            mood = "😟",
+            timestamp = System.currentTimeMillis() - 86400000,
+            sentimentScore = -0.5f,
+            keyEmotions = "cemas, lelah",
+            tags = emptyList()
+        )
     )
     val state = DiaryUiState(isLoading = false, entries = sampleEntries)
     DearDiaryTheme {
@@ -160,19 +256,11 @@ private fun DiaryScreenPreview_WithEntries() {
     }
 }
 
-@Preview(showBackground = true, name = "Layar Kosong (Empty State)")
+@Preview(showBackground = true, name = "Layar Kosong")
 @Composable
 private fun DiaryScreenPreview_Empty() {
+    // PERBAIKAN: Menggunakan List<JournalEntry> yang kosong
     val state = DiaryUiState(isLoading = false, entries = emptyList())
-    DearDiaryTheme {
-        DiaryScreen(state, {}, {}, {}, {}, onRetry = {}, onClearError = {})
-    }
-}
-
-@Preview(showBackground = true, name = "Layar Saat Loading Awal")
-@Composable
-private fun DiaryScreenPreview_Loading() {
-    val state = DiaryUiState(isLoading = true, entries = emptyList())
     DearDiaryTheme {
         DiaryScreen(state, {}, {}, {}, {}, onRetry = {}, onClearError = {})
     }

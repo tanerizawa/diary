@@ -1,6 +1,4 @@
-// File Baru: app/src/main/java/com/psy/deardiary/data/network/JournalApiService.kt
-// Deskripsi: Interface Retrofit untuk endpoint API yang berhubungan dengan jurnal.
-// Header otentikasi akan ditambahkan secara otomatis oleh AuthInterceptor.
+// LOKASI: app/src/main/java/com/psy/deardiary/data/network/JournalApiService.kt
 
 package com.psy.deardiary.data.network
 
@@ -8,6 +6,7 @@ import com.psy.deardiary.data.dto.JournalCreateRequest
 import com.psy.deardiary.data.dto.JournalResponse
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -30,4 +29,9 @@ interface JournalApiService {
         @Path("id") id: Int,
         @Body journal: JournalCreateRequest
     ): Response<JournalResponse>
+
+    // --- PENAMBAHAN BARU ---
+    @DELETE("api/v1/journal/{id}")
+    suspend fun deleteJournal(@Path("id") id: Int): Response<Unit>
+    // --- AKHIR PENAMBAHAN ---
 }

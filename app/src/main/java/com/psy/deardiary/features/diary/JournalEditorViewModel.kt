@@ -1,4 +1,4 @@
-// VERSI DIPERBARUI: Memastikan loadJournalEntry bersifat private.
+// LOKASI: app/src/main/java/com/psy/deardiary/features/diary/JournalEditorViewModel.kt
 
 package com.psy.deardiary.features.diary
 
@@ -7,7 +7,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.psy.deardiary.data.repository.JournalRepository
+import com.psy.deardiary.data.repository.Result // <-- PERBAIKAN: Import yang hilang ditambahkan di sini
 import com.psy.deardiary.navigation.Screen
+import com.psy.deardiary.utils.AudioPlayer
 import com.psy.deardiary.utils.AudioRecorder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -28,13 +30,16 @@ data class JournalEditorUiState(
     val isSaved: Boolean = false,
     val entryId: Int? = null,
     val isRecording: Boolean = false,
-    val voiceNotePath: String? = null
+    val voiceNotePath: String? = null,
+    val isPlayingAudio: Boolean = false,
+    val isDeleted: Boolean = false
 )
 
 @HiltViewModel
 class JournalEditorViewModel @Inject constructor(
     private val journalRepository: JournalRepository,
     private val audioRecorder: AudioRecorder,
+    private val audioPlayer: AudioPlayer,
     @ApplicationContext private val context: Context,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -45,8 +50,6 @@ class JournalEditorViewModel @Inject constructor(
     private var audioFile: File? = null
 
     init {
-        // Logika untuk memuat data dipindahkan ke sini.
-        // Ini akan berjalan sekali saat ViewModel dibuat.
         val entryId: Int? = savedStateHandle.get<String>(Screen.Editor.ENTRY_ID_ARG)?.toIntOrNull()
         val prompt: String? = savedStateHandle.get<String>(Screen.Editor.PROMPT_ARG)?.let {
             URLDecoder.decode(it, "UTF-8")
@@ -61,7 +64,6 @@ class JournalEditorViewModel @Inject constructor(
         }
     }
 
-    // PERBAIKAN: Fungsi ini sekarang bersifat private, hanya untuk digunakan di dalam ViewModel ini.
     private fun loadJournalEntry(entryId: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
@@ -83,6 +85,27 @@ class JournalEditorViewModel @Inject constructor(
         }
     }
 
+    fun deleteJournal() {
+        viewModelScope.launch {
+            _uiState.value.entryId?.let { id ->
+                _uiState.update { it.copy(isLoading = true) }
+                when (val result = journalRepository.deleteJournal(id)) {
+                    // PERBAIKAN: Sekarang 'Result.Success' dan 'Result.Error' dikenali
+                    is Result.Success -> {
+                        _uiState.update { it.copy(isLoading = false, isDeleted = true) }
+                    }
+                    is Result.Error -> {
+                        _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
+                    }
+                }
+            }
+        }
+    }
+
+    fun onDeleteComplete() {
+        _uiState.update { it.copy(isDeleted = false) }
+    }
+
     fun onStartRecording() {
         audioFile = File(context.cacheDir, "voice_journal_${System.currentTimeMillis()}.mp4")
         audioRecorder.start(audioFile!!)
@@ -92,6 +115,22 @@ class JournalEditorViewModel @Inject constructor(
     fun onStopRecording() {
         audioRecorder.stop()
         _uiState.update { it.copy(isRecording = false, voiceNotePath = audioFile?.absolutePath) }
+    }
+
+    fun onPlaybackClicked() {
+        val currentState = _uiState.value
+        if (currentState.voiceNotePath == null) return
+
+        if (currentState.isPlayingAudio) {
+            audioPlayer.stop {
+                _uiState.update { it.copy(isPlayingAudio = false) }
+            }
+        } else {
+            audioPlayer.play(currentState.voiceNotePath) {
+                _uiState.update { it.copy(isPlayingAudio = false) }
+            }
+            _uiState.update { it.copy(isPlayingAudio = true) }
+        }
     }
 
     fun updateTitle(title: String) {
@@ -128,15 +167,21 @@ class JournalEditorViewModel @Inject constructor(
                 )
             }
 
+            // PERBAIKAN: Blok ini juga sekarang akan berfungsi dengan benar
             when (result) {
-                is com.psy.deardiary.data.repository.Result.Success -> {
+                is Result.Success -> {
                     _uiState.update { it.copy(isLoading = false, isSaved = true) }
                 }
-                is com.psy.deardiary.data.repository.Result.Error -> {
+                is Result.Error -> {
                     _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
                 }
             }
         }
+    }
+
+    override fun onCleared() {
+        audioPlayer.stop {}
+        super.onCleared()
     }
 
     fun onSaveComplete() {

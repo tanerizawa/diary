@@ -1,5 +1,5 @@
 // Lokasi: app/src/main/java/com/psy/deardiary/features/settings/SettingsScreen.kt
-// Deskripsi: Memperbarui UI untuk merespons state penghapusan akun.
+// Deskripsi: UI pengaturan lengkap dengan ekspor data, hapus akun, dan navigasi fitur tambahan.
 
 package com.psy.deardiary.features.settings
 
@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ContactEmergency
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Notifications
@@ -28,13 +29,13 @@ import com.psy.deardiary.ui.theme.DearDiaryTheme
 import com.psy.deardiary.ui.theme.Error
 import kotlinx.coroutines.launch
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onBackClick: () -> Unit,
     onNavigateToNotification: () -> Unit,
     onNavigateToPrivacyPolicy: () -> Unit,
+    onNavigateToEmergencyContact: () -> Unit,
     onAccountDeleted: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
@@ -51,12 +52,12 @@ fun SettingsScreen(
             uri?.let { fileUri ->
                 uiState.jsonForExport?.let { json ->
                     try {
-                        context.contentResolver.openOutputStream(fileUri)?.use { outputStream ->
-                            outputStream.write(json.toByteArray())
-                        }
+                        context.contentResolver.openOutputStream(fileUri)?.use { it.write(json.toByteArray()) }
                         viewModel.onExportComplete()
                     } catch (e: Exception) {
-                        scope.launch { snackbarHostState.showSnackbar("Gagal menyimpan file.") }
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Gagal menyimpan file.")
+                        }
                     }
                 }
             }
@@ -135,6 +136,12 @@ fun SettingsScreen(
             Text("Aplikasi", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
             SettingItem(
+                icon = Icons.Default.ContactEmergency,
+                title = "Kontak Darurat",
+                description = "Atur nomor yang dihubungi saat krisis.",
+                onClick = onNavigateToEmergencyContact
+            )
+            SettingItem(
                 icon = Icons.Default.Notifications,
                 title = "Pengaturan Notifikasi",
                 description = "Atur pengingat untuk menulis jurnal.",
@@ -191,7 +198,12 @@ private fun SettingItem(
 @Composable
 private fun SettingsScreenPreview() {
     DearDiaryTheme {
-        // PERBAIKAN: Menambahkan parameter onAccountDeleted yang hilang
-        SettingsScreen({}, {}, {}, onAccountDeleted = {})
+        SettingsScreen(
+            onBackClick = {},
+            onNavigateToNotification = {},
+            onNavigateToPrivacyPolicy = {},
+            onNavigateToEmergencyContact = {},
+            onAccountDeleted = {}
+        )
     }
 }

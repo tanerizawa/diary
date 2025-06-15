@@ -1,28 +1,20 @@
-// File: app/src/main/java/com/psy/deardiary/navigation/AppNavigation.kt
-// Deskripsi: Versi lengkap dan diperbaiki dari file navigasi aplikasi.
-
 package com.psy.deardiary.navigation
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.psy.deardiary.features.auth.AuthViewModel
-import com.psy.deardiary.features.auth.LoginScreen
-import com.psy.deardiary.features.auth.RegisterScreen
+import com.psy.deardiary.features.auth.*
 import com.psy.deardiary.features.crisis_support.CrisisSupportScreen
 import com.psy.deardiary.features.diary.JournalEditorScreen
 import com.psy.deardiary.features.main.MainScreen
 import com.psy.deardiary.features.onboarding.OnboardingScreen
-import com.psy.deardiary.features.settings.NotificationSettingsScreen
-import com.psy.deardiary.features.settings.PrivacyPolicyScreen
-import com.psy.deardiary.features.settings.SettingsScreen
+import com.psy.deardiary.features.services.dass.DassResultScreen
+import com.psy.deardiary.features.services.dass.DassTestScreen
 import com.psy.deardiary.features.services.mbti.MbtiResultScreen
 import com.psy.deardiary.features.services.mbti.MbtiTestScreen
+import com.psy.deardiary.features.settings.*
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
@@ -31,7 +23,7 @@ fun AppNavigation(navController: NavHostController) {
         startDestination = Screen.Onboarding.route
     ) {
 
-        // --- ALUR PRA-LOGIN ---
+        // --- PRA-LOGIN ---
 
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
@@ -84,38 +76,24 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
 
-        // --- ALUR SETELAH LOGIN ---
+        // --- UTAMA ---
 
         composable(Screen.MainAppFlow.route) {
             MainScreen(mainNavController = navController)
         }
 
-        composable(Screen.Settings.route) {
-            SettingsScreen(
-                onBackClick = { navController.popBackStack() },
-                onNavigateToNotification = { navController.navigate(Screen.NotificationSettings.route) },
-                onNavigateToPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) },
-                onAccountDeleted = {
-                    navController.navigate(Screen.Onboarding.route) {
-                        popUpTo(navController.graph.id) { inclusive = true }
-                    }
-                }
+        // --- JURNAL ---
+
+        composable(
+            route = Screen.Editor.route,
+            arguments = Screen.Editor.arguments
+        ) {
+            JournalEditorScreen(
+                onBackClick = { navController.popBackStack() }
             )
         }
 
-        composable(Screen.NotificationSettings.route) {
-            NotificationSettingsScreen(onBackClick = { navController.popBackStack() })
-        }
-
-        composable(Screen.PrivacyPolicy.route) {
-            PrivacyPolicyScreen(onBackClick = { navController.popBackStack() })
-        }
-
-        composable(Screen.CrisisSupport.route) {
-            CrisisSupportScreen()
-        }
-
-        // --- TES MBTI ---
+        // --- LAYANAN: MBTI ---
 
         composable(Screen.MbtiTest.route) {
             MbtiTestScreen(
@@ -139,19 +117,69 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
 
-        // --- JURNAL EDITOR ---
+        // --- LAYANAN: DASS ---
+
+        composable(Screen.DassTest.route) {
+            DassTestScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onTestComplete = { depression, anxiety, stress ->
+                    navController.navigate(
+                        Screen.DassResult.createRoute(depression, anxiety, stress)
+                    ) {
+                        popUpTo(Screen.DassTest.route) { inclusive = true }
+                    }
+                }
+            )
+        }
 
         composable(
-            route = Screen.Editor.route,
-            arguments = Screen.Editor.arguments
+            route = Screen.DassResult.route,
+            arguments = Screen.DassResult.arguments
         ) { backStackEntry ->
-            val entryId = backStackEntry.arguments?.getString(Screen.Editor.ENTRY_ID_ARG)
-            val prompt = backStackEntry.arguments?.getString(Screen.Editor.PROMPT_ARG)
-            JournalEditorScreen(
-                entryId = entryId,
-                prompt = prompt,
-                onBackClick = { navController.popBackStack() }
+            val depression = backStackEntry.arguments?.getInt(Screen.DassResult.DEPRESSION_ARG) ?: 0
+            val anxiety = backStackEntry.arguments?.getInt(Screen.DassResult.ANXIETY_ARG) ?: 0
+            val stress = backStackEntry.arguments?.getInt(Screen.DassResult.STRESS_ARG) ?: 0
+
+            DassResultScreen(
+                depressionScore = depression,
+                anxietyScore = anxiety,
+                stressScore = stress,
+                onNavigateBack = { navController.popBackStack() }
             )
+        }
+
+        // --- SETELAN DAN DUKUNGAN ---
+
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                onBackClick = { navController.popBackStack() },
+                onNavigateToNotification = { navController.navigate(Screen.NotificationSettings.route) },
+                onNavigateToPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) },
+                onNavigateToEmergencyContact = { navController.navigate(Screen.EmergencyContactSettings.route) },
+                onAccountDeleted = {
+                    navController.navigate(Screen.Onboarding.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.NotificationSettings.route) {
+            NotificationSettingsScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        composable(Screen.PrivacyPolicy.route) {
+            PrivacyPolicyScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        composable(Screen.EmergencyContactSettings.route) {
+            EmergencyContactScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        // --- BANTUAN KRISIS ---
+
+        composable(Screen.CrisisSupport.route) {
+            CrisisSupportScreen(navController = navController)
         }
     }
 }

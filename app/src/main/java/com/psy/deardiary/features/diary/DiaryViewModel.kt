@@ -1,5 +1,4 @@
-// File: app/src/main/java/com/psy/deardiary/features/diary/DiaryViewModel.kt
-// VERSI DIPERBARUI: Menyesuaikan pemanggilan createJournal dengan parameter baru.
+// LOKASI: app/src/main/java/com/psy/deardiary/features/diary/DiaryViewModel.kt
 
 package com.psy.deardiary.features.diary
 
@@ -15,23 +14,13 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
-// Model data untuk UI, tidak perlu diubah.
-data class DiaryEntryItem(
-    val id: Int,
-    val title: String,
-    val contentPreview: String,
-    val mood: String,
-    val date: String
-)
-
+// PERBAIKAN: Kita akan menggunakan model 'JournalEntry' secara langsung di UI,
+// jadi kita tidak memerlukan 'DiaryEntryItem' lagi.
 data class DiaryUiState(
-    val isLoading: Boolean = true, // Default ke true saat pertama kali dimuat
-    val entries: List<DiaryEntryItem> = emptyList(),
+    val isLoading: Boolean = true,
+    val entries: List<JournalEntry> = emptyList(), // Menggunakan JournalEntry secara langsung
     val error: String? = null
 )
 
@@ -44,11 +33,8 @@ class DiaryViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     init {
-        // 1. Mulai mengamati data dari database lokal.
         observeLocalJournals()
-        // 2. Segarkan data dari server saat pertama kali ViewModel dibuat.
         refreshJournals()
-        // 3. Coba sinkronkan data yang tertunda.
         syncJournals()
     }
 
@@ -57,8 +43,9 @@ class DiaryViewModel @Inject constructor(
             .onEach { journalEntries ->
                 _uiState.update { currentState ->
                     currentState.copy(
-                        isLoading = false, // Berhenti loading setelah data pertama diterima
-                        entries = journalEntries.map { it.toDiaryEntryItem() }
+                        isLoading = false,
+                        // PERBAIKAN: Tidak perlu lagi memetakan ke DiaryEntryItem
+                        entries = journalEntries
                     )
                 }
             }
@@ -70,8 +57,6 @@ class DiaryViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             when (val result = journalRepository.refreshJournals()) {
                 is Result.Success -> {
-                    // Tidak perlu melakukan apa-apa di sini, karena `observeLocalJournals`
-                    // akan otomatis menangkap data baru. Cukup matikan status loading.
                     _uiState.update { it.copy(isLoading = false, error = null) }
                 }
                 is Result.Error -> {
@@ -81,24 +66,8 @@ class DiaryViewModel @Inject constructor(
         }
     }
 
-    fun createJournal(title: String, content: String, mood: String) {
-        viewModelScope.launch {
-            // PERBAIKAN: Menambahkan argumen 'voiceNotePath = null' yang hilang.
-            journalRepository.createJournal(
-                title = title,
-                content = content,
-                mood = mood,
-                voiceNotePath = null
-            )
-            // Setelah membuat jurnal lokal, coba sinkronkan langsung.
-            syncJournals()
-        }
-    }
-
     private fun syncJournals() {
         viewModelScope.launch {
-            // Proses sinkronisasi bisa berjalan di latar belakang tanpa
-            // perlu memblokir atau menampilkan loading di UI secara eksplisit.
             journalRepository.syncPendingJournals()
         }
     }
@@ -106,24 +75,4 @@ class DiaryViewModel @Inject constructor(
     fun clearErrorMessage() {
         _uiState.update { it.copy(error = null) }
     }
-}
-
-/**
- * Fungsi mapper untuk mengubah model database (JournalEntry) menjadi model UI (DiaryEntryItem).
- */
-private fun JournalEntry.toDiaryEntryItem(): DiaryEntryItem {
-    val simpleDateFormat = SimpleDateFormat("d MMMM yyyy", Locale("id", "ID"))
-    val formattedDate = simpleDateFormat.format(Date(this.timestamp))
-    val preview = if (this.content.length > 100) {
-        this.content.substring(0, 100) + "..."
-    } else {
-        this.content
-    }
-    return DiaryEntryItem(
-        id = this.id, // Menggunakan ID lokal untuk key di UI
-        title = this.title.ifEmpty { "Tanpa Judul" },
-        contentPreview = preview,
-        mood = this.mood,
-        date = formattedDate
-    )
 }
