@@ -40,10 +40,48 @@ class SettingsViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    fun onExportDataClicked() { /* ... (kode tidak berubah) ... */ }
-    fun onExportComplete() { /* ... (kode tidak berubah) ... */ }
-    fun onUserMessageShown() { /* ... (kode tidak berubah) ... */ }
-    fun deleteAccount() { /* ... (kode tidak berubah) ... */ }
+    fun onExportDataClicked() {
+        viewModelScope.launch {
+            try {
+                val entries = journalRepository.getAllEntriesOnce()
+                if (entries.isEmpty()) {
+                    _uiState.update { it.copy(userMessage = "Tidak ada data untuk diekspor.") }
+                    return@launch
+                }
+
+                val gson = GsonBuilder().setPrettyPrinting().create()
+                val json = gson.toJson(entries)
+
+                _uiState.update { it.copy(jsonForExport = json) }
+
+            } catch (e: Exception) {
+                _uiState.update { it.copy(userMessage = "Terjadi kesalahan saat menyiapkan data.") }
+            }
+        }
+    }
+
+    fun onExportComplete() {
+        _uiState.update { it.copy(jsonForExport = null, userMessage = "Data berhasil diekspor!") }
+    }
+
+    fun onUserMessageShown() {
+        _uiState.update { it.copy(userMessage = null) }
+    }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            when (authRepository.deleteAccountOnServer()) {
+                is Result.Success -> {
+                    journalRepository.deleteAllLocalEntries()
+                    authRepository.logout()
+                    _uiState.update { it.copy(isAccountDeleted = true) }
+                }
+                is Result.Error -> {
+                    _uiState.update { it.copy(userMessage = "Gagal menghapus akun. Coba lagi.") }
+                }
+            }
+        }
+    }
 
     // PENAMBAHAN BARU: Fungsi untuk menyimpan kontak
     fun saveEmergencyContact(number: String) {
