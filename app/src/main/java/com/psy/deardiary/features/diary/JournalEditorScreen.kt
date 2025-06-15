@@ -28,9 +28,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
+import androidx.compose.ui.platform.LocalContext
+import com.psy.deardiary.data.local.JournalDao
+import com.psy.deardiary.data.model.JournalEntry
+import com.psy.deardiary.data.network.JournalApiService
+import com.psy.deardiary.data.repository.JournalRepository
 import com.psy.deardiary.ui.components.ConfirmationDialog
 import com.psy.deardiary.ui.theme.Crisis
 import com.psy.deardiary.ui.theme.DearDiaryTheme
+import com.psy.deardiary.utils.AudioPlayer
+import com.psy.deardiary.utils.AudioRecorder
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -143,19 +155,121 @@ fun JournalEditorScreen(
                     onPlaybackClick = { viewModel.onPlaybackClicked() }
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                // ... (Sisa kode UI tidak berubah)
+
+                // Pilihan mood
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    val moods = listOf("😊", "😐", "😟", "😠", "😢")
+                    moods.forEach { mood ->
+                        MoodSelector(
+                            mood = mood,
+                            isSelected = uiState.journalMood == mood,
+                            onSelect = { viewModel.updateMood(it) },
+                            enabled = !uiState.isRecording && !uiState.isPlayingAudio
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
 }
 
 // ... (Sisa file tidak berubah)
-@Composable
-private fun VoiceJournalSection( isRecording: Boolean, hasRecording: Boolean, isPlaying: Boolean, onRecordClick: () -> Unit, onStopClick: () -> Unit, onPlaybackClick: () -> Unit ) { /* ... */ }
 
 @Composable
-private fun MoodSelector( mood: String, isSelected: Boolean, onSelect: (String) -> Unit, enabled: Boolean ) { /* ... */ }
+private fun VoiceJournalSection(
+    isRecording: Boolean,
+    hasRecording: Boolean,
+    isPlaying: Boolean,
+    onRecordClick: () -> Unit,
+    onStopClick: () -> Unit,
+    onPlaybackClick: () -> Unit
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (isRecording) {
+            IconButton(onClick = onStopClick) {
+                Icon(Icons.Default.Stop, contentDescription = "Stop Recording")
+            }
+        } else {
+            IconButton(onClick = onRecordClick) {
+                Icon(Icons.Default.Mic, contentDescription = "Start Recording")
+            }
+        }
+
+        if (hasRecording) {
+            IconButton(onClick = onPlaybackClick) {
+                if (isPlaying) {
+                    Icon(Icons.Default.Stop, contentDescription = "Stop Playback")
+                } else {
+                    Icon(Icons.Default.PlayArrow, contentDescription = "Play Recording")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MoodSelector(
+    mood: String,
+    isSelected: Boolean,
+    onSelect: (String) -> Unit,
+    enabled: Boolean
+) {
+    val background = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .background(background)
+            .clickable(enabled = enabled) { onSelect(mood) },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = mood, color = contentColor, style = MaterialTheme.typography.titleLarge)
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
-private fun JournalEditorScreenPreview() { /* ... */ }
+private fun JournalEditorScreenPreview() {
+    DearDiaryTheme {
+        // Membuat instance ViewModel palsu untuk preview
+        val context = LocalContext.current
+        val fakeRepository = JournalRepository(
+            journalApiService = Retrofit.Builder()
+                .baseUrl("http://localhost/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+                .create(JournalApiService::class.java),
+            journalDao = object : JournalDao {
+                override suspend fun insertEntry(entry: JournalEntry): Long = 0
+                override fun getAllEntries(): Flow<List<JournalEntry>> = flowOf(emptyList())
+                override suspend fun getUnsyncedEntries(): List<JournalEntry> = emptyList()
+                override suspend fun markAsSynced(localId: Int, newRemoteId: Int) {}
+                override suspend fun getEntryByRemoteId(remoteId: Int?): JournalEntry? = null
+                override suspend fun getEntryById(id: Int): JournalEntry? = null
+                override suspend fun updateEntry(id: Int, remoteId: Int?, title: String, content: String, mood: String, timestamp: Long, tags: List<String>, isSynced: Boolean) {}
+                override suspend fun updateLocalEntry(entry: JournalEntry) {}
+                override suspend fun deleteAllEntries() {}
+                override suspend fun getAllEntriesOnce(): List<JournalEntry> = emptyList()
+                override suspend fun deleteEntryByLocalId(localId: Int) {}
+                override suspend fun upsertAll(entries: List<JournalEntry>) {}
+            }
+        )
+
+        val fakeViewModel = JournalEditorViewModel(
+            journalRepository = fakeRepository,
+            audioRecorder = AudioRecorder(context),
+            audioPlayer = AudioPlayer(),
+            context = context,
+            savedStateHandle = SavedStateHandle()
+        )
+
+        JournalEditorScreen(onBackClick = {}, viewModel = fakeViewModel)
+    }
+}
