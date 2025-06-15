@@ -8,12 +8,12 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 # PERBAIKAN: Impor 'settings' dari config
 from app.core.config import settings
-from app.api import deps # Baris ini sepertinya salah, seharusnya tidak mengimpor dirinya sendiri
 from app.db.session import SessionLocal
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/users/login"
 )
+
 
 def get_db() -> Generator:
     """Dependensi untuk mendapatkan sesi database."""
@@ -22,6 +22,7 @@ def get_db() -> Generator:
         yield db
     finally:
         db.close()
+
 
 def get_current_user(
         db: Session = Depends(get_db), token: str = Depends(reusable_oauth2)
