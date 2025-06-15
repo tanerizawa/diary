@@ -31,6 +31,12 @@ interface JournalDao {
     @Update // BARU: Fungsi untuk memperbarui entri lokal, menandainya sebagai belum disinkronkan
     suspend fun updateLocalEntry(entry: JournalEntry)
 
+    @Query("DELETE FROM journal_entries")
+    suspend fun deleteAllEntries()
+
+    @Query("SELECT * FROM journal_entries")
+    suspend fun getAllEntriesOnce(): List<JournalEntry>
+
 
     @Transaction
     suspend fun upsertAll(entries: List<JournalEntry>) {

@@ -20,6 +20,8 @@ sealed class Screen(val route: String) {
 
     // Rute untuk layar-layar detail yang bisa diakses dari dalam tab
     data object Settings : Screen("settings")
+    data object NotificationSettings : Screen("notification_settings")
+    data object PrivacyPolicy : Screen("privacy_policy")
     data object CrisisSupport : Screen("crisis_support")
 
     // Rute untuk Editor Jurnal dengan argumen opsional
