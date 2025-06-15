@@ -5,6 +5,9 @@ package com.psy.deardiary.features.crisis_support
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ContactEmergency
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -20,6 +23,7 @@ import com.psy.deardiary.navigation.Screen
 import com.psy.deardiary.ui.components.CrisisButton
 import com.psy.deardiary.ui.components.SecondaryButton
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CrisisSupportScreen(
     navController: NavController, // PERBAIKAN: Tambah NavController
@@ -28,19 +32,39 @@ fun CrisisSupportScreen(
     val context = LocalContext.current
     val emergencyContact by viewModel.emergencyContact.collectAsState()
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("Anda Tidak Sendirian", style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            "Jika Anda merasa dalam krisis atau membutuhkan bantuan segera, jangan ragu untuk menghubungi layanan di bawah ini.",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(32.dp))
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Dukungan Krisis") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Kembali")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { navController.navigate(Screen.EmergencyContactSettings.route) }) {
+                        Icon(Icons.Filled.ContactEmergency, "Kontak Darurat")
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("Anda Tidak Sendirian", style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "Jika Anda merasa dalam krisis atau membutuhkan bantuan segera, jangan ragu untuk menghubungi layanan di bawah ini.",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(32.dp))
 
         // Tombol untuk kontak darurat pribadi
         val hasContact = !emergencyContact.isNullOrBlank()
@@ -69,11 +93,12 @@ fun CrisisSupportScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            "Aplikasi ini adalah pendamping, bukan pengganti bantuan profesional.",
-            style = MaterialTheme.typography.labelMedium,
-            textAlign = TextAlign.Center
-        )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "Aplikasi ini adalah pendamping, bukan pengganti bantuan profesional.",
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }

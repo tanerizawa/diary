@@ -40,6 +40,8 @@ fun LoginScreen(
     // PERBAIKAN: Typo 'mutableStateof' menjadi 'mutableStateOf'
     var password by remember { mutableStateOf("") }
 
+    val hasError = uiState.errorMessage != null
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -84,15 +86,18 @@ fun LoginScreen(
                     value = email,
                     onValueChange = { email = it },
                     label = "Email",
-                    // PERBAIKAN: Komponen PrimaryTextField tidak memiliki parameter 'enabled', jadi dihapus.
-                    // Jika fungsionalitas ini diinginkan, parameter 'enabled' harus ditambahkan ke definisi komponen tersebut.
+                    isError = hasError,
+                    errorMessage = uiState.errorMessage,
+                    enabled = !uiState.isLoading
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 PasswordTextField(
                     value = password,
                     onValueChange = { password = it },
                     label = "Password",
-                    // PERBAIKAN: Komponen PasswordTextField tidak memiliki parameter 'enabled', jadi dihapus.
+                    isError = hasError,
+                    errorMessage = uiState.errorMessage,
+                    enabled = !uiState.isLoading
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 PrimaryButton(
