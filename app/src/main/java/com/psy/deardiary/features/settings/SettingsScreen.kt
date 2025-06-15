@@ -1,15 +1,16 @@
-// File: app/src/main/java/com/psy/deardiary/features/settings/SettingsScreen.kt
-// Deskripsi: Layar untuk semua pengaturan aplikasi, memberikan pengguna kontrol
-// penuh atas data dan preferensi mereka.
+// Lokasi: app/src/main/java/com/psy/deardiary/features/settings/SettingsScreen.kt
+// Deskripsi: Memperbarui UI untuk merespons state penghapusan akun.
 
 package com.psy.deardiary.features.settings
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material3.*
@@ -17,30 +18,75 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.psy.deardiary.ui.components.ConfirmationDialog
 import com.psy.deardiary.ui.theme.DearDiaryTheme
 import com.psy.deardiary.ui.theme.Error
-import androidx.compose.ui.text.font.FontWeight // <-- TAMBAHKAN BARIS INI
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onBackClick: () -> Unit,
-    onExportData: () -> Unit,
-    onDeleteAccount: () -> Unit,
     onNavigateToNotification: () -> Unit,
-    onNavigateToPrivacyPolicy: () -> Unit
+    onNavigateToPrivacyPolicy: () -> Unit,
+    onAccountDeleted: () -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel()
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsState()
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val fileCreatorLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json"),
+        onResult = { uri ->
+            uri?.let { fileUri ->
+                uiState.jsonForExport?.let { json ->
+                    try {
+                        context.contentResolver.openOutputStream(fileUri)?.use { outputStream ->
+                            outputStream.write(json.toByteArray())
+                        }
+                        viewModel.onExportComplete()
+                    } catch (e: Exception) {
+                        scope.launch { snackbarHostState.showSnackbar("Gagal menyimpan file.") }
+                    }
+                }
+            }
+        }
+    )
+
+    LaunchedEffect(uiState) {
+        uiState.jsonForExport?.let {
+            fileCreatorLauncher.launch("deardiary_export_${System.currentTimeMillis()}.json")
+        }
+
+        uiState.userMessage?.let { message ->
+            scope.launch {
+                snackbarHostState.showSnackbar(message)
+                viewModel.onUserMessageShown()
+            }
+        }
+    }
+
+    LaunchedEffect(uiState.isAccountDeleted) {
+        if (uiState.isAccountDeleted) {
+            onAccountDeleted()
+        }
+    }
 
     if (showDeleteDialog) {
         ConfirmationDialog(
             onDismissRequest = { showDeleteDialog = false },
             onConfirm = {
-                onDeleteAccount()
+                viewModel.deleteAccount()
                 showDeleteDialog = false
             },
             title = "Hapus Akun",
@@ -50,6 +96,7 @@ fun SettingsScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Pengaturan") },
@@ -67,14 +114,13 @@ fun SettingsScreen(
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {
-            // Grup Data & Privasi
             Text("Data & Privasi", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
             SettingItem(
                 icon = Icons.Default.Download,
                 title = "Ekspor Semua Data",
                 description = "Simpan semua entri jurnalmu sebagai file.",
-                onClick = onExportData
+                onClick = { viewModel.onExportDataClicked() }
             )
             SettingItem(
                 icon = Icons.Default.DeleteForever,
@@ -86,7 +132,6 @@ fun SettingsScreen(
 
             Divider(modifier = Modifier.padding(vertical = 16.dp))
 
-            // Grup Aplikasi
             Text("Aplikasi", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
             SettingItem(
@@ -142,11 +187,11 @@ private fun SettingItem(
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 private fun SettingsScreenPreview() {
     DearDiaryTheme {
-        SettingsScreen({}, {}, {}, {}, {})
+        // PERBAIKAN: Menambahkan parameter onAccountDeleted yang hilang
+        SettingsScreen({}, {}, {}, onAccountDeleted = {})
     }
 }

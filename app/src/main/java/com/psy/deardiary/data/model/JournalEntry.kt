@@ -1,5 +1,5 @@
 // File: app/src/main/java/com/psy/deardiary/data/model/JournalEntry.kt
-// VERSI DIPERBARUI: Ditambahkan kolom untuk mendukung sinkronisasi online/offline.
+// VERSI DIPERBARUI: Ditambahkan kolom voiceNotePath.
 
 package com.psy.deardiary.data.model
 
@@ -16,7 +16,10 @@ data class JournalEntry(
 
     val title: String,
     val content: String,
+
+    // PERBAIKAN: Menambahkan kolom untuk menyimpan path file audio.
     val voiceNotePath: String? = null,
+
     val mood: String,
     val timestamp: Long = System.currentTimeMillis(),
     val tags: List<String>,

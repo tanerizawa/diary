@@ -1,3 +1,5 @@
+// VERSI DIPERBARUI: Menambahkan parameter voiceNotePath ke metode create dan update.
+
 package com.psy.deardiary.data.repository
 
 import com.psy.deardiary.data.dto.toJournalCreateRequest
@@ -40,13 +42,19 @@ class JournalRepository @Inject constructor(
         }
     }
 
-    suspend fun createJournal(title: String, content: String, mood: String): Result<Unit> {
+    suspend fun createJournal(
+        title: String,
+        content: String,
+        mood: String,
+        voiceNotePath: String? // PERBAIKAN: Parameter ditambahkan
+    ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
                 val newEntry = JournalEntry(
                     title = title,
                     content = content,
                     mood = mood,
+                    voiceNotePath = voiceNotePath, // PERBAIKAN: Nilai diteruskan
                     isSynced = false,
                     tags = emptyList()
                 )
@@ -58,7 +66,13 @@ class JournalRepository @Inject constructor(
         }
     }
 
-    suspend fun updateJournal(id: Int, title: String, content: String, mood: String): Result<Unit> {
+    suspend fun updateJournal(
+        id: Int,
+        title: String,
+        content: String,
+        mood: String,
+        voiceNotePath: String? // PERBAIKAN: Parameter ditambahkan
+    ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
                 val existingEntry = journalDao.getEntryById(id)
@@ -67,6 +81,7 @@ class JournalRepository @Inject constructor(
                         title = title,
                         content = content,
                         mood = mood,
+                        voiceNotePath = voiceNotePath, // PERBAIKAN: Nilai diteruskan
                         isSynced = false, // Tandai sebagai belum sinkron ulang
                         timestamp = System.currentTimeMillis() // Perbarui timestamp
                     )

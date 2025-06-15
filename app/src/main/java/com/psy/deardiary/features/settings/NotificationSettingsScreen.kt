@@ -1,5 +1,12 @@
+// File: app/src/main/java/com/psy/deardiary/features/settings/NotificationSettingsScreen.kt
+// VERSI DIPERBARUI: Menghubungkan UI dengan logika notifikasi.
+
 package com.psy.deardiary.features.settings
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -7,12 +14,31 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.psy.deardiary.utils.NotificationReceiver
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationSettingsScreen(onBackClick: () -> Unit) {
+    val context = LocalContext.current
+    // Untuk saat ini, kita akan kelola state secara lokal.
+    // Untuk aplikasi nyata, ini sebaiknya disimpan di DataStore.
     var remindersEnabled by remember { mutableStateOf(false) }
+
+    // Launcher untuk meminta izin notifikasi di Android 13+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                remindersEnabled = true
+                NotificationReceiver.scheduleDailyReminder(context)
+            } else {
+                // Tampilkan pesan bahwa izin diperlukan
+            }
+        }
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -25,19 +51,41 @@ fun NotificationSettingsScreen(onBackClick: () -> Unit) {
             )
         }
     ) { padding ->
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(padding)
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Column(modifier = Modifier.padding(padding).padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Ingatkan menulis jurnal (20.00)",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f)
+                )
+                Switch(
+                    checked = remindersEnabled,
+                    onCheckedChange = { isChecked ->
+                        if (isChecked) {
+                            // Cek dan minta izin jika diperlukan
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            } else {
+                                remindersEnabled = true
+                                NotificationReceiver.scheduleDailyReminder(context)
+                            }
+                        } else {
+                            remindersEnabled = false
+                            NotificationReceiver.cancelDailyReminder(context)
+                        }
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Ingatkan menulis jurnal",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f)
+                "Anda akan menerima pengingat setiap hari pada jam 8 malam.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Switch(checked = remindersEnabled, onCheckedChange = { remindersEnabled = it })
         }
     }
 }

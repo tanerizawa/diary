@@ -1,3 +1,6 @@
+// File: app/src/main/java/com/psy/deardiary/features/main/MainScreen.kt
+// Deskripsi: Versi lengkap dan diperbaiki dari file MainScreen.
+
 package com.psy.deardiary.features.main
 
 import androidx.compose.foundation.layout.padding
@@ -33,6 +36,7 @@ import com.psy.deardiary.features.growth.GrowthScreen
 import com.psy.deardiary.features.media.MediaScreen
 import com.psy.deardiary.features.services.ServicesScreen
 import com.psy.deardiary.navigation.Screen
+import java.net.URLEncoder
 
 data class BottomNavItem(
     val label: String,
@@ -125,10 +129,17 @@ fun MainScreen(
                 )
             }
             composable(Screen.Media.route) {
-                MediaScreen()
+                MediaScreen(
+                    onNavigateToEditorWithPrompt = { prompt ->
+                        val encodedPrompt = URLEncoder.encode(prompt, "UTF-8")
+                        mainNavController.navigate(
+                            Screen.Editor.createRoute(prompt = encodedPrompt)
+                        )
+                    }
+                )
             }
             composable(Screen.Services.route) {
-                ServicesScreen(onNavigateToCrisisSupport = { mainNavController.navigate(Screen.CrisisSupport.route) })
+                ServicesScreen()
             }
             composable(Screen.Growth.route) {
                 GrowthScreen()

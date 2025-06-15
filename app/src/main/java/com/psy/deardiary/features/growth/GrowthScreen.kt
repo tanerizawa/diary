@@ -1,8 +1,10 @@
-package com.psy.deardiary.features.growth // Pastikan package ini sudah benar
+// File: app/src/main/java/com/psy/deardiary/features/growth/GrowthScreen.kt
+// VERSI DIPERBARUI: Menambahkan impor yang hilang untuk toArgb.
+
+package com.psy.deardiary.features.growth
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,30 +44,34 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb // PERBAIKAN: Impor ditambahkan di sini
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.psy.deardiary.ui.theme.DearDiaryTheme
 import com.psy.deardiary.ui.theme.Primary
 import com.psy.deardiary.ui.theme.PrimaryContainer
 import com.psy.deardiary.ui.theme.Secondary
 import java.time.YearMonth
-import java.time.format.TextStyle
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GrowthScreen(
-    viewModel: GrowthViewModel = hiltViewModel() // Pastikan ini mengacu pada GrowthViewModel
+    viewModel: GrowthViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -89,56 +95,131 @@ fun GrowthScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
-
-                // Pohon Ketenangan
                 CalmnessTree(streak = state.writingStreak)
-
                 Divider(modifier = Modifier.padding(vertical = 24.dp))
-
-                // Kalender Mood
                 MoodCalendar(
                     yearMonth = state.currentDisplayMonth,
                     moodData = state.moodCalendarData,
                     onMonthChange = { offset -> viewModel.changeDisplayMonth(offset) }
                 )
-
                 Divider(modifier = Modifier.padding(vertical = 24.dp))
 
-                // Tren Emosi (masih dummy untuk visual)
-                MoodTrendChart()
+                MoodTrendChart(data = state.moodTrendData)
 
                 Divider(modifier = Modifier.padding(vertical = 24.dp))
-
-                // Statistik
                 Text("Statistik Kamu", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Pastikan ini memanggil fungsi StatisticCard yang sama
                     StatisticCard(title = "Total Jurnal", value = state.totalJournals.toString(), modifier = Modifier.weight(1f))
                     StatisticCard(title = "Runtutan Menulis", value = "${state.writingStreak} hari", modifier = Modifier.weight(1f))
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 StatisticCard(title = "Mood Paling Sering", value = state.mostFrequentMood, modifier = Modifier.fillMaxWidth())
-
                 Divider(modifier = Modifier.padding(vertical = 24.dp))
-
-                // Pencapaian
                 Text("Pencapaian", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(16.dp))
-                // Pastikan ini memanggil fungsi AchievementBadge yang sama
-                AchievementBadge(title = "Refleksi Pertama", description = "Memulai perjalanan menulismu.")
+                AchievementBadge(title = "Refleksi Pertama", description = "Memulai perjalanan menulismu.", achieved = state.totalJournals > 0)
                 AchievementBadge(title = "Penulis 7 Hari", description = "Menulis jurnal selama 7 hari berturut-turut.", achieved = state.writingStreak >= 7)
             }
         }
     }
 }
 
-// ================================================================
-// Fungsi-fungsi pembantu yang hanya perlu didefinisikan SATU KALI
-// ================================================================
+@Composable
+private fun MoodTrendChart(data: List<MoodDataPoint>) {
+    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+    val density = LocalDensity.current
+    val textPaint = remember {
+        android.graphics.Paint().apply {
+            color = onSurfaceVariant.toArgb()
+            textAlign = android.graphics.Paint.Align.CENTER
+            textSize = with(density) { 12.sp.toPx() }
+        }
+    }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = "Tren Mood 7 Hari Terakhir",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (data.isEmpty()) {
+            Text(
+                "Tulis jurnal beberapa hari untuk melihat tren mood-mu di sini.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        } else {
+            Canvas(modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+                .padding(top = 16.dp, bottom = 24.dp, start = 8.dp, end = 8.dp)
+            ) {
+                val path = Path()
+                val (minY, maxY) = 0f to 5f // Skor mood dari 0 (tidak ada data) sampai 5
+                val xStep = if (data.size > 1) size.width / (data.size - 1) else size.width / 2
+
+                data.forEachIndexed { index, point ->
+                    val x = if (data.size > 1) index * xStep else xStep
+                    val y = size.height - ((point.averageMood - minY) / (maxY - minY) * size.height).coerceIn(0f, size.height)
+
+                    if (index == 0) {
+                        path.moveTo(x, y)
+                    } else {
+                        path.lineTo(x, y)
+                    }
+                    if (point.averageMood > 0) {
+                        drawCircle(color = Primary, radius = 8f, center = Offset(x, y))
+                    }
+
+                    drawContext.canvas.nativeCanvas.drawText(
+                        point.label,
+                        x,
+                        size.height + textPaint.textSize + 12.dp.toPx(),
+                        textPaint
+                    )
+                }
+
+                drawPath(
+                    path = path,
+                    color = Primary,
+                    style = Stroke(width = 5f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyGrowthState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.fillMaxSize().padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("🌱📊", style = MaterialTheme.typography.displayLarge)
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Belum Ada Data Pertumbuhan",
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Tulis jurnal pertamamu untuk mulai melihat bagaimana kamu tumbuh dan mencapai tujuanmu di sini.",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
 
 @Composable
 private fun MoodCalendar(
@@ -169,7 +250,7 @@ private fun MonthHeader(yearMonth: YearMonth, onMonthChange: (Long) -> Unit) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Bulan Sebelumnya")
         }
         Text(
-            text = "${yearMonth.month.getDisplayName(TextStyle.FULL, Locale("id"))} ${yearMonth.year}",
+            text = "${yearMonth.month.getDisplayName(java.time.format.TextStyle.FULL, Locale("id"))} ${yearMonth.year}",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
@@ -218,57 +299,6 @@ private fun CalendarGrid(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun EmptyGrowthState(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxSize().padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("🌱📊", style = MaterialTheme.typography.displayLarge)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Belum Ada Data Pertumbuhan",
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(8.dp)) // Menambahkan spacer di sini
-        Text(
-            text = "Tulis jurnal pertamamu untuk mulai melihat bagaimana kamu tumbuh dan mencapai tujuanmu di sini.",
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-
-@Composable
-private fun MoodTrendChart() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = "Tren Emosi Bulan Ini",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Canvas(modifier = Modifier
-            .fillMaxWidth()
-            .height(150.dp)) {
-            val pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
-            drawLine(Color.LightGray, start = Offset(0f, size.height / 2), end = Offset(size.width, size.height / 2), pathEffect = pathEffect)
-            drawLine(Color.LightGray, start = Offset(0f, 0f), end = Offset(size.width, 0f))
-            drawLine(Color.LightGray, start = Offset(0f, size.height), end = Offset(size.width, size.height))
-            val points = listOf(0.2f, 0.5f, 0.3f, 0.8f, 0.6f, 0.7f, 0.4f).mapIndexed { index, value ->
-                Offset(x = size.width / 6 * index, y = size.height * (1 - value))
-            }
-            for (i in 0 until points.size - 1) {
-                drawLine(Primary, start = points[i], end = points[i+1], strokeWidth = 5f)
             }
         }
     }
@@ -344,17 +374,9 @@ fun AchievementBadge(title: String, description: String, achieved: Boolean = fal
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(text = title, style = MaterialTheme.typography.titleMedium)
+                Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(text = description, style = MaterialTheme.typography.bodyMedium)
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun GrowthScreenPreview() {
-    DearDiaryTheme {
-        GrowthScreen()
     }
 }

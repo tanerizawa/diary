@@ -67,6 +67,11 @@ dependencies {
     // Compose BOM for consistent Compose library versions
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.material3)
+
+    // PENAMBAHAN: Dependensi untuk Ikon dan Google Fonts
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.ui.text.google.fonts)
+
     // Compose Tooling and Test Manifest (for debug builds)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
@@ -93,6 +98,9 @@ dependencies {
 
     // DataStore Preferences
     implementation(libs.androidx.datastore.preferences)
+
+    // PERBAIKAN: Menambahkan dependensi untuk Coil
+    implementation("io.coil-kt:coil-compose:2.6.0")
 
     // Testing
     testImplementation(libs.junit)

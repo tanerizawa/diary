@@ -1,5 +1,6 @@
 // File: app/src/main/java/com/psy/deardiary/ui/components/InputFields.kt
 // Deskripsi: Komponen untuk input teks yang mendukung validasi error.
+// VERSI DIPERBARUI: Menambahkan parameter 'enabled'.
 
 package com.psy.deardiary.ui.components
 
@@ -7,15 +8,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,7 +36,8 @@ fun PrimaryTextField(
     modifier: Modifier = Modifier,
     isError: Boolean = false,
     errorMessage: String? = null,
-    keyboardType: KeyboardType = KeyboardType.Text
+    keyboardType: KeyboardType = KeyboardType.Text,
+    enabled: Boolean = true // PERBAIKAN: Parameter 'enabled' ditambahkan
 ) {
     Column(modifier = modifier) {
         OutlinedTextField(
@@ -46,6 +48,7 @@ fun PrimaryTextField(
             isError = isError,
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             singleLine = true,
+            enabled = enabled, // PERBAIKAN: Parameter diteruskan ke OutlinedTextField
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
@@ -70,7 +73,8 @@ fun PasswordTextField(
     label: String,
     modifier: Modifier = Modifier,
     isError: Boolean = false,
-    errorMessage: String? = null
+    errorMessage: String? = null,
+    enabled: Boolean = true // PERBAIKAN: Parameter 'enabled' ditambahkan
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -82,6 +86,7 @@ fun PasswordTextField(
             modifier = Modifier.fillMaxWidth(),
             isError = isError,
             singleLine = true,
+            enabled = enabled, // PERBAIKAN: Parameter diteruskan ke OutlinedTextField
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             trailingIcon = {

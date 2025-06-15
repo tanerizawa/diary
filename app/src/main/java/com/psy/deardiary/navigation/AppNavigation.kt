@@ -1,3 +1,6 @@
+// File: app/src/main/java/com/psy/deardiary/navigation/AppNavigation.kt
+// Deskripsi: Versi lengkap dan diperbaiki dari file navigasi aplikasi.
+
 package com.psy.deardiary.navigation
 
 import androidx.compose.runtime.Composable
@@ -15,12 +18,11 @@ import com.psy.deardiary.features.crisis_support.CrisisSupportScreen
 import com.psy.deardiary.features.diary.JournalEditorScreen
 import com.psy.deardiary.features.main.MainScreen
 import com.psy.deardiary.features.onboarding.OnboardingScreen
-import com.psy.deardiary.features.settings.SettingsScreen
 import com.psy.deardiary.features.settings.NotificationSettingsScreen
 import com.psy.deardiary.features.settings.PrivacyPolicyScreen
-import com.psy.deardiary.features.media.MediaScreen // Import MediaScreen
-import com.psy.deardiary.features.services.ServicesScreen // Import ServicesScreen
-import com.psy.deardiary.features.growth.GrowthScreen // Import GrowthScreen
+import com.psy.deardiary.features.settings.SettingsScreen
+import com.psy.deardiary.features.services.mbti.MbtiResultScreen
+import com.psy.deardiary.features.services.mbti.MbtiTestScreen
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
@@ -28,6 +30,7 @@ fun AppNavigation(navController: NavHostController) {
         navController = navController,
         startDestination = Screen.Onboarding.route
     ) {
+
         // --- ALUR PRA-LOGIN ---
 
         composable(Screen.Onboarding.route) {
@@ -54,7 +57,6 @@ fun AppNavigation(navController: NavHostController) {
             }
 
             LoginScreen(
-                onLoginClick = { email, password -> authViewModel.login(email, password) },
                 onNavigateToRegister = { navController.navigate(Screen.Register.route) }
             )
         }
@@ -66,38 +68,38 @@ fun AppNavigation(navController: NavHostController) {
             LaunchedEffect(uiState.isRegisterSuccess) {
                 if (uiState.isRegisterSuccess) {
                     navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Register.route) { inclusive = true }
+                        popUpTo(Screen.Login.route) {}
                     }
                     authViewModel.onAuthEventConsumed()
                 }
             }
 
             RegisterScreen(
-                onRegisterClick = { email, password -> authViewModel.register(email, password) },
                 onNavigateToLogin = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
                 },
-                onBackClick = { navController.popBackStack() },
-                isLoading = uiState.isLoading
+                onBackClick = { navController.popBackStack() }
             )
         }
 
-        // --- ALUR SETELAH LOGIN (APLIKASI UTAMA) ---
+        // --- ALUR SETELAH LOGIN ---
 
         composable(Screen.MainAppFlow.route) {
             MainScreen(mainNavController = navController)
         }
 
         composable(Screen.Settings.route) {
-            val settingsViewModel: com.psy.deardiary.features.settings.SettingsViewModel = hiltViewModel()
             SettingsScreen(
                 onBackClick = { navController.popBackStack() },
-                onExportData = { settingsViewModel.exportData() },
-                onDeleteAccount = { settingsViewModel.deleteAccount() },
                 onNavigateToNotification = { navController.navigate(Screen.NotificationSettings.route) },
-                onNavigateToPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) }
+                onNavigateToPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) },
+                onAccountDeleted = {
+                    navController.navigate(Screen.Onboarding.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -113,14 +115,41 @@ fun AppNavigation(navController: NavHostController) {
             CrisisSupportScreen()
         }
 
+        // --- TES MBTI ---
+
+        composable(Screen.MbtiTest.route) {
+            MbtiTestScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onTestComplete = { resultType ->
+                    navController.navigate(Screen.MbtiResult.createRoute(resultType)) {
+                        popUpTo(Screen.MbtiTest.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = Screen.MbtiResult.route,
+            arguments = Screen.MbtiResult.arguments
+        ) { backStackEntry ->
+            val resultType = backStackEntry.arguments?.getString(Screen.MbtiResult.RESULT_TYPE_ARG) ?: ""
+            MbtiResultScreen(
+                resultType = resultType,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // --- JURNAL EDITOR ---
+
         composable(
             route = Screen.Editor.route,
             arguments = Screen.Editor.arguments
         ) { backStackEntry ->
-            val entryId = backStackEntry.arguments?.getString(Screen.Editor.ENTRY_ID_ARG)?.toIntOrNull()
-
+            val entryId = backStackEntry.arguments?.getString(Screen.Editor.ENTRY_ID_ARG)
+            val prompt = backStackEntry.arguments?.getString(Screen.Editor.PROMPT_ARG)
             JournalEditorScreen(
-                entryId = entryId, // Lewatkan entryId ke JournalEditorScreen
+                entryId = entryId,
+                prompt = prompt,
                 onBackClick = { navController.popBackStack() }
             )
         }

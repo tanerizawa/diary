@@ -1,4 +1,7 @@
-package com.psy.deardiary.features.growth // Ubah package menjadi growth
+// File: app/src/main/java/com/psy/deardiary/features/growth/GrowthViewModel.kt
+// VERSI DIPERBARUI: Menambahkan logika untuk data tren mood.
+
+package com.psy.deardiary.features.growth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,24 +17,32 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
-data class GrowthUiState( // Ubah nama dari HistoryUiState menjadi GrowthUiState
+// Data class baru untuk titik data pada grafik
+data class MoodDataPoint(val label: String, val averageMood: Float)
+
+data class GrowthUiState(
     val isLoading: Boolean = true,
     val totalJournals: Int = 0,
     val writingStreak: Int = 0,
     val mostFrequentMood: String = "-",
     val currentDisplayMonth: YearMonth = YearMonth.now(),
-    val moodCalendarData: Map<Int, String> = emptyMap()
+    val moodCalendarData: Map<Int, String> = emptyMap(),
+    // State baru untuk data grafik tren mood
+    val moodTrendData: List<MoodDataPoint> = emptyList()
 )
 
 @HiltViewModel
-class GrowthViewModel @Inject constructor( // Ubah nama kelas dari HistoryViewModel menjadi GrowthViewModel
+class GrowthViewModel @Inject constructor(
     private val journalRepository: JournalRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(GrowthUiState()) // Gunakan GrowthUiState
+    private val _uiState = MutableStateFlow(GrowthUiState())
     val uiState = _uiState.asStateFlow()
+
+    private var cachedEntries: List<JournalEntry> = emptyList()
 
     init {
         observeJournalData()
@@ -40,22 +51,26 @@ class GrowthViewModel @Inject constructor( // Ubah nama kelas dari HistoryViewMo
     private fun observeJournalData() {
         journalRepository.journals
             .onEach { entries ->
-                if (entries.isNotEmpty()) {
-                    processJournalData(entries)
-                } else {
-                    _uiState.update { it.copy(isLoading = false, totalJournals = 0, writingStreak = 0, mostFrequentMood = "-", moodCalendarData = emptyMap()) }
-                }
+                cachedEntries = entries
+                processJournalData(entries)
             }
             .launchIn(viewModelScope)
     }
 
     private fun processJournalData(entries: List<JournalEntry>) {
+        if (entries.isEmpty()) {
+            _uiState.update {
+                it.copy(isLoading = false, totalJournals = 0, writingStreak = 0, mostFrequentMood = "-", moodCalendarData = emptyMap(), moodTrendData = emptyList())
+            }
+            return
+        }
+
         val totalJournals = entries.size
         val mostFrequentMood = calculateMostFrequentMood(entries)
         val writingStreak = calculateWritingStreak(entries)
-
         val currentMonth = _uiState.value.currentDisplayMonth
         val moodCalendarData = generateMoodCalendarData(entries, currentMonth)
+        val moodTrendData = calculateMoodTrend(entries)
 
         _uiState.update {
             it.copy(
@@ -63,8 +78,40 @@ class GrowthViewModel @Inject constructor( // Ubah nama kelas dari HistoryViewMo
                 totalJournals = totalJournals,
                 mostFrequentMood = mostFrequentMood,
                 writingStreak = writingStreak,
-                moodCalendarData = moodCalendarData
+                moodCalendarData = moodCalendarData,
+                moodTrendData = moodTrendData
             )
+        }
+    }
+
+    private fun calculateMoodTrend(entries: List<JournalEntry>): List<MoodDataPoint> {
+        val moodScores = mapOf("😊" to 5f, "😐" to 3f, "😟" to 2f, "😠" to 1f, "😢" to 1f)
+        val today = LocalDate.now()
+        val last7DaysEntries = entries.filter {
+            val entryDate = Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
+            !entryDate.isBefore(today.minusDays(6)) && !entryDate.isAfter(today)
+        }
+
+        if (last7DaysEntries.isEmpty()) return emptyList()
+
+        val groupedByDay = last7DaysEntries.groupBy {
+            Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
+        }
+
+        val dailyAverages = (0..6).map { i ->
+            val date = today.minusDays(i.toLong())
+            val entriesForDay = groupedByDay[date]
+            val averageScore = if (entriesForDay != null && entriesForDay.isNotEmpty()) {
+                entriesForDay.mapNotNull { moodScores[it.mood] }.average().toFloat()
+            } else {
+                0f
+            }
+            date to averageScore
+        }.reversed()
+
+        val formatter = DateTimeFormatter.ofPattern("dd/MM")
+        return dailyAverages.map { (date, avg) ->
+            MoodDataPoint(label = date.format(formatter), averageMood = avg)
         }
     }
 
@@ -82,7 +129,6 @@ class GrowthViewModel @Inject constructor( // Ubah nama kelas dari HistoryViewMo
         var streak = 0
         var currentDate = LocalDate.now()
 
-        // Jika hari ini belum menulis dan kemarin menulis, mulai hitung dari kemarin
         if (!entryDates.contains(currentDate) && entryDates.contains(currentDate.minusDays(1))) {
             currentDate = currentDate.minusDays(1)
         }
@@ -109,6 +155,12 @@ class GrowthViewModel @Inject constructor( // Ubah nama kelas dari HistoryViewMo
 
     fun changeDisplayMonth(offset: Long) {
         val newMonth = _uiState.value.currentDisplayMonth.plusMonths(offset)
-        _uiState.update { it.copy(currentDisplayMonth = newMonth) }
+        val newMoodCalendarData = generateMoodCalendarData(cachedEntries, newMonth)
+        _uiState.update {
+            it.copy(
+                currentDisplayMonth = newMonth,
+                moodCalendarData = newMoodCalendarData
+            )
+        }
     }
 }

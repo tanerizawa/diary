@@ -1,3 +1,6 @@
+// Lokasi: app/src/main/java/com/psy/deardiary/data/repository/AuthRepository.kt
+// Deskripsi: Menambahkan fungsi untuk memanggil API penghapusan akun.
+
 package com.psy.deardiary.data.repository
 
 import com.psy.deardiary.data.datastore.UserPreferencesRepository
@@ -35,6 +38,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    // PERBAIKAN: Melengkapi fungsi register yang hilang
     suspend fun register(email: String, password: String): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
@@ -55,6 +59,23 @@ class AuthRepository @Inject constructor(
     suspend fun logout() {
         withContext(Dispatchers.IO) {
             userPreferencesRepository.clearAuthToken()
+        }
+    }
+
+    suspend fun deleteAccountOnServer(): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = authApiService.deleteAccount()
+                if (response.isSuccessful) {
+                    Result.Success(Unit)
+                } else {
+                    Result.Error("Gagal menghapus akun di server: ${response.message()}")
+                }
+            } catch (e: HttpException) {
+                Result.Error("Terjadi kesalahan pada server. Kode: ${e.code()}")
+            } catch (e: IOException) {
+                Result.Error("Tidak dapat terhubung ke server.")
+            }
         }
     }
 }

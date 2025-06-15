@@ -1,5 +1,5 @@
 // File: app/src/main/java/com/psy/deardiary/features/diary/DiaryViewModel.kt
-// VERSI DIPERBARUI TOTAL: Disesuaikan untuk bekerja dengan arsitektur offline-first.
+// VERSI DIPERBARUI: Menyesuaikan pemanggilan createJournal dengan parameter baru.
 
 package com.psy.deardiary.features.diary
 
@@ -83,7 +83,13 @@ class DiaryViewModel @Inject constructor(
 
     fun createJournal(title: String, content: String, mood: String) {
         viewModelScope.launch {
-            journalRepository.createJournal(title, content, mood)
+            // PERBAIKAN: Menambahkan argumen 'voiceNotePath = null' yang hilang.
+            journalRepository.createJournal(
+                title = title,
+                content = content,
+                mood = mood,
+                voiceNotePath = null
+            )
             // Setelah membuat jurnal lokal, coba sinkronkan langsung.
             syncJournals()
         }

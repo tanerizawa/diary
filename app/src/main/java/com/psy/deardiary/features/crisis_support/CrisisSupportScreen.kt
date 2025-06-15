@@ -4,16 +4,23 @@
 
 package com.psy.deardiary.features.crisis_support
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.psy.deardiary.ui.components.CrisisButton
 
 @Composable
 fun CrisisSupportScreen() {
+    // Dapatkan konteks saat ini untuk memulai Intent
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -33,9 +40,19 @@ fun CrisisSupportScreen() {
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(24.dp))
-        Button(onClick = { /* TODO: Arahkan ke nomor darurat atau kontak yang relevan */ }) {
-            Text("Hubungi Bantuan Sekarang")
-        }
+
+        // Menggunakan komponen CrisisButton yang baru
+        CrisisButton(
+            text = "Hubungi Bantuan Sekarang (119)",
+            onClick = {
+                // Membuat Intent untuk membuka dialer dengan nomor 119
+                val intent = Intent(Intent.ACTION_DIAL).apply {
+                    data = Uri.parse("tel:119")
+                }
+                // Memulai aktivitas (membuka dialer)
+                context.startActivity(intent)
+            }
+        )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Aplikasi ini adalah pendamping, bukan pengganti bantuan profesional.",

@@ -1,63 +1,60 @@
+// VERSI DIPERBARUI: Menghapus LaunchedEffect yang memanggil fungsi private.
+
 package com.psy.deardiary.features.diary
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.runtime.collectAsState
-import com.psy.deardiary.ui.components.PrimaryButton // Import yang hilang
-import com.psy.deardiary.ui.theme.DearDiaryTheme // Import yang hilang
+import com.psy.deardiary.ui.theme.Crisis
+import com.psy.deardiary.ui.theme.DearDiaryTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JournalEditorScreen(
-    entryId: Int? = null,
     onBackClick: () -> Unit,
     viewModel: JournalEditorViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(entryId) {
-        if (entryId != uiState.entryId || (entryId == null && uiState.entryId != null)) {
-            viewModel.loadJournalEntry(entryId)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted) {
+                viewModel.onStartRecording()
+            } else {
+                // TODO: Tampilkan pesan kepada pengguna bahwa izin ditolak
+            }
         }
-    }
+    )
+
+    // PERBAIKAN: Menghapus LaunchedEffect(entryId) karena logika sudah pindah ke init ViewModel.
+    // Kode ini tidak lagi diperlukan di sini.
 
     LaunchedEffect(uiState.isSaved) {
         if (uiState.isSaved) {
@@ -69,7 +66,7 @@ fun JournalEditorScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (entryId == null) "Jurnal Baru" else "Edit Jurnal") },
+                title = { Text(if (uiState.entryId == null) "Jurnal Baru" else "Edit Jurnal") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Kembali")
@@ -78,7 +75,7 @@ fun JournalEditorScreen(
                 actions = {
                     IconButton(
                         onClick = { viewModel.saveJournal() },
-                        enabled = !uiState.isLoading
+                        enabled = !uiState.isLoading && !uiState.isRecording
                     ) {
                         Icon(Icons.Default.Save, "Simpan Jurnal")
                     }
@@ -86,7 +83,7 @@ fun JournalEditorScreen(
             )
         }
     ) { paddingValues ->
-        if (uiState.isLoading && entryId != null && uiState.journalTitle.isEmpty()) {
+        if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
@@ -104,7 +101,8 @@ fun JournalEditorScreen(
                     onValueChange = { viewModel.updateTitle(it) },
                     label = { Text("Judul (Opsional)") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    enabled = !uiState.isRecording
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
@@ -113,12 +111,24 @@ fun JournalEditorScreen(
                     label = { Text("Apa yang kamu rasakan hari ini?") },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(300.dp),
+                        .height(250.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         unfocusedContainerColor = Color.Transparent,
                         focusedContainerColor = Color.Transparent
-                    )
+                    ),
+                    enabled = !uiState.isRecording
                 )
+                Spacer(modifier = Modifier.height(24.dp))
+
+                VoiceJournalSection(
+                    isRecording = uiState.isRecording,
+                    hasRecording = uiState.voiceNotePath != null,
+                    onRecordClick = {
+                        permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    },
+                    onStopClick = { viewModel.onStopRecording() }
+                )
+
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     text = "Bagaimana mood-mu saat ini?",
@@ -135,52 +145,103 @@ fun JournalEditorScreen(
                         MoodSelector(
                             mood = mood,
                             isSelected = mood == uiState.journalMood,
-                            // Perbaikan: Bungkus onSelect dalam lambda tanpa argumen
-                            onSelect = { selectedMood -> viewModel.updateMood(selectedMood) } // Pass the selectedMood from lambda
+                            onSelect = { selectedMood -> viewModel.updateMood(selectedMood) },
+                            enabled = !uiState.isRecording
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(24.dp))
-                PrimaryButton( // Baris 142
-                    text = "Jurnal Suara",
-                    onClick = { /* TODO: Implementasi logika jurnal suara */ },
-                    enabled = !uiState.isLoading
+            }
+        }
+    }
+}
+
+@Composable
+private fun VoiceJournalSection(
+    isRecording: Boolean,
+    hasRecording: Boolean,
+    onRecordClick: () -> Unit,
+    onStopClick: () -> Unit
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        if (isRecording) {
+            Button(
+                onClick = onStopClick,
+                colors = ButtonDefaults.buttonColors(containerColor = Crisis)
+            ) {
+                Icon(Icons.Default.Stop, contentDescription = "Hentikan Rekaman")
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Hentikan Rekaman")
+            }
+        } else {
+            OutlinedButton(
+                onClick = onRecordClick,
+            ) {
+                Icon(Icons.Default.Mic, contentDescription = "Rekam Suara")
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(if(hasRecording) "Rekam Ulang Suara" else "Jurnal Suara")
+            }
+        }
+
+        AnimatedVisibility(visible = isRecording || hasRecording) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                if (isRecording) {
+                    val infiniteTransition = rememberInfiniteTransition(label = "blinking_dot")
+                    val alpha by infiniteTransition.animateFloat(
+                        initialValue = 0f,
+                        targetValue = 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(500),
+                            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+                        ), label = "blinking_alpha"
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .clip(CircleShape)
+                            .background(Crisis.copy(alpha = alpha))
+                    )
+                } else {
+                    Icon(Icons.Default.Check, contentDescription = "Rekaman Tersimpan", tint = MaterialTheme.colorScheme.primary)
+                }
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = if(isRecording) "Merekam..." else "Rekaman tersimpan",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
     }
-
-    LaunchedEffect(uiState.errorMessage) {
-        uiState.errorMessage?.let { message ->
-            println("Error: $message")
-            viewModel.clearErrorMessage()
-        }
-    }
 }
+
 
 @Composable
 private fun MoodSelector(
     mood: String,
     isSelected: Boolean,
-    onSelect: (String) -> Unit // Menerima String
+    onSelect: (String) -> Unit,
+    enabled: Boolean
 ) {
     val color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
     TextButton(
-        // Perbaikan: Panggil onSelect dengan argumen 'mood'
-        onClick = { onSelect(mood) }, // Baris 167 (sebelumnya 167)
+        onClick = { onSelect(mood) },
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.textButtonColors(
             containerColor = color
-        )
+        ),
+        enabled = enabled
     ) {
-        Text(text = mood, style = MaterialTheme.typography.headlineLarge) // Baris 173 (sebelumnya 173)
+        Text(text = mood, style = MaterialTheme.typography.headlineLarge)
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun JournalEditorScreenPreview() { // Baris 180 (sebelumnya 180)
-    DearDiaryTheme { // Baris 181 (sebelumnya 181)
+private fun JournalEditorScreenPreview() {
+    DearDiaryTheme {
         JournalEditorScreen(onBackClick = {})
     }
 }

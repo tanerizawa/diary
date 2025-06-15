@@ -1,12 +1,11 @@
 package com.psy.deardiary.features.diary
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CrisisAlert
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.CrisisAlert // <-- IMPORT DITAMBAHKAN
+import androidx.compose.material.icons.outlined.CrisisAlert
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -57,7 +56,7 @@ fun DiaryScreen(
                 actions = {
                     IconButton(onClick = onNavigateToCrisisSupport) {
                         Icon(
-                            imageVector = Icons.Outlined.CrisisAlert, // <-- REFERENSI SEKARANG RESOLVE
+                            imageVector = Icons.Outlined.CrisisAlert,
                             contentDescription = "Dukungan Krisis",
                             tint = MaterialTheme.colorScheme.onPrimary
                         )
@@ -89,12 +88,15 @@ fun DiaryScreen(
             contentAlignment = Alignment.Center
         ) {
             when {
+                // Tampilkan loading indicator hanya jika data sedang dimuat DAN belum ada entri sama sekali.
                 state.isLoading && state.entries.isEmpty() -> {
                     CircularProgressIndicator()
                 }
-                state.entries.isEmpty() && !state.isLoading -> {
+                // PERBAIKAN: Kondisi disederhanakan. Ini hanya akan tercapai jika isLoading false dan entries kosong.
+                state.entries.isEmpty() -> {
                     EmptyState()
                 }
+                // Jika ada entri, tampilkan list, terlepas dari status loading (untuk refresh di latar belakang).
                 else -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
@@ -152,7 +154,7 @@ private fun DiaryScreenPreview_WithEntries() {
         DiaryEntryItem(1, "Hari yang Cerah", "Pagi ini aku bangun dengan...", "😊", "15 Juni 2025"),
         DiaryEntryItem(2, "Sedikit Resah", "Ada beberapa hal yang mengganggu...", "😟", "14 Juni 2025")
     )
-    val state = DiaryUiState(entries = sampleEntries)
+    val state = DiaryUiState(isLoading = false, entries = sampleEntries)
     DearDiaryTheme {
         DiaryScreen(state, {}, {}, {}, {}, onRetry = {}, onClearError = {})
     }
@@ -161,7 +163,16 @@ private fun DiaryScreenPreview_WithEntries() {
 @Preview(showBackground = true, name = "Layar Kosong (Empty State)")
 @Composable
 private fun DiaryScreenPreview_Empty() {
-    val state = DiaryUiState(entries = emptyList())
+    val state = DiaryUiState(isLoading = false, entries = emptyList())
+    DearDiaryTheme {
+        DiaryScreen(state, {}, {}, {}, {}, onRetry = {}, onClearError = {})
+    }
+}
+
+@Preview(showBackground = true, name = "Layar Saat Loading Awal")
+@Composable
+private fun DiaryScreenPreview_Loading() {
+    val state = DiaryUiState(isLoading = true, entries = emptyList())
     DearDiaryTheme {
         DiaryScreen(state, {}, {}, {}, {}, onRetry = {}, onClearError = {})
     }

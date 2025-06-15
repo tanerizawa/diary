@@ -1,48 +1,71 @@
+// VERSI DIPERBARUI: Memastikan loadJournalEntry bersifat private.
+
 package com.psy.deardiary.features.diary
 
+import android.content.Context
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.psy.deardiary.data.repository.JournalRepository
+import com.psy.deardiary.navigation.Screen
+import com.psy.deardiary.utils.AudioRecorder
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
+import java.net.URLDecoder
 import javax.inject.Inject
 
 data class JournalEditorUiState(
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val journalTitle: String = "",
     val journalContent: String = "",
     val journalMood: String = "😊",
     val errorMessage: String? = null,
     val isSaved: Boolean = false,
-    val entryId: Int? = null // ID lokal dari entri yang sedang diedit
+    val entryId: Int? = null,
+    val isRecording: Boolean = false,
+    val voiceNotePath: String? = null
 )
 
 @HiltViewModel
 class JournalEditorViewModel @Inject constructor(
-    private val journalRepository: JournalRepository
+    private val journalRepository: JournalRepository,
+    private val audioRecorder: AudioRecorder,
+    @ApplicationContext private val context: Context,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(JournalEditorUiState())
     val uiState = _uiState.asStateFlow()
 
-    fun loadJournalEntry(entryId: Int?) {
-        if (entryId == null) {
-            // Ini adalah entri baru, reset state
-            _uiState.update { JournalEditorUiState(isLoading = false) } // Pastikan isLoading false untuk entri baru
-            return
+    private var audioFile: File? = null
+
+    init {
+        // Logika untuk memuat data dipindahkan ke sini.
+        // Ini akan berjalan sekali saat ViewModel dibuat.
+        val entryId: Int? = savedStateHandle.get<String>(Screen.Editor.ENTRY_ID_ARG)?.toIntOrNull()
+        val prompt: String? = savedStateHandle.get<String>(Screen.Editor.PROMPT_ARG)?.let {
+            URLDecoder.decode(it, "UTF-8")
         }
 
-        // Jika ID sama dan data sudah ada, tidak perlu muat ulang
-        if (uiState.value.entryId == entryId && uiState.value.journalTitle.isNotEmpty()) {
-            return
+        if (entryId != null) {
+            loadJournalEntry(entryId)
+        } else if (prompt != null) {
+            _uiState.update { it.copy(journalContent = prompt, isLoading = false) }
+        } else {
+            _uiState.update { it.copy(isLoading = false) }
         }
+    }
 
+    // PERBAIKAN: Fungsi ini sekarang bersifat private, hanya untuk digunakan di dalam ViewModel ini.
+    private fun loadJournalEntry(entryId: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            val entry = journalRepository.getJournalEntryById(entryId) // Memanggil fungsi baru di repository
+            val entry = journalRepository.getJournalEntryById(entryId)
             if (entry != null) {
                 _uiState.update {
                     it.copy(
@@ -50,18 +73,25 @@ class JournalEditorViewModel @Inject constructor(
                         entryId = entry.id,
                         journalTitle = entry.title,
                         journalContent = entry.content,
-                        journalMood = entry.mood
+                        journalMood = entry.mood,
+                        voiceNotePath = entry.voiceNotePath
                     )
                 }
             } else {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Jurnal tidak ditemukan."
-                    )
-                }
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Jurnal tidak ditemukan.") }
             }
         }
+    }
+
+    fun onStartRecording() {
+        audioFile = File(context.cacheDir, "voice_journal_${System.currentTimeMillis()}.mp4")
+        audioRecorder.start(audioFile!!)
+        _uiState.update { it.copy(isRecording = true) }
+    }
+
+    fun onStopRecording() {
+        audioRecorder.stop()
+        _uiState.update { it.copy(isRecording = false, voiceNotePath = audioFile?.absolutePath) }
     }
 
     fun updateTitle(title: String) {
@@ -79,17 +109,23 @@ class JournalEditorViewModel @Inject constructor(
     fun saveJournal() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val currentTitle = _uiState.value.journalTitle
-            val currentContent = _uiState.value.journalContent
-            val currentMood = _uiState.value.journalMood
-            val currentEntryId = _uiState.value.entryId
+            val currentState = _uiState.value
 
-            val result = if (currentEntryId == null) {
-                // Buat jurnal baru
-                journalRepository.createJournal(currentTitle, currentContent, currentMood)
+            val result = if (currentState.entryId == null) {
+                journalRepository.createJournal(
+                    title = currentState.journalTitle,
+                    content = currentState.journalContent,
+                    mood = currentState.journalMood,
+                    voiceNotePath = currentState.voiceNotePath
+                )
             } else {
-                // Perbarui jurnal yang sudah ada
-                journalRepository.updateJournal(currentEntryId, currentTitle, currentContent, currentMood)
+                journalRepository.updateJournal(
+                    id = currentState.entryId,
+                    title = currentState.journalTitle,
+                    content = currentState.journalContent,
+                    mood = currentState.journalMood,
+                    voiceNotePath = currentState.voiceNotePath
+                )
             }
 
             when (result) {
