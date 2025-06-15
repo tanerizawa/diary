@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from app import crud, models, schemas
 from app.api import deps
-import asyncio
 
 router = APIRouter()
 
@@ -21,7 +20,9 @@ def create_journal(
     journal = crud.journal.create_with_owner(db=db, obj_in=journal_in, owner_id=current_user.id)
 
     background_tasks.add_task(
-        asyncio.run, crud.journal.process_and_update_sentiment(db=db, journal_id=journal.id)
+        crud.journal.process_and_update_sentiment,
+        db=db,
+        journal_id=journal.id,
     )
 
     return journal
@@ -58,7 +59,9 @@ def update_journal(
     updated_journal = crud.journal.update(db=db, db_obj=journal, obj_in=journal_in)
 
     background_tasks.add_task(
-        asyncio.run, crud.journal.process_and_update_sentiment(db=db, journal_id=updated_journal.id)
+        crud.journal.process_and_update_sentiment,
+        db=db,
+        journal_id=updated_journal.id,
     )
 
     return updated_journal
