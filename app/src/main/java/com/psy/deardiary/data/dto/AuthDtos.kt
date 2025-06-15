@@ -6,20 +6,25 @@ package com.psy.deardiary.data.dto
 
 import com.google.gson.annotations.SerializedName
 
-// Data yang dikirim ke server saat login (cocok dengan OAuth2PasswordRequestForm di FastAPI)
-// FastAPI akan membaca 'username' dan 'password' dari form data.
-// Kita akan membuatnya secara manual saat memanggil API.
-
-// Respons yang diterima dari server setelah login berhasil
-data class TokenResponse(
-    @SerializedName("access_token")
-    val accessToken: String,
-    @SerializedName("token_type")
-    val tokenType: String
+/** Request body for user registration */
+data class RegisterRequest(
+    val email: String,
+    val password: String
 )
 
-// Respons umum untuk error dari server
+/** Request body for user login */
+data class LoginRequest(
+    val email: String,
+    val password: String
+)
+
+/** Response returned by the backend after a successful login */
+data class TokenResponse(
+    @SerializedName("access_token") val accessToken: String,
+    @SerializedName("token_type") val tokenType: String
+)
+
+/** Generic error response from the backend */
 data class ErrorResponse(
-    @SerializedName("detail")
-    val detail: String
+    @SerializedName("detail") val detail: String
 )

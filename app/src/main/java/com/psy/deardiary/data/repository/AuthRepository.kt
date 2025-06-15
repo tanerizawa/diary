@@ -1,39 +1,60 @@
-// File: app/src/main/java/com/psy/deardiary/data/network/AuthApiService.kt
-package com.psy.deardiary.data.network
+package com.psy.deardiary.data.repository
 
-import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.POST
+import com.psy.deardiary.data.datastore.UserPreferencesRepository
+import com.psy.deardiary.data.dto.LoginRequest
+import com.psy.deardiary.data.dto.RegisterRequest
+import com.psy.deardiary.data.network.AuthApiService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import retrofit2.HttpException
+import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
 
-// ---- Data class untuk permintaan (request) ----
-data class RegisterRequest(
-    val email: String,
-    val password: String
-)
+@Singleton
+class AuthRepository @Inject constructor(
+    private val authApiService: AuthApiService,
+    private val userPreferencesRepository: UserPreferencesRepository
+) {
+    suspend fun login(email: String, password: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = authApiService.login(LoginRequest(email, password))
+                if (response.isSuccessful && response.body() != null) {
+                    val token = response.body()!!.accessToken
+                    userPreferencesRepository.saveAuthToken(token)
+                    Result.Success(Unit)
+                } else {
+                    Result.Error("Login gagal: ${response.message()}")
+                }
+            } catch (e: HttpException) {
+                Result.Error("Terjadi kesalahan pada server. Kode: ${e.code()}")
+            } catch (e: IOException) {
+                Result.Error("Tidak dapat terhubung ke server. Periksa koneksi internet Anda.")
+            }
+        }
+    }
 
-data class LoginRequest(
-    val email: String,
-    val password: String
-)
+    suspend fun register(email: String, password: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = authApiService.register(RegisterRequest(email, password))
+                if (response.isSuccessful) {
+                    Result.Success(Unit)
+                } else {
+                    Result.Error("Registrasi gagal: ${response.message()}")
+                }
+            } catch (e: HttpException) {
+                Result.Error("Terjadi kesalahan pada server. Kode: ${e.code()}")
+            } catch (e: IOException) {
+                Result.Error("Tidak dapat terhubung ke server. Periksa koneksi internet Anda.")
+            }
+        }
+    }
 
-// ---- Data class untuk respons login (contoh, sesuaikan dengan backend Anda) ----
-data class LoginResponse(
-    val access_token: String,
-    val token_type: String
-    // tambahkan field lain jika ada, misal "user", "refresh_token", dsb.
-)
-
-// ---- Interface Retrofit ----
-interface AuthApiService {
-
-    @POST("api/v1/users/register")
-    suspend fun register(
-        @Body body: RegisterRequest
-    ): Response<Unit>
-    // Jika backend mengembalikan respons selain 204/201 kosong, ganti Unit dengan data class sesuai responsnya
-
-    @POST("api/v1/users/login")
-    suspend fun login(
-        @Body body: LoginRequest
-    ): Response<LoginResponse>
+    suspend fun logout() {
+        withContext(Dispatchers.IO) {
+            userPreferencesRepository.clearAuthToken()
+        }
+    }
 }
