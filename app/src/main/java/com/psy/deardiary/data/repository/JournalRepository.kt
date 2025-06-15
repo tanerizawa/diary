@@ -114,4 +114,14 @@ class JournalRepository @Inject constructor(
             }
         }
     }
+
+    suspend fun deleteAllLocalEntries() {
+        withContext(Dispatchers.IO) {
+            journalDao.deleteAllEntries()
+        }
+    }
+
+    suspend fun getAllEntriesOnce(): List<JournalEntry> {
+        return withContext(Dispatchers.IO) { journalDao.getAllEntriesOnce() }
+    }
 }

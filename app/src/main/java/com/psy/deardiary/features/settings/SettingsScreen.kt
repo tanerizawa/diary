@@ -30,7 +30,9 @@ import androidx.compose.ui.text.font.FontWeight // <-- TAMBAHKAN BARIS INI
 fun SettingsScreen(
     onBackClick: () -> Unit,
     onExportData: () -> Unit,
-    onDeleteAccount: () -> Unit
+    onDeleteAccount: () -> Unit,
+    onNavigateToNotification: () -> Unit,
+    onNavigateToPrivacyPolicy: () -> Unit
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -91,13 +93,13 @@ fun SettingsScreen(
                 icon = Icons.Default.Notifications,
                 title = "Pengaturan Notifikasi",
                 description = "Atur pengingat untuk menulis jurnal.",
-                onClick = { /* TODO: Arahkan ke layar notifikasi */ }
+                onClick = onNavigateToNotification
             )
             SettingItem(
                 icon = Icons.Default.Policy,
                 title = "Kebijakan Privasi",
                 description = "Baca bagaimana kami melindungi datamu.",
-                onClick = { /* TODO: Tampilkan kebijakan privasi */ }
+                onClick = onNavigateToPrivacyPolicy
             )
         }
     }
@@ -145,6 +147,6 @@ private fun SettingItem(
 @Composable
 private fun SettingsScreenPreview() {
     DearDiaryTheme {
-        SettingsScreen({}, {}, {})
+        SettingsScreen({}, {}, {}, {}, {})
     }
 }

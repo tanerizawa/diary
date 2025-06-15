@@ -16,6 +16,8 @@ import com.psy.deardiary.features.diary.JournalEditorScreen
 import com.psy.deardiary.features.main.MainScreen
 import com.psy.deardiary.features.onboarding.OnboardingScreen
 import com.psy.deardiary.features.settings.SettingsScreen
+import com.psy.deardiary.features.settings.NotificationSettingsScreen
+import com.psy.deardiary.features.settings.PrivacyPolicyScreen
 import com.psy.deardiary.features.media.MediaScreen // Import MediaScreen
 import com.psy.deardiary.features.services.ServicesScreen // Import ServicesScreen
 import com.psy.deardiary.features.growth.GrowthScreen // Import GrowthScreen
@@ -89,11 +91,22 @@ fun AppNavigation(navController: NavHostController) {
         }
 
         composable(Screen.Settings.route) {
+            val settingsViewModel: com.psy.deardiary.features.settings.SettingsViewModel = hiltViewModel()
             SettingsScreen(
                 onBackClick = { navController.popBackStack() },
-                onExportData = { /* TODO: Panggil ViewModel */ },
-                onDeleteAccount = { /* TODO: Panggil ViewModel */ }
+                onExportData = { settingsViewModel.exportData() },
+                onDeleteAccount = { settingsViewModel.deleteAccount() },
+                onNavigateToNotification = { navController.navigate(Screen.NotificationSettings.route) },
+                onNavigateToPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) }
             )
+        }
+
+        composable(Screen.NotificationSettings.route) {
+            NotificationSettingsScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        composable(Screen.PrivacyPolicy.route) {
+            PrivacyPolicyScreen(onBackClick = { navController.popBackStack() })
         }
 
         composable(Screen.CrisisSupport.route) {
