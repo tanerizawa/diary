@@ -56,7 +56,6 @@
 
 ## 🚧 Teknologi yang Digunakan
 - **Frontend:** Jetpack Compose (Android)
-- **Backend:** FastAPI (Python)
 - **Database:** Room (Android Local DB)
 - **Integrasi AI:** OpenRouter (AI Content Generation)
 
@@ -64,49 +63,6 @@
 
 ## 📌 Instalasi & Menjalankan Proyek
 
-### 🔧 Backend (FastAPI)
-1. Masuk ke direktori backend:
-```bash
-cd backend
-
-
-## Konfigurasi Lingkungan
-
-Aplikasi backend menggunakan beberapa variabel environment yang dapat didefinisikan
-melalui file `.env` pada root proyek. Contoh isi file `.env`:
-
-```env
-# URL database SQLAlchemy
-DATABASE_URL=sqlite:///./deardiary.db
-
-# Konfigurasi JWT
-SECRET_KEY=change_this_secret
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# Kunci API untuk layanan analisis AI
-OPENROUTER_API_KEY=your_openrouter_key
-```
-
-Pastikan Anda mengganti nilai variabel di atas sesuai kebutuhan.
-
-## Menjalankan Backend FastAPI
-
-1. Masuk ke direktori `backend` dan pasang dependensi:
-
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
-
-2. Jalankan server pengembangan dengan uvicorn:
-
-   ```bash
-   uvicorn main:app --reload
-   ```
-
-Server akan berjalan pada `http://localhost:8000` dan emulator Android akan
-mengaksesnya melalui `http://10.0.2.2:8000`.
 
 ## Membangun Aplikasi Android
 
