@@ -20,10 +20,10 @@ fun NetworkErrorSnackbar(
     SnackbarHost(hostState = snackbarHostState, modifier = modifier) { data ->
         Snackbar(
             containerColor = Error,
-            contentColor = Color.White,
+            contentColor = MaterialTheme.colorScheme.onError,
             action = {
                 TextButton(onClick = onRetry) {
-                    Text("Coba Lagi", color = Color.White)
+                    Text("Coba Lagi", color = MaterialTheme.colorScheme.onError)
                 }
             },
             dismissAction = {

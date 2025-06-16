@@ -189,7 +189,7 @@ fun JournalCard(entry: JournalEntry, onClick: () -> Unit) {
                     val sentimentColor = when {
                         score > 0.15 -> Color(0xFF4CAF50) // Positif
                         score < -0.15 -> Color(0xFFF44336) // Negatif
-                        else -> Color.Gray
+                        else -> MaterialTheme.colorScheme.outline
                     }
                     Box(
                         modifier = Modifier
