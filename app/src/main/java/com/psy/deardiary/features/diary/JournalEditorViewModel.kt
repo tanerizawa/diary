@@ -7,7 +7,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.psy.deardiary.data.repository.JournalRepository
-import com.psy.deardiary.data.repository.Result // <-- PERBAIKAN: Import yang hilang ditambahkan di sini
+import com.psy.deardiary.data.repository.Result
 import com.psy.deardiary.navigation.Screen
 import com.psy.deardiary.utils.AudioPlayer
 import com.psy.deardiary.utils.AudioRecorder
@@ -87,16 +87,17 @@ class JournalEditorViewModel @Inject constructor(
 
     fun deleteJournal() {
         viewModelScope.launch {
-            _uiState.value.entryId?.let { id ->
-                _uiState.update { it.copy(isLoading = true) }
-                when (val result = journalRepository.deleteJournal(id)) {
-                    // PERBAIKAN: Sekarang 'Result.Success' dan 'Result.Error' dikenali
-                    is Result.Success -> {
-                        _uiState.update { it.copy(isLoading = false, isDeleted = true) }
-                    }
-                    is Result.Error -> {
-                        _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
-                    }
+            // --- KODE YANG DIPERBAIKI ---
+            val currentId = _uiState.value.entryId ?: return@launch
+            // --- AKHIR KODE YANG DIPERBAIKI ---
+
+            _uiState.update { it.copy(isLoading = true) }
+            when (val result = journalRepository.deleteJournal(currentId)) {
+                is Result.Success -> {
+                    _uiState.update { it.copy(isLoading = false, isDeleted = true) }
+                }
+                is Result.Error -> {
+                    _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
                 }
             }
         }
@@ -167,7 +168,6 @@ class JournalEditorViewModel @Inject constructor(
                 )
             }
 
-            // PERBAIKAN: Blok ini juga sekarang akan berfungsi dengan benar
             when (result) {
                 is Result.Success -> {
                     _uiState.update { it.copy(isLoading = false, isSaved = true) }

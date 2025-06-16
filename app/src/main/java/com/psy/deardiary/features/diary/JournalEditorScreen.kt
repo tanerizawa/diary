@@ -5,16 +5,8 @@ package com.psy.deardiary.features.diary
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,13 +15,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.psy.deardiary.ui.components.ConfirmationDialog
-import com.psy.deardiary.ui.theme.Crisis
+import com.psy.deardiary.ui.components.MoodSelector // <-- IMPORT BARU
+import com.psy.deardiary.ui.components.VoiceJournalSection // <-- IMPORT BARU
 import com.psy.deardiary.ui.theme.DearDiaryTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,7 +30,7 @@ fun JournalEditorScreen(
     viewModel: JournalEditorViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var showDeleteDialog by remember { mutableStateOf(false) } // State untuk dialog
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -53,7 +44,6 @@ fun JournalEditorScreen(
         }
     }
 
-    // PENAMBAHAN: LaunchedEffect untuk navigasi setelah hapus
     LaunchedEffect(uiState.isDeleted) {
         if (uiState.isDeleted) {
             onBackClick()
@@ -61,7 +51,6 @@ fun JournalEditorScreen(
         }
     }
 
-    // PENAMBAHAN: Tampilkan dialog konfirmasi hapus
     if (showDeleteDialog) {
         ConfirmationDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -91,7 +80,6 @@ fun JournalEditorScreen(
                     ) {
                         Icon(Icons.Default.Save, "Simpan Jurnal")
                     }
-                    // PENAMBAHAN: Tombol hapus, hanya tampil saat mengedit
                     if (uiState.entryId != null) {
                         IconButton(
                             onClick = { showDeleteDialog = true },
@@ -134,6 +122,8 @@ fun JournalEditorScreen(
                     enabled = !uiState.isRecording && !uiState.isPlayingAudio
                 )
                 Spacer(modifier = Modifier.height(24.dp))
+
+                // --- PANGGILAN KOMPONEN BARU ---
                 VoiceJournalSection(
                     isRecording = uiState.isRecording,
                     hasRecording = uiState.voiceNotePath != null,
@@ -143,19 +133,24 @@ fun JournalEditorScreen(
                     onPlaybackClick = { viewModel.onPlaybackClicked() }
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                // ... (Sisa kode UI tidak berubah)
+
+                // --- PANGGILAN KOMPONEN BARU ---
+                MoodSelector(
+                    selectedMood = uiState.journalMood,
+                    onMoodSelected = { viewModel.updateMood(it) },
+                    enabled = !uiState.isRecording && !uiState.isPlayingAudio
+                )
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
 }
 
-// ... (Sisa file tidak berubah)
-@Composable
-private fun VoiceJournalSection( isRecording: Boolean, hasRecording: Boolean, isPlaying: Boolean, onRecordClick: () -> Unit, onStopClick: () -> Unit, onPlaybackClick: () -> Unit ) { /* ... */ }
-
-@Composable
-private fun MoodSelector( mood: String, isSelected: Boolean, onSelect: (String) -> Unit, enabled: Boolean ) { /* ... */ }
 
 @Preview(showBackground = true)
 @Composable
-private fun JournalEditorScreenPreview() { /* ... */ }
+private fun JournalEditorScreenPreview() {
+    DearDiaryTheme {
+        JournalEditorScreen(onBackClick = {})
+    }
+}

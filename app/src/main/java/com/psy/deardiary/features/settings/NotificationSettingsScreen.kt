@@ -1,5 +1,5 @@
 // File: app/src/main/java/com/psy/deardiary/features/settings/NotificationSettingsScreen.kt
-// VERSI DIPERBARUI: Menghubungkan UI dengan logika notifikasi.
+// VERSI DIPERBARUI: Menambahkan umpan balik Snackbar untuk penolakan izin.
 
 package com.psy.deardiary.features.settings
 
@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.psy.deardiary.utils.NotificationReceiver
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,7 +27,13 @@ fun NotificationSettingsScreen(onBackClick: () -> Unit) {
     // Untuk aplikasi nyata, ini sebaiknya disimpan di DataStore.
     var remindersEnabled by remember { mutableStateOf(false) }
 
-    // Launcher untuk meminta izin notifikasi di Android 13+
+    // --- PENAMBAHAN BARU ---
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    // --- AKHIR PENAMBAHAN ---
+
+
+    // --- KODE YANG DIPERBAIKI ---
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
@@ -34,12 +41,19 @@ fun NotificationSettingsScreen(onBackClick: () -> Unit) {
                 remindersEnabled = true
                 NotificationReceiver.scheduleDailyReminder(context)
             } else {
-                // Tampilkan pesan bahwa izin diperlukan
+                // Beri tahu pengguna mengapa fitur tidak dapat diaktifkan.
+                scope.launch {
+                    snackbarHostState.showSnackbar("Izin notifikasi diperlukan untuk mengaktifkan pengingat.")
+                }
             }
         }
     )
+    // --- AKHIR KODE YANG DIPERBAIKI ---
 
     Scaffold(
+        // --- PENAMBAHAN BARU ---
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        // --- AKHIR PENAMBAHAN ---
         topBar = {
             TopAppBar(
                 title = { Text("Pengaturan Notifikasi") },

@@ -2,6 +2,7 @@
 
 package com.psy.deardiary.data.repository
 
+import android.util.Log
 import com.psy.deardiary.data.dto.toJournalCreateRequest
 import com.psy.deardiary.data.dto.toJournalEntry
 import com.psy.deardiary.data.local.JournalDao
@@ -96,35 +97,43 @@ class JournalRepository @Inject constructor(
         }
     }
 
-    // --- PENAMBAHAN BARU ---
+    // --- FUNGSI YANG DIPERBAIKI ---
     suspend fun deleteJournal(localId: Int): Result<Unit> {
         return withContext(Dispatchers.IO) {
+            var serverError: String? = null
             try {
                 val entryToDelete = journalDao.getEntryById(localId)
                 val remoteId = entryToDelete?.remoteId
 
-                // Jika sudah pernah sinkron, hapus juga di server
+                // Jika sudah pernah sinkron, coba hapus juga di server
                 if (remoteId != null) {
-                    val response = journalApiService.deleteJournal(remoteId)
-                    if (!response.isSuccessful) {
-                        return@withContext Result.Error("Gagal menghapus jurnal di server.")
+                    try {
+                        val response = journalApiService.deleteJournal(remoteId)
+                        if (!response.isSuccessful) {
+                            serverError = "Gagal menghapus jurnal di server (Kode: ${response.code()}). Data lokal akan tetap dihapus."
+                        }
+                    } catch (e: HttpException) {
+                        serverError = "Terjadi kesalahan pada server saat menghapus (Kode: ${e.code()}). Data lokal akan tetap dihapus."
+                    } catch (e: IOException) {
+                        serverError = "Tidak dapat terhubung ke server untuk menghapus. Data lokal akan tetap dihapus."
                     }
                 }
 
-                // Hapus dari database lokal
+                // Selalu hapus dari database lokal, apa pun hasil dari server
                 journalDao.deleteEntryByLocalId(localId)
-                Result.Success(Unit)
 
-            } catch (e: HttpException) {
-                Result.Error("Terjadi kesalahan pada server. Kode: ${e.code()}")
-            } catch (e: IOException) {
-                Result.Error("Tidak dapat terhubung ke server. Periksa koneksi internet Anda.")
+                // Jika ada error dari server, kembalikan Error. Jika tidak, Success.
+                if (serverError != null) {
+                    Result.Error(serverError!!)
+                } else {
+                    Result.Success(Unit)
+                }
+
             } catch (e: Exception) {
-                Result.Error("Terjadi kesalahan: ${e.message}")
+                Result.Error("Terjadi kesalahan saat menghapus data lokal: ${e.message}")
             }
         }
     }
-    // --- AKHIR PENAMBAHAN ---
 
     suspend fun getJournalEntryById(id: Int): JournalEntry? {
         return withContext(Dispatchers.IO) {
@@ -132,11 +141,14 @@ class JournalRepository @Inject constructor(
         }
     }
 
+    // --- FUNGSI YANG DIPERBAIKI ---
     suspend fun syncPendingJournals(): Result<Unit> {
         return withContext(Dispatchers.IO) {
-            try {
-                val unsyncedEntries = journalDao.getUnsyncedEntries()
-                for (entry in unsyncedEntries) {
+            val unsyncedEntries = journalDao.getUnsyncedEntries()
+            val failedSyncs = mutableListOf<String>()
+
+            for (entry in unsyncedEntries) {
+                try {
                     val request = entry.toJournalCreateRequest()
 
                     val response = if (entry.remoteId != null) {
@@ -145,17 +157,22 @@ class JournalRepository @Inject constructor(
                         journalApiService.createJournal(request)
                     }
 
-
                     if (response.isSuccessful && response.body() != null) {
                         val remoteId = response.body()!!.id
                         journalDao.markAsSynced(localId = entry.id, newRemoteId = remoteId)
                     } else {
-                        return@withContext Result.Error("Gagal menyinkronkan entri: ${entry.title}")
+                        failedSyncs.add(entry.title.ifBlank { "Entri tanpa judul" })
                     }
+                } catch (e: Exception) {
+                    Log.e("SyncJournal", "Failed to sync entry ${entry.id}", e)
+                    failedSyncs.add(entry.title.ifBlank { "Entri tanpa judul" })
                 }
+            }
+
+            if (failedSyncs.isNotEmpty()) {
+                Result.Error("Gagal menyinkronkan: ${failedSyncs.joinToString(", ")}")
+            } else {
                 Result.Success(Unit)
-            } catch (e: Exception) {
-                Result.Error("Gagal melakukan sinkronisasi: ${e.message}")
             }
         }
     }

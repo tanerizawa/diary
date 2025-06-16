@@ -32,22 +32,24 @@ private val LightColorScheme = lightColorScheme(
     outline = Outline
 )
 
-// Skema warna gelap menggunakan palet yang sama dengan mode terang
+// --- KODE YANG DIPERBAIKI ---
+// Skema warna gelap sekarang menggunakan palet warna gelap yang telah didefinisikan
 private val DarkColorScheme = darkColorScheme(
-    primary = Primary,
-    onPrimary = OnPrimary,
-    primaryContainer = PrimaryContainer,
-    secondary = Secondary,
-    onSecondary = OnSecondary,
-    surface = Surface,
-    onSurface = OnSurface,
-    onSurfaceVariant = OnSurfaceVariant,
-    background = Surface,
-    onBackground = OnSurface,
-    error = Error,
-    onError = OnError,
-    outline = Outline
+    primary = DarkPrimary,
+    onPrimary = DarkOnPrimary,
+    primaryContainer = DarkPrimaryContainer,
+    secondary = DarkSecondary,
+    onSecondary = DarkOnSecondary,
+    surface = DarkSurface,
+    onSurface = DarkOnSurface,
+    onSurfaceVariant = DarkOnSurfaceVariant,
+    background = DarkSurface,
+    onBackground = DarkOnSurface,
+    error = DarkError,
+    onError = DarkOnError,
+    outline = DarkOutline
 )
+// --- AKHIR KODE YANG DIPERBAIKI ---
 
 @Composable
 fun DearDiaryTheme(

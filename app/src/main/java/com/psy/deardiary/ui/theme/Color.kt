@@ -6,6 +6,8 @@ package com.psy.deardiary.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+// --- PALET WARNA LIGHT MODE ---
+
 // Warna Utama & Turunannya
 val Primary = Color(0xFFB0E0E6)
 val OnPrimary = Color(0xFF2C3E50)
@@ -28,3 +30,24 @@ val OnError = Color(0xFFFFFFFF)
 // Warna Khusus
 val Crisis = Color(0xFFFFAB91)
 val OnCrisis = Color(0xFF2C3E50)
+
+
+// --- PENAMBAHAN BARU: PALET WARNA DARK MODE ---
+
+val DarkPrimary = Color(0xFF82B1FF) // Biru yang lebih lembut untuk mode gelap
+val DarkOnPrimary = Color(0xFF001E3C)
+val DarkPrimaryContainer = Color(0xFF004494)
+
+val DarkSecondary = Color(0xFFA5D6A7) // Hijau yang lebih lembut
+val DarkOnSecondary = Color(0xFF0D3210)
+
+val DarkSurface = Color(0xFF1E1E1E) // Latar belakang abu-abu gelap
+val DarkOnSurface = Color(0xFFE0E0E0) // Teks putih keabuan
+val DarkOnSurfaceVariant = Color(0xFFBDBDBD) // Teks sekunder yang lebih redup
+val DarkOutline = Color(0xFF5F5F5F)
+
+val DarkError = Color(0xFFFF8A80)
+val DarkOnError = Color(0xFF410001)
+
+val DarkCrisis = Color(0xFFFFB59E)
+val DarkOnCrisis = Color(0xFF3E0E00)

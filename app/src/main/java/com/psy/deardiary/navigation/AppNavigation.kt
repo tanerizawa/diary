@@ -1,3 +1,5 @@
+// File: deardiary/navigation/AppNavigation.kt
+
 package com.psy.deardiary.navigation
 
 import androidx.compose.runtime.*
@@ -57,18 +59,24 @@ fun AppNavigation(navController: NavHostController) {
             val authViewModel: AuthViewModel = hiltViewModel()
             val uiState by authViewModel.uiState.collectAsState()
 
+            // --- KODE YANG DIPERBAIKI ---
             LaunchedEffect(uiState.isRegisterSuccess) {
                 if (uiState.isRegisterSuccess) {
                     navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Login.route) {}
+                        // Menghapus RegisterScreen dari back stack setelah berhasil.
+                        popUpTo(Screen.Register.route) {
+                            inclusive = true
+                        }
                     }
                     authViewModel.onAuthEventConsumed()
                 }
             }
+            // --- AKHIR KODE YANG DIPERBAIKI ---
 
             RegisterScreen(
                 onNavigateToLogin = {
                     navController.navigate(Screen.Login.route) {
+                        // Navigasi dari link "Sudah punya akun?" juga harus menghapus RegisterScreen
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
                 },
