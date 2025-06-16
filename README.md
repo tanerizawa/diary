@@ -96,3 +96,18 @@
 > **Catatan:** berkas `.jar` tidak dapat dieksekusi di lingkungan ini, termasuk `gradle-wrapper.jar`. Jalankan Gradle melalui instalasi lokal atau unduh jar tersebut secara manual bila diperlukan. Berkas wrapper telah diabaikan di `.gitignore`.
 
 File APK hasil build dapat ditemukan di `app/build/outputs/apk/`.
+
+### Kustomisasi Warna Tema
+
+Pada Android 12 (API 31) ke atas aplikasi otomatis mengikuti Dynamic Color
+dari perangkat. Untuk perangkat yang belum mendukung fitur tersebut,
+`DearDiaryTheme` akan membuat skema warna dari *seed color* merek.
+Secara bawaan nilai ini menggunakan konstanta `Primary` dari `Color.kt`.
+Anda dapat menyesuaikan warna merek dengan memberikan parameter
+`seedColor` ketika memanggil `DearDiaryTheme`:
+
+```kotlin
+DearDiaryTheme(seedColor = Color(0xFF6750A4)) {
+    // konten
+}
+```
