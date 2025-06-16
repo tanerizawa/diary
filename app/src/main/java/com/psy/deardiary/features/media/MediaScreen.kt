@@ -110,7 +110,7 @@ private fun PlaylistCard(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = alpha))
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = alpha))
                 )
             }
             Column(Modifier.padding(12.dp)) {
@@ -118,12 +118,12 @@ private fun PlaylistCard(
                     text = playlist.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = playlist.description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Black.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
             }
             Icon(
@@ -133,9 +133,9 @@ private fun PlaylistCard(
                     .align(Alignment.TopEnd)
                     .padding(12.dp)
                     .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.3f))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
                     .padding(4.dp),
-                tint = Color.White
+                tint = MaterialTheme.colorScheme.inverseOnSurface
             )
         }
     }

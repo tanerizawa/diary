@@ -95,7 +95,7 @@ fun VoiceJournalSection(
                         Icon(
                             imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Mic,
                             contentDescription = if (isRecording) "Berhenti Merekam" else "Mulai Merekam",
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
