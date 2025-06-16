@@ -64,6 +64,23 @@
 ## 📌 Instalasi & Menjalankan Proyek
 
 
+### Menjalankan Backend FastAPI
+
+1. Pindah ke direktori `backend` dan instal dependensi:
+
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   ```
+
+2. Siapkan variabel lingkungan `DATABASE_URL` dan `AI_API_KEY` (lihat `backend/.env.example`).
+
+3. Jalankan server pengembangan:
+
+   ```bash
+   uvicorn main:app --reload
+   ```
+
 ## Membangun Aplikasi Android
 
 1. Pastikan Java Development Kit (JDK) 11 atau lebih baru telah terpasang.
