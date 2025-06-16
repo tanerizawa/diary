@@ -62,9 +62,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.psy.deardiary.ui.theme.DearDiaryTheme
-import com.psy.deardiary.ui.theme.Primary
-import com.psy.deardiary.ui.theme.PrimaryContainer
-import com.psy.deardiary.ui.theme.Secondary
 import java.time.YearMonth
 import java.util.Locale
 
@@ -176,7 +173,11 @@ private fun MoodTrendChart(data: List<MoodDataPoint>) {
                         path.lineTo(x, y)
                     }
                     if (point.averageMood > 0) {
-                        drawCircle(color = Primary, radius = 8f, center = Offset(x, y))
+                        drawCircle(
+                            color = MaterialTheme.colorScheme.primary,
+                            radius = 8f,
+                            center = Offset(x, y)
+                        )
                     }
 
                     drawContext.canvas.nativeCanvas.drawText(
@@ -189,7 +190,7 @@ private fun MoodTrendChart(data: List<MoodDataPoint>) {
 
                 drawPath(
                     path = path,
-                    color = Primary,
+                    color = MaterialTheme.colorScheme.primary,
                     style = Stroke(width = 5f)
                 )
             }
@@ -287,7 +288,9 @@ private fun CalendarGrid(
                     .aspectRatio(1f)
                     .padding(4.dp)
                     .clip(CircleShape)
-                    .background(if (mood != null) PrimaryContainer else Color.Transparent),
+                    .background(
+                        if (mood != null) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 if (mood != null) {
@@ -309,7 +312,9 @@ private fun CalmnessTree(streak: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Secondary.copy(alpha = 0.3f))
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)
+        )
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -319,7 +324,7 @@ private fun CalmnessTree(streak: Int) {
                 imageVector = Icons.Default.Yard,
                 contentDescription = "Pohon Ketenangan",
                 modifier = Modifier.size(48.dp),
-                tint = Secondary
+                tint = MaterialTheme.colorScheme.secondary
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
@@ -342,7 +347,9 @@ private fun CalmnessTree(streak: Int) {
 fun StatisticCard(title: String, value: String, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = PrimaryContainer)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
