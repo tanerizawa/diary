@@ -45,3 +45,7 @@ local.properties
 
 # macOS Finder
 .DS_Store
+
+__pycache__/
+*.pyc
+backend/test.db
