@@ -7,16 +7,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.psy.deardiary.features.auth.presentation.*
-import com.psy.deardiary.features.crisis_support.presentation.CrisisSupportScreen
-import com.psy.deardiary.features.diary.presentation.JournalEditorScreen
-import com.psy.deardiary.features.main.presentation.MainScreen
-import com.psy.deardiary.features.onboarding.presentation.OnboardingScreen
-import com.psy.deardiary.features.services.dass.presentation.DassResultScreen
-import com.psy.deardiary.features.services.dass.presentation.DassTestScreen
-import com.psy.deardiary.features.services.mbti.presentation.MbtiResultScreen
-import com.psy.deardiary.features.services.mbti.presentation.MbtiTestScreen
-import com.psy.deardiary.features.settings.presentation.*
+import com.psy.deardiary.features.auth.*
+import com.psy.deardiary.features.crisis_support.CrisisSupportScreen
+import com.psy.deardiary.features.diary.JournalEditorScreen
+import com.psy.deardiary.features.main.MainScreen
+import com.psy.deardiary.features.onboarding.OnboardingScreen
+import com.psy.deardiary.features.services.dass.DassResultScreen
+import com.psy.deardiary.features.services.dass.DassTestScreen
+import com.psy.deardiary.features.services.mbti.MbtiResultScreen
+import com.psy.deardiary.features.services.mbti.MbtiTestScreen
+import com.psy.deardiary.features.settings.*
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
