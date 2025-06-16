@@ -3,10 +3,7 @@
 
 package com.psy.deardiary.features.services
 
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
-import com.psy.deardiary.ui.theme.Primary
-import com.psy.deardiary.ui.theme.Secondary
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,8 +13,7 @@ import javax.inject.Inject
 data class ServiceItem(
     val title: String,
     val description: String,
-    val icon: String, // Emoji
-    val color: Color
+    val icon: String // Emoji
 )
 
 // State untuk ServicesScreen
@@ -35,22 +31,19 @@ class ServicesViewModel @Inject constructor() : ViewModel() {
                 ServiceItem(
                     title = "Tes Kepribadian (MBTI)",
                     description = "Pahami tipe kepribadianmu lebih dalam.",
-                    icon = "🧠",
-                    color = Primary
+                    icon = "🧠"
                 ),
                 ServiceItem(
                     title = "Tes Tingkat Stres (DASS-21)",
                     description = "Ukur tingkat depresi, kecemasan, dan stres.",
-                    icon = "😥",
-                    color = Secondary
+                    icon = "😥"
                 )
             ),
             professionalServices = listOf(
                 ServiceItem(
                     title = "Direktori Psikolog",
                     description = "Temukan bantuan profesional di dekatmu.",
-                    icon = "👩‍⚕️",
-                    color = Color(0xFFffb4a2)
+                    icon = "👩‍⚕️"
                 )
             )
         )

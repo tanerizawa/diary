@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,7 +58,14 @@ fun ServicesScreen(
                     )
                 }
                 items(uiState.availableTests) { serviceItem ->
-                    ServiceCard(service = serviceItem, onClick = {
+                    ServiceCard(
+                        service = serviceItem,
+                        color = if (serviceItem.title.contains("MBTI", ignoreCase = true)) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.secondary
+                        },
+                        onClick = {
                         when {
                             serviceItem.title.contains("MBTI", ignoreCase = true) -> {
                                 navController.navigate(Screen.MbtiTest.route)
@@ -66,7 +74,8 @@ fun ServicesScreen(
                                 navController.navigate(Screen.DassTest.route)
                             }
                         }
-                    })
+                        }
+                    )
                 }
 
                 // --- Bagian: Bantuan Profesional ---
@@ -79,9 +88,13 @@ fun ServicesScreen(
                     )
                 }
                 items(uiState.professionalServices) { serviceItem ->
-                    ServiceCard(service = serviceItem, onClick = {
-                        // TODO: Navigasi ke direktori layanan profesional
-                    })
+                    ServiceCard(
+                        service = serviceItem,
+                        color = Color(0xFFffb4a2),
+                        onClick = {
+                            // TODO: Navigasi ke direktori layanan profesional
+                        }
+                    )
                 }
             }
 
@@ -101,11 +114,11 @@ fun ServicesScreen(
 }
 
 @Composable
-fun ServiceCard(service: ServiceItem, onClick: () -> Unit) {
+fun ServiceCard(service: ServiceItem, color: Color, onClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
-        colors = CardDefaults.cardColors(containerColor = service.color.copy(alpha = 0.2f))
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.2f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
