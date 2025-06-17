@@ -4,9 +4,11 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.outlined.CrisisAlert
+import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.psy.deardiary.data.model.ChatMessage
 import com.psy.deardiary.features.home.components.*
+import com.psy.deardiary.features.home.emojiOptions
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -83,11 +86,42 @@ fun HomeScreen(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun ChatInputBar(onSend: (String) -> Unit) {
     var text by remember { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
+    var showEmojiSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    if (showEmojiSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showEmojiSheet = false },
+            sheetState = sheetState
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                emojiOptions.forEach { option ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                text += option.emoji
+                                showEmojiSheet = false
+                            }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = option.emoji,
+                            style = MaterialTheme.typography.headlineMedium,
+                            modifier = Modifier.padding(end = 12.dp)
+                        )
+                        Text(option.label)
+                    }
+                }
+            }
+        }
+    }
 
     Row(
         modifier = Modifier
@@ -107,6 +141,10 @@ private fun ChatInputBar(onSend: (String) -> Unit) {
                 focusedIndicatorColor = MaterialTheme.colorScheme.primary,
             )
         )
+        IconButton(onClick = { showEmojiSheet = true }) {
+            Icon(Icons.Outlined.EmojiEmotions, contentDescription = "Emoji")
+        }
+
         IconButton(
             onClick = {
                 onSend(text)
