@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Notes
+import androidx.compose.material.icons.outlined.SentimentNeutral
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -103,11 +104,31 @@ private fun QuickNoteCard(entry: JournalEntry) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        ),
         onClick = {}
     ) {
-        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Notes, contentDescription = "Catatan Singkat", modifier = Modifier.padding(end = 12.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (entry.mood.isNotBlank()) {
+                Text(
+                    text = entry.mood,
+                    style = MaterialTheme.typography.headlineLarge,
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Outlined.SentimentNeutral,
+                    contentDescription = "Catatan Singkat",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .padding(end = 12.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             Column(modifier = Modifier.weight(1f)) {
                 Text(entry.content, style = MaterialTheme.typography.bodyLarge)
                 Text(
