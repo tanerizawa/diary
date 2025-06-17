@@ -110,7 +110,7 @@ private fun QuickEntryInput(
     onCloseRequest: () -> Unit
 ) {
     var text by remember { mutableStateOf("") }
-    var mood by remember { mutableStateOf("\uD83D\uDE10") }
+    var mood by remember { mutableStateOf(NEUTRAL_EMOJI) }
     var showEmojiPicker by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
@@ -122,7 +122,7 @@ private fun QuickEntryInput(
         } else {
             // Membersihkan teks dan pilihan saat panel ditutup
             text = ""
-            mood = "\uD83D\uDE10"
+            mood = NEUTRAL_EMOJI
         }
     }
 
@@ -162,11 +162,17 @@ private fun QuickEntryInput(
                     Text(mood)
                 }
                 DropdownMenu(expanded = showEmojiPicker, onDismissRequest = { showEmojiPicker = false }) {
-                    listOf("😀", "🙂", "😐", "😢", "😡").forEach { emoji ->
+                    emojiOptions.forEach { option ->
                         DropdownMenuItem(
-                            text = { Text(emoji) },
+                            text = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(option.emoji)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(option.label)
+                                }
+                            },
                             onClick = {
-                                mood = emoji
+                                mood = option.emoji
                                 showEmojiPicker = false
                             }
                         )
