@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,9 +26,35 @@ class HomeChatViewModel @Inject constructor(
 
     fun sendMessage(text: String) {
         viewModelScope.launch {
-            when (val result = chatRepository.sendMessage(text)) {
-                is Result.Success -> _messages.value = result.data
-                is Result.Error -> { /* handle error */ }
+            // 1. Tambahkan pesan pengguna ke history
+            chatRepository.addMessage(text, isUser = true)
+
+            // 2. Sisipkan pesan sementara sebagai indikator mengetik
+            val placeholder = chatRepository.addMessage(
+                "Sedang mengetik jawaban...",
+                isUser = false
+            )
+
+            // Perbarui UI segera agar placeholder terlihat
+            _messages.value = chatRepository.getConversation()
+
+            // 3. Tunda selama lima detik sebelum memanggil API
+            delay(5_000)
+
+            // 4. Panggil API lalu ganti pesan sementara dengan balasan sesungguhnya
+            when (val result = chatRepository.fetchReply(text)) {
+                is Result.Success -> {
+                    chatRepository.replaceMessage(placeholder.id, result.data)
+                    _messages.value = chatRepository.getConversation()
+                }
+                is Result.Error -> {
+                    // Biarkan placeholder tetap dengan teks error sederhana
+                    chatRepository.replaceMessage(
+                        placeholder.id,
+                        "Terjadi kesalahan."
+                    )
+                    _messages.value = chatRepository.getConversation()
+                }
             }
         }
     }

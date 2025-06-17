@@ -45,3 +45,4 @@ local.properties
 
 # macOS Finder
 .DS_Store
+\.kotlin/
