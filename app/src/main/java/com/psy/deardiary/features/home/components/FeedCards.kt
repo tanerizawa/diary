@@ -2,8 +2,6 @@ package com.psy.deardiary.features.home.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.outlined.SentimentNeutral
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -22,7 +20,6 @@ import java.util.*
 fun WelcomeCard(
     timeOfDay: String,
     userName: String,
-    onQuickEntryClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -37,18 +34,13 @@ fun WelcomeCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(12.dp))
-            Button(onClick = onQuickEntryClick, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Tulis Catatan Singkat")
-            }
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
 
 @Composable
-fun PromptCard(prompt: String, onNoteClick: () -> Unit) {
+fun PromptCard(prompt: String) {
     OutlinedCard(modifier = Modifier
         .fillMaxWidth()
         .padding(vertical = 8.dp)) {
@@ -61,10 +53,7 @@ fun PromptCard(prompt: String, onNoteClick: () -> Unit) {
             Text("💡 Prompt Untukmu", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Text(prompt, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
-            Spacer(modifier = Modifier.height(16.dp))
-            FilledTonalButton(onClick = onNoteClick) {
-                Text("Tulis Catatan Singkat")
-            }
+            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }

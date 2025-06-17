@@ -83,13 +83,9 @@ fun HomeScreen(
                             is FeedItem.WelcomeItem -> WelcomeCard(
                                 timeOfDay = item.timeOfDay,
                                 userName = item.userName,
-                                // INI BAGIAN PALING PENTING:
-                                // Tombol ini HANYA mengubah state, tidak navigasi.
-                                onQuickEntryClick = { isQuickEntryVisible = true }
                             )
                             is FeedItem.PromptItem -> PromptCard(
                                 prompt = item.promptText,
-                                onNoteClick = { isQuickEntryVisible = true }
                             )
                             is FeedItem.JournalItem -> JournalItemCard(item.journalEntry)
                             is FeedItem.ArticleSuggestionItem -> ArticleSuggestionCard(item.article)
