@@ -9,7 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,24 +38,22 @@ class HomeChatViewModel @Inject constructor(
             // Perbarui UI segera agar placeholder terlihat
             _messages.value = chatRepository.getConversation()
 
-            // 3. Tunda selama lima detik sebelum memanggil API
-            delay(5_000)
+            // 3. Panggil API dengan batas waktu lima detik
+            val result = withTimeoutOrNull(5_000) { chatRepository.fetchReply(text) }
 
-            // 4. Panggil API lalu ganti pesan sementara dengan balasan sesungguhnya
-            when (val result = chatRepository.fetchReply(text)) {
+            // 4. Ganti pesan placeholder dengan hasil atau pesan kesalahan
+            when (result) {
                 is Result.Success -> {
                     chatRepository.replaceMessage(placeholder.id, result.data)
-                    _messages.value = chatRepository.getConversation()
                 }
-                is Result.Error -> {
-                    // Biarkan placeholder tetap dengan teks error sederhana
+                is Result.Error, null -> {
                     chatRepository.replaceMessage(
                         placeholder.id,
                         "Terjadi kesalahan."
                     )
-                    _messages.value = chatRepository.getConversation()
                 }
             }
+            _messages.value = chatRepository.getConversation()
         }
     }
 }
