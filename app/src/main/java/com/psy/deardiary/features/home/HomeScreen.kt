@@ -1,10 +1,10 @@
 package com.psy.deardiary.features.home
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.ExperimentalFoundationApi // IMPORT BARU
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.animateItemPlacement
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
@@ -25,7 +25,7 @@ import com.psy.deardiary.data.model.ChatMessage
 import com.psy.deardiary.features.home.components.*
 import com.psy.deardiary.features.home.emojiOptions
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class) // ANOTASI BARU
 @Composable
 fun HomeScreen(
     onNavigateToSettings: () -> Unit,
@@ -34,7 +34,7 @@ fun HomeScreen(
     chatViewModel: HomeChatViewModel = hiltViewModel()
 ) {
     val messages by chatViewModel.messages.collectAsState()
-    val uiState by viewModel.uiState.collectAsState() // ✅ Diperbaiki: ini yang sebelumnya hilang
+    val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
 
     LaunchedEffect(messages.size) {
@@ -95,7 +95,7 @@ fun HomeScreen(
                         ) {
                             ChatBubble(
                                 message = msg,
-                                modifier = Modifier.animateItemPlacement()
+                                modifier = Modifier.animateItemPlacement() // PENGGUNAAN animateItemPlacement
                             )
                         }
                     }

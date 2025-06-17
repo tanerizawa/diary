@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     # --- PENAMBAHAN BARU ---
     # Konfigurasi untuk Layanan AI (contoh menggunakan OpenRouter)
     # Ambil API Key dari environment variable
-    AI_API_KEY: str = os.getenv("AI_API_KEY", "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")
+    AI_API_KEY: str = os.getenv("AI_API_KEY", "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")
     AI_API_URL: str = "https://openrouter.ai/api/v1/chat/completions"
     # --- AKHIR PENAMBAHAN ---
 
