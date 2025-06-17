@@ -53,7 +53,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun saveQuickNote(content: String, mood: String = "\uD83D\uDE10") {
+    fun saveQuickNote(content: String, mood: String = NEUTRAL_EMOJI) {
         viewModelScope.launch {
             if (content.isNotBlank()) {
                 journalRepository.createJournal(
