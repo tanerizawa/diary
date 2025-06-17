@@ -1,10 +1,19 @@
 import httpx
 from app.core.config import settings
 
+MAX_REPLY_LENGTH = 280
+
 async def get_ai_reply(message: str, context: str = "") -> str | None:
     """Send a chat message to the OpenRouter API and return the reply."""
+    instructions = (
+        "Jawablah dengan kalimat personal dan hangat dalam Bahasa Indonesia. "
+        "Panjang jawaban maksimum 280 karakter."
+    )
     system_prompt = (
-        context if context else "You are a helpful mental health assistant."
+        f"{context}\n{instructions}"
+        if context
+        else "Anda adalah pendamping kesehatan mental yang suportif. "
+        + instructions
     )
     body = {
         "model": "google/gemini-flash-1.5",
@@ -27,7 +36,10 @@ async def get_ai_reply(message: str, context: str = "") -> str | None:
             )
             response.raise_for_status()
             data = response.json()
-            return data["choices"][0]["message"]["content"].strip()
+            reply = data["choices"][0]["message"]["content"].strip()
+            if len(reply) > MAX_REPLY_LENGTH:
+                reply = reply[:MAX_REPLY_LENGTH]
+            return reply
     except (httpx.RequestError, httpx.HTTPStatusError, KeyError) as e:
         print(f"Error calling AI service: {e}")
         return None
