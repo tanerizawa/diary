@@ -15,6 +15,7 @@ class ChatRepository @Inject constructor(
     private val chatApiService: ChatApiService
 ) {
     private val history = mutableListOf<ChatMessage>()
+    private var nextId = 0
 
     fun getConversation(): List<ChatMessage> = history
 
@@ -24,8 +25,8 @@ class ChatRepository @Inject constructor(
                 val response = chatApiService.sendMessage(ChatRequest(text))
                 if (response.isSuccessful && response.body() != null) {
                     val reply = response.body()!!.reply
-                    history.add(ChatMessage(text, true))
-                    history.add(ChatMessage(reply, false))
+                    history.add(ChatMessage(nextId++, text, true))
+                    history.add(ChatMessage(nextId++, reply, false))
                     Result.Success(history.toList())
                 } else {
                     Result.Error("${'$'}{response.message()}")
