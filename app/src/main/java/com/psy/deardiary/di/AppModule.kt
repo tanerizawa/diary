@@ -115,7 +115,6 @@ object AppModule {
     ): JournalRepository {
         return JournalRepository(journalApiService, journalDao)
     }
-
     @Provides
     @Singleton
     fun provideChatRepository(chatApiService: ChatApiService): ChatRepository {
