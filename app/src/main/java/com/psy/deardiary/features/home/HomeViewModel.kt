@@ -53,13 +53,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun saveQuickNote(content: String) {
+    fun saveQuickNote(content: String, mood: String = "\uD83D\uDE10") {
         viewModelScope.launch {
             if (content.isNotBlank()) {
                 journalRepository.createJournal(
                     title = "", // Judul kosong menandakan Quick Entry
                     content = content,
-                    mood = "😐",
+                    mood = mood,
                     voiceNotePath = null
                 )
             }

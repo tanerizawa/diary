@@ -2,6 +2,7 @@ package com.psy.deardiary.features.home
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -13,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -57,8 +59,9 @@ fun HomeScreen(
             // Komponen ini untuk panel input CATATAN SINGKAT
             QuickEntryInput(
                 isVisible = isQuickEntryVisible,
-                onSave = { text ->
-                    viewModel.saveQuickNote(text)
+                onActivate = { isQuickEntryVisible = true },
+                onSave = { text, mood ->
+                    viewModel.saveQuickNote(text, mood)
                     isQuickEntryVisible = false // Tutup input setelah simpan
                 },
                 onCloseRequest = { isQuickEntryVisible = false } // Tutup jika keyboard hilang
@@ -102,10 +105,13 @@ fun HomeScreen(
 @Composable
 private fun QuickEntryInput(
     isVisible: Boolean,
-    onSave: (String) -> Unit,
+    onActivate: () -> Unit,
+    onSave: (String, String) -> Unit,
     onCloseRequest: () -> Unit
 ) {
     var text by remember { mutableStateOf("") }
+    var mood by remember { mutableStateOf("\uD83D\uDE10") }
+    var showEmojiPicker by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
@@ -114,8 +120,29 @@ private fun QuickEntryInput(
         if (isVisible) {
             focusRequester.requestFocus()
         } else {
-            // Membersihkan teks saat panel ditutup
+            // Membersihkan teks dan pilihan saat panel ditutup
             text = ""
+            mood = "\uD83D\uDE10"
+        }
+    }
+
+    if (!isVisible) {
+        Surface(tonalElevation = 3.dp, modifier = Modifier.alpha(0.7f)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onActivate() }
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .navigationBarsPadding(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(mood, style = MaterialTheme.typography.bodyLarge)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Tulis catatan singkat...",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 
@@ -126,9 +153,25 @@ private fun QuickEntryInput(
     ) {
         Surface(tonalElevation = 3.dp) {
             Row(
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp).navigationBarsPadding(),
+                modifier = Modifier
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .navigationBarsPadding(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                IconButton(onClick = { showEmojiPicker = true }) {
+                    Text(mood)
+                }
+                DropdownMenu(expanded = showEmojiPicker, onDismissRequest = { showEmojiPicker = false }) {
+                    listOf("😀", "🙂", "😐", "😢", "😡").forEach { emoji ->
+                        DropdownMenuItem(
+                            text = { Text(emoji) },
+                            onClick = {
+                                mood = emoji
+                                showEmojiPicker = false
+                            }
+                        )
+                    }
+                }
                 TextField(
                     value = text,
                     onValueChange = { text = it },
@@ -144,7 +187,7 @@ private fun QuickEntryInput(
                 Spacer(modifier = Modifier.width(8.dp))
                 IconButton(
                     onClick = {
-                        onSave(text)
+                        onSave(text, mood)
                         focusManager.clearFocus()
                         keyboardController?.hide()
                     },
