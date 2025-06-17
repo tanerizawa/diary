@@ -11,7 +11,7 @@
 ## ✨ Fitur Utama
 
 ### 🏠 Tab Beranda
-- **Quick Input Card**: Tulis jurnal harian dengan mudah melalui kartu input intuitif, mirip gaya Facebook.
+- **Catatan Singkat**: Tulis pesan pendek tanpa judul seperti di Twitter melalui panel input cepat.
 - **Feed Jurnal Harian**: Tampilkan riwayat jurnal Anda dengan desain yang rapi dan nyaman dibaca.
 - **Pengaturan Cepat**: Akses pengaturan aplikasi langsung dari layar utama.
 
@@ -19,6 +19,7 @@
 - **Musik & Suara Alam**: Playlist relaksasi untuk membantu meditasi dan mengurangi stres.
 - **Artikel & Blog**: Artikel bermanfaat terkait kesehatan mental dari sumber tepercaya.
 - **Jurnal Terpandu**: Prompt khusus yang memandu pengguna ketika kesulitan menulis jurnal.
+- **Menulis Jurnal Panjang**: Akses editor penuh untuk menulis essai atau blog pribadi.
 
 ### ❤️ Tab Layanan
 - **Tes Psikologi**:

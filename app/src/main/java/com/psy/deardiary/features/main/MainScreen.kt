@@ -73,16 +73,18 @@ fun MainScreen(
             // ▼▼▼ CHECKPOINT 3: Pastikan composable ini untuk Screen.Home.route dan memanggil HomeScreen ▼▼▼
             composable(Screen.Home.route) {
                 HomeScreen(
-                    onNavigateToEditor = { mainNavController.navigate(Screen.Editor.createRoute(null)) },
                     onNavigateToSettings = { mainNavController.navigate(Screen.Settings.route) },
                     onNavigateToCrisisSupport = { mainNavController.navigate(Screen.CrisisSupport.route) }
                 )
             }
             composable(Screen.Media.route) {
-                MediaScreen(onNavigateToEditorWithPrompt = { prompt ->
-                    val encodedPrompt = URLEncoder.encode(prompt, "UTF-8")
-                    mainNavController.navigate(Screen.Editor.createRoute(prompt = encodedPrompt))
-                })
+                MediaScreen(
+                    onNavigateToEditor = { mainNavController.navigate(Screen.Editor.createRoute(null)) },
+                    onNavigateToEditorWithPrompt = { prompt ->
+                        val encodedPrompt = URLEncoder.encode(prompt, "UTF-8")
+                        mainNavController.navigate(Screen.Editor.createRoute(prompt = encodedPrompt))
+                    }
+                )
             }
             composable(Screen.Services.route) {
                 ServicesScreen(navController = mainNavController)

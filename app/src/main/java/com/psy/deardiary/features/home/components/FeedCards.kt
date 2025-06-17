@@ -47,7 +47,7 @@ fun WelcomeCard(
 }
 
 @Composable
-fun PromptCard(prompt: String, onWriteClick: () -> Unit) {
+fun PromptCard(prompt: String, onNoteClick: () -> Unit) {
     OutlinedCard(modifier = Modifier
         .fillMaxWidth()
         .padding(vertical = 8.dp)) {
@@ -61,8 +61,8 @@ fun PromptCard(prompt: String, onWriteClick: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(prompt, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(16.dp))
-            FilledTonalButton(onClick = onWriteClick) {
-                Text("Tulis Jurnal Lengkap")
+            FilledTonalButton(onClick = onNoteClick) {
+                Text("Tulis Catatan Singkat")
             }
         }
     }
