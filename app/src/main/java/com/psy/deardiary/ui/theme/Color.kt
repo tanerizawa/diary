@@ -1,30 +1,38 @@
-// File: app/src/main/java/com/psy/deardiary/ui/theme/Color.kt
-// Deskripsi: Mendefinisikan palet warna aplikasi. Setiap warna dideklarasikan
-// sebagai sebuah konstanta agar bisa digunakan kembali di seluruh aplikasi.
-
 package com.psy.deardiary.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Warna Utama & Turunannya
-val Primary = Color(0xFFB0E0E6)
-val OnPrimary = Color(0xFF2C3E50)
-val PrimaryContainer = Color(0xFFE1F5FE)
+// Palet "Soft Fluent" dengan NAMA VARIABEL LAMA untuk kompatibilitas
 
-// Warna Sekunder
-val Secondary = Color(0xFFC8E6C9)
-val OnSecondary = Color(0xFF1B5E20)
+// TEMA TERANG
+val Primary = Color(0xFF5B87AA) // Soft Blue
+val OnPrimary = Color(0xFFFFFFFF)
+val PrimaryContainer = Color(0xFFD3E4F7)
+val OnPrimaryContainer = Color(0xFF001D35)
 
-// Warna Permukaan & Latar Belakang
-val Surface = Color(0xFFF7F9F9)
-val OnSurface = Color(0xFF333333)
-val OnSurfaceVariant = Color(0xFF757575)
-val Outline = Color(0xFFBDBDBD)
+val Secondary = Color(0xFFC9A999) // Soft Terracotta
+val OnSecondary = Color(0xFF442A1E)
+val SecondaryContainer = Color(0xFFFDECDF)
+val OnSecondaryContainer = Color(0xFF2C160C)
 
-// Warna Status Error & Peringatan
-val Error = Color(0xFFE57373)
+val Surface = Color(0xFFF8F9FA) // Off-white
+val OnSurface = Color(0xFF191C1E)
+val OnSurfaceVariant = Color(0xFF43474E)
+val Outline = Color(0xFF73777F)
+
+val Error = Color(0xFFBA1A1A)
 val OnError = Color(0xFFFFFFFF)
+val Crisis = Color(0xFFE87A5D)
+val OnCrisis = Color(0xFFFFFFFF)
 
-// Warna Khusus
-val Crisis = Color(0xFFFFAB91)
-val OnCrisis = Color(0xFF2C3E50)
+// TEMA GELAP
+val Primary_Dark = Color(0xFFA3C9E9)
+val OnPrimary_Dark = Color(0xFF193348)
+
+val Secondary_Dark = Color(0xFFEBC1B0)
+val OnSecondary_Dark = Color(0xFF573B30)
+
+val Surface_Dark = Color(0xFF1E2428)
+val OnSurface_Dark = Color(0xFFE2E2E6)
+val OnSurfaceVariant_Dark = Color(0xFFC3C7CF)
+val Outline_Dark = Color(0xFF8D9199)

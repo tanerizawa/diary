@@ -4,47 +4,58 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.googlefonts.Font // <-- IMPORT DIUBAH
-import androidx.compose.ui.text.googlefonts.GoogleFont // <-- IMPORT BARU
+import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
 import com.psy.deardiary.R
-// import com.psy.deardiary.R <-- TIDAK PERLU LAGI R.font
 
-// 1. Siapkan provider Google Fonts
 private val provider = GoogleFont.Provider(
     providerAuthority = "com.google.android.gms.fonts",
     providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs // <-- Ini merujuk ke meta-data di manifest
+    certificates = R.array.com_google_android_gms_fonts_certs
 )
 
-// 2. Tentukan nama font yang ingin digunakan
-private val fontName = GoogleFont("Nunito Sans")
+private val fontName = GoogleFont("Inter")
 
-// 3. Buat FontFamily menggunakan provider
-// Kode menjadi jauh lebih simpel!
-private val NunitoSans = FontFamily(
+private val InterFontFamily = FontFamily(
     Font(googleFont = fontName, fontProvider = provider, weight = FontWeight.Normal),
     Font(googleFont = fontName, fontProvider = provider, weight = FontWeight.Medium),
+    Font(googleFont = fontName, fontProvider = provider, weight = FontWeight.SemiBold),
     Font(googleFont = fontName, fontProvider = provider, weight = FontWeight.Bold)
 )
 
-// 4. Objek Typography tetap sama, tidak perlu diubah
 val AppTypography = Typography(
-    headlineLarge = TextStyle(
-        fontFamily = NunitoSans,
+    displayLarge = TextStyle(
+        fontFamily = InterFontFamily,
         fontWeight = FontWeight.Bold,
-        fontSize = 32.sp
+        fontSize = 57.sp,
+        lineHeight = 64.sp,
+        letterSpacing = (-0.25).sp
+    ),
+    headlineLarge = TextStyle(
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 32.sp,
+        lineHeight = 40.sp
     ),
     titleLarge = TextStyle(
-        fontFamily = NunitoSans,
-        fontWeight = FontWeight.Bold,
-        fontSize = 22.sp
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 22.sp,
+        lineHeight = 28.sp
     ),
     bodyLarge = TextStyle(
-        fontFamily = NunitoSans,
+        fontFamily = InterFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
-        lineHeight = 24.sp
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
     ),
-    // ... gaya teks lainnya
+    labelLarge = TextStyle(
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
+    )
 )

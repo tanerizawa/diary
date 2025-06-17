@@ -1,38 +1,19 @@
-// File: app/src/main/java/com/psy/deardiary/features/main/MainScreen.kt
-// Deskripsi: Versi lengkap dan diperbaiki dari file MainScreen.
-
 package com.psy.deardiary.features.main
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Movie
-import androidx.compose.material.icons.filled.Yard
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Movie
-import androidx.compose.material.icons.outlined.Yard
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.psy.deardiary.features.diary.DiaryScreen
-import com.psy.deardiary.features.diary.DiaryViewModel
+import androidx.navigation.compose.*
 import com.psy.deardiary.features.growth.GrowthScreen
+import com.psy.deardiary.features.home.HomeScreen
 import com.psy.deardiary.features.media.MediaScreen
 import com.psy.deardiary.features.services.ServicesScreen
 import com.psy.deardiary.navigation.Screen
@@ -51,31 +32,12 @@ fun MainScreen(
 ) {
     val localNavController = rememberNavController()
 
+    // ▼▼▼ CHECKPOINT 1: Pastikan rute untuk "Beranda" adalah Screen.Home.route ▼▼▼
     val items = listOf(
-        BottomNavItem(
-            label = "Beranda",
-            route = Screen.Diary.route,
-            selectedIcon = Icons.Filled.Home,
-            unselectedIcon = Icons.Outlined.Home
-        ),
-        BottomNavItem(
-            label = "Media",
-            route = Screen.Media.route,
-            selectedIcon = Icons.Filled.Movie,
-            unselectedIcon = Icons.Outlined.Movie
-        ),
-        BottomNavItem(
-            label = "Layanan",
-            route = Screen.Services.route,
-            selectedIcon = Icons.Filled.Favorite,
-            unselectedIcon = Icons.Outlined.FavoriteBorder
-        ),
-        BottomNavItem(
-            label = "Pertumbuhan",
-            route = Screen.Growth.route,
-            selectedIcon = Icons.Filled.Yard,
-            unselectedIcon = Icons.Outlined.Yard
-        )
+        BottomNavItem("Beranda", Screen.Home.route, Icons.Filled.Home, Icons.Outlined.Home),
+        BottomNavItem("Media", Screen.Media.route, Icons.Filled.Movie, Icons.Outlined.Movie),
+        BottomNavItem("Layanan", Screen.Services.route, Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder),
+        BottomNavItem("Pertumbuhan", Screen.Growth.route, Icons.Filled.Yard, Icons.Outlined.Yard)
     )
 
     Scaffold(
@@ -83,24 +45,20 @@ fun MainScreen(
             NavigationBar {
                 val navBackStackEntry by localNavController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
-
                 items.forEach { item ->
                     NavigationBarItem(
                         label = { Text(item.label) },
                         selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
                         onClick = {
                             localNavController.navigate(item.route) {
-                                popUpTo(localNavController.graph.findStartDestination().id) { saveState = true }
+                                popUpTo(localNavController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
                                 launchSingleTop = true
                                 restoreState = true
                             }
                         },
-                        icon = {
-                            Icon(
-                                imageVector = if (currentDestination?.hierarchy?.any { it.route == item.route } == true) item.selectedIcon else item.unselectedIcon,
-                                contentDescription = item.label
-                            )
-                        }
+                        icon = { Icon(if (currentDestination?.hierarchy?.any { it.route == item.route } == true) item.selectedIcon else item.unselectedIcon, item.label) }
                     )
                 }
             }
@@ -108,38 +66,25 @@ fun MainScreen(
     ) { innerPadding ->
         NavHost(
             navController = localNavController,
-            startDestination = Screen.Diary.route,
+            // ▼▼▼ CHECKPOINT 2: Pastikan startDestination adalah Screen.Home.route ▼▼▼
+            startDestination = Screen.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Diary.route) {
-                val diaryViewModel: DiaryViewModel = hiltViewModel()
-                val state by diaryViewModel.uiState.collectAsState()
-                DiaryScreen(
-                    state = state,
-                    onNavigateToEditor = {
-                        mainNavController.navigate(Screen.Editor.createRoute(null))
-                    },
+            // ▼▼▼ CHECKPOINT 3: Pastikan composable ini untuk Screen.Home.route dan memanggil HomeScreen ▼▼▼
+            composable(Screen.Home.route) {
+                HomeScreen(
+                    onNavigateToEditor = { mainNavController.navigate(Screen.Editor.createRoute(null)) },
                     onNavigateToSettings = { mainNavController.navigate(Screen.Settings.route) },
-                    onNavigateToCrisisSupport = { mainNavController.navigate(Screen.CrisisSupport.route) },
-                    onEntryClick = { entryId ->
-                        mainNavController.navigate(Screen.Editor.createRoute(entryId.toString()))
-                    },
-                    onRetry = { diaryViewModel.refreshJournals() },
-                    onClearError = { diaryViewModel.clearErrorMessage() }
+                    onNavigateToCrisisSupport = { mainNavController.navigate(Screen.CrisisSupport.route) }
                 )
             }
             composable(Screen.Media.route) {
-                MediaScreen(
-                    onNavigateToEditorWithPrompt = { prompt ->
-                        val encodedPrompt = URLEncoder.encode(prompt, "UTF-8")
-                        mainNavController.navigate(
-                            Screen.Editor.createRoute(prompt = encodedPrompt)
-                        )
-                    }
-                )
+                MediaScreen(onNavigateToEditorWithPrompt = { prompt ->
+                    val encodedPrompt = URLEncoder.encode(prompt, "UTF-8")
+                    mainNavController.navigate(Screen.Editor.createRoute(prompt = encodedPrompt))
+                })
             }
             composable(Screen.Services.route) {
-                // PERBAIKAN: Teruskan mainNavController ke ServicesScreen
                 ServicesScreen(navController = mainNavController)
             }
             composable(Screen.Growth.route) {

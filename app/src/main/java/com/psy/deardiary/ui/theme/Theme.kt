@@ -1,7 +1,3 @@
-// File: app/src/main/java/com/psy/deardiary/ui/theme/Theme.kt
-// Deskripsi: File ini adalah jantung dari Design System. Ia menggabungkan
-// palet warna dan tipografi menjadi sebuah tema Material 3 yang utuh.
-
 package com.psy.deardiary.ui.theme
 
 import android.app.Activity
@@ -15,30 +11,15 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// Mendefinisikan skema warna terang menggunakan warna yang telah kita buat di Color.kt
 private val LightColorScheme = lightColorScheme(
     primary = Primary,
     onPrimary = OnPrimary,
     primaryContainer = PrimaryContainer,
+    onPrimaryContainer = OnPrimaryContainer,
     secondary = Secondary,
     onSecondary = OnSecondary,
-    surface = Surface,
-    onSurface = OnSurface,
-    onSurfaceVariant = OnSurfaceVariant,
-    background = Surface, // Latar belakang utama sama dengan surface
-    onBackground = OnSurface,
-    error = Error,
-    onError = OnError,
-    outline = Outline
-)
-
-// Skema warna gelap menggunakan palet yang sama dengan mode terang
-private val DarkColorScheme = darkColorScheme(
-    primary = Primary,
-    onPrimary = OnPrimary,
-    primaryContainer = PrimaryContainer,
-    secondary = Secondary,
-    onSecondary = OnSecondary,
+    secondaryContainer = SecondaryContainer,
+    onSecondaryContainer = OnSecondaryContainer,
     surface = Surface,
     onSurface = OnSurface,
     onSurfaceVariant = OnSurfaceVariant,
@@ -49,21 +30,35 @@ private val DarkColorScheme = darkColorScheme(
     outline = Outline
 )
 
+private val DarkColorScheme = darkColorScheme(
+    primary = Primary_Dark,
+    onPrimary = OnPrimary_Dark,
+    primaryContainer = OnPrimaryContainer,
+    onPrimaryContainer = PrimaryContainer,
+    secondary = Secondary_Dark,
+    onSecondary = OnSecondary_Dark,
+    surface = Surface_Dark,
+    onSurface = OnSurface_Dark,
+    onSurfaceVariant = OnSurfaceVariant_Dark,
+    background = Surface_Dark,
+    onBackground = OnSurface_Dark,
+    error = Error,
+    onError = OnError,
+    outline = Outline_Dark
+)
+
 @Composable
 fun DearDiaryTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    // Pilih skema warna berdasarkan parameter darkTheme
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     val view = LocalView.current
 
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // Mengatur warna status bar agar sesuai dengan warna primer tema
-            window.statusBarColor = colorScheme.primary.toArgb()
-            // Atur warna ikon status bar berdasarkan tema
+            window.statusBarColor = colorScheme.surface.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
