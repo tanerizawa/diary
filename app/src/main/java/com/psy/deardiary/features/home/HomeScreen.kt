@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -33,6 +34,13 @@ fun HomeScreen(
 ) {
     val messages by chatViewModel.messages.collectAsState()
     val uiState by viewModel.uiState.collectAsState() // ✅ Diperbaiki: ini yang sebelumnya hilang
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.lastIndex)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -65,6 +73,7 @@ fun HomeScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    state = listState,
                 ) {
                     items(uiState.feedItems, key = { it.hashCode() }) { item ->
                         when (item) {
