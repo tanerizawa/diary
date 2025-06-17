@@ -19,15 +19,26 @@ class ChatRepository @Inject constructor(
 
     fun getConversation(): List<ChatMessage> = history
 
-    suspend fun sendMessage(text: String): Result<List<ChatMessage>> {
+    fun addMessage(text: String, isUser: Boolean): ChatMessage {
+        val message = ChatMessage(nextId++, text, isUser)
+        history.add(message)
+        return message
+    }
+
+    fun replaceMessage(id: Int, newText: String) {
+        val index = history.indexOfFirst { it.id == id }
+        if (index != -1) {
+            history[index] = history[index].copy(text = newText)
+        }
+    }
+
+    suspend fun fetchReply(text: String): Result<String> {
         return withContext(Dispatchers.IO) {
             try {
                 val response = chatApiService.sendMessage(ChatRequest(text))
                 if (response.isSuccessful && response.body() != null) {
                     val reply = response.body()!!.reply
-                    history.add(ChatMessage(nextId++, text, true))
-                    history.add(ChatMessage(nextId++, reply, false))
-                    Result.Success(history.toList())
+                    Result.Success(reply)
                 } else {
                     Result.Error("${'$'}{response.message()}")
                 }
