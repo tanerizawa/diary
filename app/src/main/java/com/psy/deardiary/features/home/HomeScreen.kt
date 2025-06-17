@@ -2,9 +2,9 @@ package com.psy.deardiary.features.home
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.outlined.CrisisAlert
@@ -14,14 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.psy.deardiary.data.model.ChatMessage
 import com.psy.deardiary.features.home.components.ArticleSuggestionCard
 import com.psy.deardiary.features.home.components.JournalItemCard
 import com.psy.deardiary.features.home.components.PromptCard
@@ -32,10 +29,10 @@ import com.psy.deardiary.features.home.components.WelcomeCard
 fun HomeScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToCrisisSupport: () -> Unit,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    chatViewModel: HomeChatViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    var isQuickEntryVisible by remember { mutableStateOf(false) }
+    val messages by chatViewModel.messages.collectAsState()
 
     Scaffold(
         topBar = {
@@ -51,21 +48,8 @@ fun HomeScreen(
                 }
             )
         },
-        /*
-         * Tidak ada tombol untuk menulis jurnal panjang di tab Beranda.
-         * Pengguna hanya dapat membuat catatan singkat di sini.
-         */
         bottomBar = {
-            // Komponen ini untuk panel input CATATAN SINGKAT
-            QuickEntryInput(
-                isVisible = isQuickEntryVisible,
-                onActivate = { isQuickEntryVisible = true },
-                onSave = { text, mood ->
-                    viewModel.saveQuickNote(text, mood)
-                    isQuickEntryVisible = false // Tutup input setelah simpan
-                },
-                onCloseRequest = { isQuickEntryVisible = false } // Tutup jika keyboard hilang
-            )
+            ChatInputBar(onSend = { chatViewModel.sendMessage(it) })
         }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
@@ -84,12 +68,13 @@ fun HomeScreen(
                                 timeOfDay = item.timeOfDay,
                                 userName = item.userName,
                             )
-                            is FeedItem.PromptItem -> PromptCard(
-                                prompt = item.promptText,
-                            )
+                            is FeedItem.PromptItem -> PromptCard(prompt = item.promptText)
                             is FeedItem.JournalItem -> JournalItemCard(item.journalEntry)
                             is FeedItem.ArticleSuggestionItem -> ArticleSuggestionCard(item.article)
                         }
+                    }
+                    items(messages, key = { it.hashCode() }) { msg ->
+                        ChatBubble(msg)
                     }
                 }
             }
@@ -97,107 +82,59 @@ fun HomeScreen(
     }
 }
 
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun QuickEntryInput(
-    isVisible: Boolean,
-    onActivate: () -> Unit,
-    onSave: (String, String) -> Unit,
-    onCloseRequest: () -> Unit
-) {
+private fun ChatInputBar(onSend: (String) -> Unit) {
     var text by remember { mutableStateOf("") }
-    var mood by remember { mutableStateOf(NEUTRAL_EMOJI) }
-    var showEmojiPicker by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
-    val focusRequester = remember { FocusRequester() }
-
-    LaunchedEffect(isVisible) {
-        if (isVisible) {
-            focusRequester.requestFocus()
-        } else {
-            // Membersihkan teks dan pilihan saat panel ditutup
-            text = ""
-            mood = NEUTRAL_EMOJI
-        }
-    }
-
-    if (!isVisible) {
-        Surface(tonalElevation = 3.dp, modifier = Modifier.alpha(0.7f)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onActivate() }
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .navigationBarsPadding(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(mood, style = MaterialTheme.typography.bodyLarge)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Tulis catatan singkat...",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = slideInVertically { it } + fadeIn(),
-        exit = slideOutVertically { it } + fadeOut()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Surface(tonalElevation = 3.dp) {
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 8.dp, vertical = 8.dp)
-                    .navigationBarsPadding(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = { showEmojiPicker = true }) {
-                    Text(mood)
-                }
-                DropdownMenu(expanded = showEmojiPicker, onDismissRequest = { showEmojiPicker = false }) {
-                    emojiOptions.forEach { option ->
-                        DropdownMenuItem(
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(option.emoji)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(option.label)
-                                }
-                            },
-                            onClick = {
-                                mood = option.emoji
-                                showEmojiPicker = false
-                            }
-                        )
-                    }
-                }
-                TextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    placeholder = { Text("Tulis catatan singkat...") },
-                    modifier = Modifier.weight(1f).focusRequester(focusRequester),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                    )
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                IconButton(
-                    onClick = {
-                        onSave(text, mood)
-                        focusManager.clearFocus()
-                        keyboardController?.hide()
-                    },
-                    enabled = text.isNotBlank()
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.Send, "Simpan Catatan")
-                }
-            }
+        TextField(
+            value = text,
+            onValueChange = { text = it },
+            modifier = Modifier.weight(1f),
+            placeholder = { Text("Ketik pesan...") },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+            )
+        )
+        IconButton(
+            onClick = {
+                onSend(text)
+                keyboardController?.hide()
+                text = ""
+            },
+            enabled = text.isNotBlank()
+        ) {
+            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Kirim")
+        }
+    }
+}
+
+@Composable
+private fun ChatBubble(message: ChatMessage) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start
+    ) {
+        Surface(
+            color = if (message.isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Text(
+                text = message.text,
+                modifier = Modifier.padding(8.dp)
+            )
         }
     }
 }

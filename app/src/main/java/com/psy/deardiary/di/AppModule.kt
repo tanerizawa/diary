@@ -9,6 +9,8 @@ import com.psy.deardiary.data.local.AppDatabase
 import com.psy.deardiary.data.local.JournalDao
 import com.psy.deardiary.data.network.AuthApiService
 import com.psy.deardiary.data.network.AuthInterceptor
+import com.psy.deardiary.data.network.ChatApiService
+import com.psy.deardiary.data.repository.ChatRepository
 import com.psy.deardiary.data.network.JournalApiService
 import com.psy.deardiary.data.repository.AuthRepository
 import com.psy.deardiary.data.repository.JournalRepository
@@ -100,6 +102,12 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideChatApiService(retrofit: Retrofit): ChatApiService {
+        return retrofit.create(ChatApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideAuthRepository(
         authApiService: AuthApiService,
         userPreferencesRepository: UserPreferencesRepository
@@ -115,4 +123,10 @@ object AppModule {
     ): JournalRepository {
         return JournalRepository(journalApiService, journalDao)
     }
+    @Provides
+    @Singleton
+    fun provideChatRepository(chatApiService: ChatApiService): ChatRepository {
+        return ChatRepository(chatApiService)
+    }
+
 }
