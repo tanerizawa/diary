@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.animateItemPlacement
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
@@ -86,8 +87,17 @@ fun HomeScreen(
                             is FeedItem.ArticleSuggestionItem -> ArticleSuggestionCard(item.article)
                         }
                     }
-                    items(messages, key = { it.hashCode() }) { msg ->
-                        ChatBubble(msg)
+                    items(messages, key = { it.id }) { msg ->
+                        AnimatedVisibility(
+                            visible = true,
+                            enter = fadeIn() + slideInVertically { it / 2 },
+                            exit = fadeOut() + slideOutVertically()
+                        ) {
+                            ChatBubble(
+                                message = msg,
+                                modifier = Modifier.animateItemPlacement()
+                            )
+                        }
                     }
                 }
             }
@@ -168,9 +178,9 @@ private fun ChatInputBar(onSend: (String) -> Unit) {
 }
 
 @Composable
-private fun ChatBubble(message: ChatMessage) {
+private fun ChatBubble(message: ChatMessage, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start
