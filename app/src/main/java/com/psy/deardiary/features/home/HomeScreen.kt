@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -185,12 +186,31 @@ private fun ChatBubble(message: ChatMessage, modifier: Modifier = Modifier) {
             .padding(vertical = 4.dp),
         horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start
     ) {
+        var dots by remember(message.id) { mutableStateOf(".") }
+
+        if (message.isPlaceholder) {
+            LaunchedEffect(message.id) {
+                while (true) {
+                    delay(500)
+                    dots = if (dots.length >= 5) "." else dots + "."
+                }
+            }
+        }
+
+        val bubbleColor = when {
+            message.isPlaceholder -> Color.Gray.copy(alpha = 0.5f)
+            message.isUser -> MaterialTheme.colorScheme.primaryContainer
+            else -> MaterialTheme.colorScheme.surfaceVariant
+        }
+
+        val displayText = if (message.isPlaceholder) dots else message.text
+
         Surface(
-            color = if (message.isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+            color = bubbleColor,
             shape = MaterialTheme.shapes.medium
         ) {
             Text(
-                text = message.text,
+                text = displayText,
                 modifier = Modifier.padding(8.dp)
             )
         }
