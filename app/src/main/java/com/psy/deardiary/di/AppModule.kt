@@ -1,5 +1,3 @@
-// LOKASI: app/src/main/java/com/psy/deardiary/di/AppModule.kt
-
 package com.psy.deardiary.di
 
 import android.content.Context
@@ -10,9 +8,9 @@ import com.psy.deardiary.data.local.JournalDao
 import com.psy.deardiary.data.network.AuthApiService
 import com.psy.deardiary.data.network.AuthInterceptor
 import com.psy.deardiary.data.network.ChatApiService
-import com.psy.deardiary.data.repository.ChatRepository
 import com.psy.deardiary.data.network.JournalApiService
 import com.psy.deardiary.data.repository.AuthRepository
+import com.psy.deardiary.data.repository.ChatRepository
 import com.psy.deardiary.data.repository.JournalRepository
 import com.psy.deardiary.BuildConfig
 import dagger.Module
@@ -38,11 +36,7 @@ object AppModule {
             AppDatabase::class.java,
             "dear_diary_database"
         )
-            // --- PENAMBAHAN BARU ---
-            // Menambahkan ini akan secara otomatis membuat ulang database
-            // jika versinya berubah, tanpa memerlukan migrasi manual.
             .fallbackToDestructiveMigration()
-            // --- AKHIR PENAMBAHAN ---
             .build()
     }
 
@@ -51,8 +45,6 @@ object AppModule {
     fun provideJournalDao(appDatabase: AppDatabase): JournalDao {
         return appDatabase.journalDao()
     }
-
-    // ... sisa file tidak berubah ...
 
     @Provides
     @Singleton
@@ -128,5 +120,4 @@ object AppModule {
     fun provideChatRepository(chatApiService: ChatApiService): ChatRepository {
         return ChatRepository(chatApiService)
     }
-
 }
