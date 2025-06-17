@@ -19,8 +19,8 @@ class ChatRepository @Inject constructor(
 
     fun getConversation(): List<ChatMessage> = history
 
-    fun addMessage(text: String, isUser: Boolean): ChatMessage {
-        val message = ChatMessage(nextId++, text, isUser)
+    fun addMessage(text: String, isUser: Boolean, isPlaceholder: Boolean = false): ChatMessage {
+        val message = ChatMessage(nextId++, text, isUser, isPlaceholder)
         history.add(message)
         return message
     }
