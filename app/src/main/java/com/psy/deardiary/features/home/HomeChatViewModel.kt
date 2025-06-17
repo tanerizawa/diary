@@ -32,7 +32,8 @@ class HomeChatViewModel @Inject constructor(
             // 2. Sisipkan pesan sementara sebagai indikator mengetik
             val placeholder = chatRepository.addMessage(
                 "Sedang mengetik jawaban...",
-                isUser = false
+                isUser = false,
+                isPlaceholder = true
             )
 
             // Perbarui UI segera agar placeholder terlihat
