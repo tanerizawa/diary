@@ -56,10 +56,11 @@ class HomeViewModel @Inject constructor(
     fun saveQuickNote(content: String, mood: String = NEUTRAL_EMOJI) {
         viewModelScope.launch {
             if (content.isNotBlank()) {
+                val sanitizedMood = if (mood == NEUTRAL_EMOJI) "" else mood
                 journalRepository.createJournal(
                     title = "", // Judul kosong menandakan Quick Entry
                     content = content,
-                    mood = mood,
+                    mood = sanitizedMood,
                     voiceNotePath = null
                 )
             }
