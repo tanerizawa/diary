@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.CrisisAlert
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
@@ -29,7 +28,6 @@ import com.psy.deardiary.features.home.components.WelcomeCard
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun HomeScreen(
-    onNavigateToEditor: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToCrisisSupport: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
@@ -51,12 +49,10 @@ fun HomeScreen(
                 }
             )
         },
-        floatingActionButton = {
-            // FAB ini untuk membuka editor JURNAL LENGKAP
-            FloatingActionButton(onClick = onNavigateToEditor) {
-                Icon(Icons.Default.Edit, "Tulis Jurnal Lengkap")
-            }
-        },
+        /*
+         * Tidak ada tombol untuk menulis jurnal panjang di tab Beranda.
+         * Pengguna hanya dapat membuat catatan singkat di sini.
+         */
         bottomBar = {
             // Komponen ini untuk panel input CATATAN SINGKAT
             QuickEntryInput(
@@ -90,7 +86,7 @@ fun HomeScreen(
                             )
                             is FeedItem.PromptItem -> PromptCard(
                                 prompt = item.promptText,
-                                onWriteClick = onNavigateToEditor
+                                onNoteClick = { isQuickEntryVisible = true }
                             )
                             is FeedItem.JournalItem -> JournalItemCard(item.journalEntry)
                             is FeedItem.ArticleSuggestionItem -> ArticleSuggestionCard(item.article)

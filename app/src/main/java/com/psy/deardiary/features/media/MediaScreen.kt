@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -212,13 +213,19 @@ private fun ArticleCard(article: Article, modifier: Modifier = Modifier) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaScreen(
+    onNavigateToEditor: () -> Unit,
     onNavigateToEditorWithPrompt: (String) -> Unit,
     viewModel: MediaViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Media & Inspirasi") }) }
+        topBar = { TopAppBar(title = { Text("Media & Inspirasi") }) },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onNavigateToEditor) {
+                Icon(Icons.Default.Edit, contentDescription = "Tulis Jurnal Panjang")
+            }
+        }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -258,6 +265,6 @@ fun MediaScreen(
 @Composable
 private fun MediaScreenPreview() {
     DearDiaryTheme {
-        MediaScreen(onNavigateToEditorWithPrompt = {})
+        MediaScreen(onNavigateToEditor = {}, onNavigateToEditorWithPrompt = {})
     }
 }
