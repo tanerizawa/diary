@@ -103,6 +103,14 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
    uvicorn backend.main:app --reload
    ```
 
+### Troubleshooting
+
+Jika saat menjalankan backend Anda melihat pesan `sqlite3.OperationalError: no such table: users`, jalankan migrasi dari direktori root untuk membuat `backend/test.db`:
+
+```bash
+alembic -c backend/alembic.ini upgrade head
+```
+
 ## Running Tests
 
 1. Install dependensi Python beserta `pytest`:
