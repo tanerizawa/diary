@@ -1,5 +1,9 @@
 package com.psy.deardiary.features.home.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SentimentNeutral
@@ -20,59 +24,83 @@ import java.util.*
 fun WelcomeCard(
     timeOfDay: String,
     userName: String,
+    modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    AnimatedVisibility(
+        visible = true,
+        enter = fadeIn() + scaleIn(),
+        exit = fadeOut()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "$timeOfDay, $userName.", style = MaterialTheme.typography.titleLarge)
-            Text(
-                text = "Bagaimana perasaanmu saat ini?",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-    }
-}
-
-@Composable
-fun PromptCard(prompt: String) {
-    OutlinedCard(modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 8.dp)) {
-        Column(
-            modifier = Modifier
+        Card(
+            modifier = modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(vertical = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
-            Text("💡 Prompt Untukmu", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(prompt, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
-            Spacer(modifier = Modifier.height(12.dp))
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = "$timeOfDay, $userName.", style = MaterialTheme.typography.titleLarge)
+                Text(
+                    text = "Bagaimana perasaanmu saat ini?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
 }
 
 @Composable
-fun JournalItemCard(entry: JournalEntry) {
-    if (entry.title.isNotBlank()) {
-        FullJournalCard(entry)
-    } else {
-        QuickNoteCard(entry)
+fun PromptCard(prompt: String, modifier: Modifier = Modifier) {
+    AnimatedVisibility(
+        visible = true,
+        enter = fadeIn() + scaleIn(),
+        exit = fadeOut()
+    ) {
+        OutlinedCard(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("💡 Prompt Untukmu", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(prompt, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun JournalItemCard(entry: JournalEntry, modifier: Modifier = Modifier) {
+    AnimatedVisibility(
+        visible = true,
+        enter = fadeIn() + scaleIn(),
+        exit = fadeOut()
+    ) {
+        if (entry.title.isNotBlank()) {
+            FullJournalCard(entry, modifier)
+        } else {
+            QuickNoteCard(entry, modifier)
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FullJournalCard(entry: JournalEntry) {
-    Card(modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 8.dp), onClick = {}) {
+private fun FullJournalCard(entry: JournalEntry, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        onClick = {}
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(entry.title, style = MaterialTheme.typography.titleLarge)
             Text(
@@ -88,9 +116,9 @@ private fun FullJournalCard(entry: JournalEntry) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun QuickNoteCard(entry: JournalEntry) {
+private fun QuickNoteCard(entry: JournalEntry, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         colors = CardDefaults.cardColors(
@@ -122,7 +150,7 @@ private fun QuickNoteCard(entry: JournalEntry) {
                 Text(entry.content, style = MaterialTheme.typography.bodyLarge)
                 Text(
                     SimpleDateFormat("d MMM, HH:mm", Locale("id", "ID")).format(Date(entry.timestamp)),
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -131,15 +159,32 @@ private fun QuickNoteCard(entry: JournalEntry) {
 }
 
 @Composable
-fun ArticleSuggestionCard(article: Article) {
-    OutlinedCard(modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 8.dp)) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("📖 Mungkin kamu tertarik", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(article.title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-            Text("Sumber: ${article.source}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+fun ArticleSuggestionCard(article: Article, modifier: Modifier = Modifier) {
+    AnimatedVisibility(
+        visible = true,
+        enter = fadeIn() + scaleIn(),
+        exit = fadeOut()
+    ) {
+        OutlinedCard(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    "📖 Mungkin kamu tertarik",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(article.title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "Sumber: ${'$'}{article.source}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
