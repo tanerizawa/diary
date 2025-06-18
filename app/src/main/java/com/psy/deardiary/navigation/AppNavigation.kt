@@ -15,6 +15,7 @@ import com.psy.deardiary.features.services.dass.DassTestScreen
 import com.psy.deardiary.features.services.mbti.MbtiResultScreen
 import com.psy.deardiary.features.services.mbti.MbtiTestScreen
 import com.psy.deardiary.features.settings.*
+import com.psy.deardiary.features.profile.ProfileScreen
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
@@ -156,6 +157,7 @@ fun AppNavigation(navController: NavHostController) {
                 onNavigateToNotification = { navController.navigate(Screen.NotificationSettings.route) },
                 onNavigateToPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) },
                 onNavigateToEmergencyContact = { navController.navigate(Screen.EmergencyContactSettings.route) },
+                onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
                 onAccountDeleted = {
                     navController.navigate(Screen.Onboarding.route) {
                         popUpTo(navController.graph.id) { inclusive = true }
@@ -174,6 +176,10 @@ fun AppNavigation(navController: NavHostController) {
 
         composable(Screen.EmergencyContactSettings.route) {
             EmergencyContactScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        composable(Screen.Profile.route) {
+            ProfileScreen(onBackClick = { navController.popBackStack() })
         }
 
         // --- BANTUAN KRISIS ---

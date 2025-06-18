@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Policy
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,6 +37,7 @@ fun SettingsScreen(
     onNavigateToNotification: () -> Unit,
     onNavigateToPrivacyPolicy: () -> Unit,
     onNavigateToEmergencyContact: () -> Unit,
+    onNavigateToProfile: () -> Unit,
     onAccountDeleted: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
@@ -133,6 +135,17 @@ fun SettingsScreen(
 
             Divider(modifier = Modifier.padding(vertical = 16.dp))
 
+            Text("Akun", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+            SettingItem(
+                icon = Icons.Default.Person,
+                title = "Profil Saya",
+                description = "Lihat dan ubah informasi akun.",
+                onClick = onNavigateToProfile
+            )
+
+            Divider(modifier = Modifier.padding(vertical = 16.dp))
+
             Text("Aplikasi", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
             SettingItem(
@@ -203,6 +216,7 @@ private fun SettingsScreenPreview() {
             onNavigateToNotification = {},
             onNavigateToPrivacyPolicy = {},
             onNavigateToEmergencyContact = {},
+            onNavigateToProfile = {},
             onAccountDeleted = {}
         )
     }

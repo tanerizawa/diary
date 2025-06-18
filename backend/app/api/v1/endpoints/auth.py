@@ -47,6 +47,25 @@ def login_for_access_token(
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
+@router.get("/me", response_model=schemas.User)
+def read_current_user(
+        *,
+        current_user: models.User = Depends(deps.get_current_user),
+):
+    """Mendapatkan profil pengguna yang sedang login."""
+    return current_user
+
+@router.put("/me", response_model=schemas.User)
+def update_current_user(
+        *,
+        db: Session = Depends(deps.get_db),
+        user_in: schemas.UserUpdate,
+        current_user: models.User = Depends(deps.get_current_user),
+):
+    """Memperbarui profil pengguna yang sedang login."""
+    user = crud.user.update(db=db, db_obj=current_user, obj_in=user_in)
+    return user
+
 # PERBAIKAN: Menambahkan endpoint baru untuk menghapus akun
 @router.delete("/me", response_model=schemas.User)
 def delete_current_user(

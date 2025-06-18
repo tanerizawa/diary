@@ -19,6 +19,7 @@ sealed class Screen(val route: String) {
     object PrivacyPolicy : Screen("privacy_policy")
     object CrisisSupport : Screen("crisis_support")
     object EmergencyContactSettings : Screen("emergency_contact_settings")
+    object Profile : Screen("profile")
 
     object Editor : Screen("editor") {
         const val ENTRY_ID_ARG = "entryId"
