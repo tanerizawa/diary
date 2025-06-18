@@ -1,14 +1,7 @@
-import os
-from openai import OpenAI
+import httpx
 from app.core.config import settings
 
 MAX_REPLY_LENGTH = 280
-
-# Inisialisasi client OpenAI dengan base_url OpenRouter
-client = OpenAI(
-    api_key=settings.AI_API_KEY,
-    base_url="https://openrouter.ai/api/v1"
-)
 
 async def get_ai_reply(message: str, context: str = "") -> str | None:
     """
@@ -25,23 +18,36 @@ async def get_ai_reply(message: str, context: str = "") -> str | None:
         else "Anda adalah pendamping kesehatan mental yang suportif. " + instructions
     )
 
-    try:
-        # Header tambahan untuk leaderboard OpenRouter (opsional)
-        extra_headers = {
-            "HTTP-Referer": "https://github.com/tanerizawa/diary",  # Ganti jika perlu
-            "X-Title": "Dear Diary App"
-        }
+    if not settings.AI_API_KEY:
+        print("AI_API_KEY environment variable is not set")
+        return None
 
-        completion = client.chat.completions.create(
-            model="google/gemini-2.0-flash-001",  # Ganti model jika perlu
-            messages=[
+    try:
+        headers = {
+            "Authorization": f"Bearer {settings.AI_API_KEY}",
+            "HTTP-Referer": "https://github.com/tanerizawa/diary",  # Ganti jika perlu
+            "X-Title": "Dear Diary App",
+            "Content-Type": "application/json"
+        }
+        body = {
+            "model": "google/gemini-2.0-flash-001",
+            "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": message}
-            ],
-            extra_headers=extra_headers
-        )
+            ]
+        }
 
-        reply = completion.choices[0].message.content.strip()
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url=settings.AI_API_URL,
+                headers=headers,
+                json=body,
+                timeout=30.0
+            )
+            response.raise_for_status()
+
+            data = response.json()
+            reply = data["choices"][0]["message"]["content"].strip()
 
         # Potong jika melebihi batas karakter
         if len(reply) > MAX_REPLY_LENGTH:
