@@ -39,7 +39,7 @@ object AppModule {
             AppDatabase::class.java,
             "dear_diary_database"
         )
-            .fallbackToDestructiveMigration()
+            .addMigrations(AppDatabase.MIGRATION_3_4)
             .build()
     }
 
@@ -126,17 +126,19 @@ object AppModule {
     @Singleton
     fun provideJournalRepository(
         journalApiService: JournalApiService,
-        journalDao: JournalDao
+        journalDao: JournalDao,
+        userPreferencesRepository: UserPreferencesRepository
     ): JournalRepository {
-        return JournalRepository(journalApiService, journalDao)
+        return JournalRepository(journalApiService, journalDao, userPreferencesRepository)
     }
     @Provides
     @Singleton
     fun provideChatRepository(
         chatApiService: ChatApiService,
-        chatMessageDao: ChatMessageDao
+        chatMessageDao: ChatMessageDao,
+        userPreferencesRepository: UserPreferencesRepository
     ): ChatRepository {
-        return ChatRepository(chatApiService, chatMessageDao)
+        return ChatRepository(chatApiService, chatMessageDao, userPreferencesRepository)
     }
 
     @Provides

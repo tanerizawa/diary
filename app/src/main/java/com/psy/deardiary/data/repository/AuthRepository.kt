@@ -4,6 +4,8 @@
 package com.psy.deardiary.data.repository
 
 import com.psy.deardiary.data.datastore.UserPreferencesRepository
+import android.util.Base64
+import org.json.JSONObject
 import com.psy.deardiary.data.dto.LoginRequest
 import com.psy.deardiary.data.dto.RegisterRequest
 import com.psy.deardiary.data.network.AuthApiService
@@ -26,6 +28,7 @@ class AuthRepository @Inject constructor(
                 if (response.isSuccessful && response.body() != null) {
                     val token = response.body()!!.accessToken
                     userPreferencesRepository.saveAuthToken(token)
+                    parseUserIdFromToken(token)?.let { userPreferencesRepository.saveUserId(it) }
                     Result.Success(Unit)
                 } else {
                     Result.Error("Login gagal: ${response.message()}")
@@ -59,6 +62,7 @@ class AuthRepository @Inject constructor(
     suspend fun logout() {
         withContext(Dispatchers.IO) {
             userPreferencesRepository.clearAuthToken()
+            userPreferencesRepository.clearUserId()
         }
     }
 
@@ -76,6 +80,17 @@ class AuthRepository @Inject constructor(
             } catch (e: IOException) {
                 Result.Error("Tidak dapat terhubung ke server.")
             }
+        }
+    }
+
+    private fun parseUserIdFromToken(token: String): Int? {
+        return try {
+            val payload = token.split(".")[1]
+            val decoded = Base64.decode(payload, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+            val json = JSONObject(String(decoded, Charsets.UTF_8))
+            json.getString("sub").toIntOrNull()
+        } catch (e: Exception) {
+            null
         }
     }
 }

@@ -12,17 +12,17 @@ interface JournalDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertEntry(entry: JournalEntry): Long
 
-    @Query("SELECT * FROM journal_entries ORDER BY timestamp DESC")
-    fun getAllEntries(): Flow<List<JournalEntry>>
+    @Query("SELECT * FROM journal_entries WHERE userId = :userId ORDER BY timestamp DESC")
+    fun getAllEntries(userId: Int): Flow<List<JournalEntry>>
 
-    @Query("SELECT * FROM journal_entries WHERE isSynced = 0")
-    suspend fun getUnsyncedEntries(): List<JournalEntry>
+    @Query("SELECT * FROM journal_entries WHERE isSynced = 0 AND userId = :userId")
+    suspend fun getUnsyncedEntries(userId: Int): List<JournalEntry>
 
     @Query("UPDATE journal_entries SET remoteId = :newRemoteId, isSynced = 1 WHERE id = :localId")
     suspend fun markAsSynced(localId: Int, newRemoteId: Int)
 
-    @Query("SELECT * FROM journal_entries WHERE remoteId = :remoteId LIMIT 1")
-    suspend fun getEntryByRemoteId(remoteId: Int?): JournalEntry?
+    @Query("SELECT * FROM journal_entries WHERE remoteId = :remoteId AND userId = :userId LIMIT 1")
+    suspend fun getEntryByRemoteId(remoteId: Int?, userId: Int): JournalEntry?
 
     @Query("SELECT * FROM journal_entries WHERE id = :id LIMIT 1")
     suspend fun getEntryById(id: Int): JournalEntry?
@@ -33,21 +33,21 @@ interface JournalDao {
     @Update
     suspend fun updateLocalEntry(entry: JournalEntry)
 
-    @Query("DELETE FROM journal_entries")
-    suspend fun deleteAllEntries()
+    @Query("DELETE FROM journal_entries WHERE userId = :userId")
+    suspend fun deleteAllEntries(userId: Int)
 
-    @Query("SELECT * FROM journal_entries")
-    suspend fun getAllEntriesOnce(): List<JournalEntry>
+    @Query("SELECT * FROM journal_entries WHERE userId = :userId")
+    suspend fun getAllEntriesOnce(userId: Int): List<JournalEntry>
 
     // --- PENAMBAHAN BARU ---
-    @Query("DELETE FROM journal_entries WHERE id = :localId")
-    suspend fun deleteEntryByLocalId(localId: Int)
+    @Query("DELETE FROM journal_entries WHERE id = :localId AND userId = :userId")
+    suspend fun deleteEntryByLocalId(localId: Int, userId: Int)
     // --- AKHIR PENAMBAHAN ---
 
     @Transaction
     suspend fun upsertAll(entries: List<JournalEntry>) {
         entries.forEach { entry ->
-            val existingEntry = getEntryByRemoteId(entry.remoteId)
+            val existingEntry = getEntryByRemoteId(entry.remoteId, entry.userId)
             if (existingEntry == null) {
                 insertEntry(entry)
             } else {

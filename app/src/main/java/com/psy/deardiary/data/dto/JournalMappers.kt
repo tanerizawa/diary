@@ -7,6 +7,7 @@ import com.psy.deardiary.data.model.JournalEntry
 fun JournalResponse.toJournalEntry(): JournalEntry {
     return JournalEntry(
         remoteId = this.id,
+        userId = this.ownerId,
         title = this.title ?: "",
         content = this.content,
         mood = this.mood,
