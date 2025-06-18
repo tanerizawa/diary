@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Text, Boolean, BigInteger, ForeignKey
+from sqlalchemy import Column, Integer, Text, Boolean, BigInteger, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from app.db.base_class import Base
 
@@ -9,5 +9,9 @@ class ChatMessage(Base):
     is_user = Column(Boolean, default=True)
     timestamp = Column(BigInteger, nullable=False, index=True)
     owner_id = Column(Integer, ForeignKey("users.id"))
+
+    # Optional sentiment analysis results
+    sentiment_score = Column(Float, nullable=True)
+    key_emotions = Column(Text, nullable=True)
 
     owner = relationship("User")

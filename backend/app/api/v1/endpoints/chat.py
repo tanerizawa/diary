@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 import asyncio
 
@@ -14,6 +14,7 @@ async def chat_with_ai(
     *,
     db: Session = Depends(deps.get_db),
     chat_in: schemas.ChatRequest,
+    background_tasks: BackgroundTasks,
     current_user: models.User = Depends(deps.get_current_user),
 ):
     """Return a short AI reply based on user's message and context.
@@ -39,7 +40,10 @@ async def chat_with_ai(
         is_user=True,
         timestamp=int(asyncio.get_event_loop().time() * 1000),
     )
-    crud.chat_message.create_with_owner(db, obj_in=user_msg, owner_id=current_user.id)
+    created_user_msg = crud.chat_message.create_with_owner(db, obj_in=user_msg, owner_id=current_user.id)
+    background_tasks.add_task(
+        crud.chat_message.process_and_update_sentiment, chat_id=created_user_msg.id
+    )
     ai_msg = schemas.ChatMessageCreate(
         text=reply,
         is_user=False,
