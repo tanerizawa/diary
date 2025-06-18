@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app.crud.base import CRUDBase
 from app.db.models.chat import ChatMessage
 from app.schemas.chat_message import ChatMessageCreate, ChatMessageUpdate
+from app.db.session import SessionLocal
+from app.services.sentiment_analyzer import analyze_sentiment_with_ai
 
 class CRUDChatMessage(CRUDBase[ChatMessage, ChatMessageCreate, ChatMessageUpdate]):
     def create_with_owner(self, db: Session, *, obj_in: ChatMessageCreate, owner_id: int) -> ChatMessage:
@@ -22,5 +24,21 @@ class CRUDChatMessage(CRUDBase[ChatMessage, ChatMessageCreate, ChatMessageUpdate
             .limit(limit)
             .all()
         )
+
+    async def process_and_update_sentiment(self, *, chat_id: int):
+        """Analyze sentiment for a chat message and store the result."""
+        db = SessionLocal()
+        try:
+            db_obj = self.get(db=db, id=chat_id)
+            if db_obj:
+                analysis_result = await analyze_sentiment_with_ai(db_obj.text)
+                if analysis_result:
+                    db_obj.sentiment_score = analysis_result.get("sentiment_score")
+                    db_obj.key_emotions = analysis_result.get("key_emotions")
+                    db.add(db_obj)
+                    db.commit()
+                    db.refresh(db_obj)
+        finally:
+            db.close()
 
 chat_message = CRUDChatMessage(ChatMessage)

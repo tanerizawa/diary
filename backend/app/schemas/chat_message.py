@@ -4,6 +4,8 @@ class ChatMessageBase(BaseModel):
     text: str
     is_user: bool
     timestamp: int
+    sentiment_score: float | None = None
+    key_emotions: str | None = None
 
 class ChatMessageCreate(ChatMessageBase):
     pass
