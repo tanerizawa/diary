@@ -1,3 +1,6 @@
+from dotenv import load_dotenv  # <-- 1. TAMBAHKAN IMPORT INI
+load_dotenv()                   # <-- 2. PANGGIL FUNGSI INI DI SINI
+
 from fastapi import FastAPI
 from app.api.v1.api import api_router
 from app.core.config import settings
