@@ -22,7 +22,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.psy.deardiary.data.model.ChatMessage
-import com.psy.deardiary.features.home.components.*
+import com.psy.deardiary.features.home.components.TypingIndicator
 import com.psy.deardiary.features.home.emojiOptions
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class) // ANOTASI BARU
@@ -44,7 +44,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Hari Ini Untukmu") },
+                title = { Text("${uiState.timeOfDay}, ${uiState.userName}.") },
                 actions = {
                     IconButton(onClick = onNavigateToCrisisSupport) {
                         Icon(Icons.Outlined.CrisisAlert, contentDescription = "Dukungan Krisis")
@@ -64,40 +64,22 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (uiState.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            } else {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    WelcomeCard(
-                        timeOfDay = uiState.timeOfDay,
-                        userName = uiState.userName,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-                    LazyColumn(
-                        modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        state = listState,
-                    ) {
-                        items(uiState.feedItems, key = { it.hashCode() }) { item ->
-                            when (item) {
-                                is FeedItem.JournalItem -> JournalItemCard(item.journalEntry)
-                                is FeedItem.ArticleSuggestionItem -> ArticleSuggestionCard(item.article)
-                                is FeedItem.ChatPromptItem -> ChatPromptCard(item.message)
-                            }
-                        }
-                        items(messages, key = { it.id }) { msg ->
-                            AnimatedVisibility(
-                                visible = true,
-                                enter = fadeIn() + slideInVertically { it / 2 },
-                                exit = fadeOut() + slideOutVertically()
-                            ) {
-                                ChatBubble(
-                                    message = msg,
-                                    modifier = Modifier.animateItemPlacement() // PENGGUNAAN animateItemPlacement
-                                )
-                            }
+            Column(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    state = listState,
+                ) {
+                    items(messages, key = { it.id }) { msg ->
+                        AnimatedVisibility(
+                            visible = true,
+                            enter = fadeIn() + slideInVertically { it / 2 },
+                            exit = fadeOut() + slideOutVertically()
+                        ) {
+                            ChatBubble(
+                                message = msg,
+                                modifier = Modifier.animateItemPlacement() // PENGGUNAAN animateItemPlacement
+                            )
                         }
                     }
                 }
