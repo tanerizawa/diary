@@ -132,7 +132,7 @@ private fun ChatInputBar(onSend: (String) -> Unit) {
                     ) {
                         Text(
                             text = option.emoji,
-                            style = MaterialTheme.typography.headlineMedium,
+                            style = MaterialTheme.typography.headlineLarge,
                             modifier = Modifier.padding(end = 12.dp)
                         )
                         Text(option.label)
