@@ -17,7 +17,7 @@ class ChatRepository @Inject constructor(
     private val history = mutableListOf<ChatMessage>()
     private var nextId = 0
 
-    fun getConversation(): List<ChatMessage> = history
+    fun getConversation(): List<ChatMessage> = history.toList()
 
     fun addMessage(text: String, isUser: Boolean, isPlaceholder: Boolean = false): ChatMessage {
         val message = ChatMessage(nextId++, text, isUser, isPlaceholder)
