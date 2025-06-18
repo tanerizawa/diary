@@ -7,6 +7,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -27,6 +28,7 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext context:
         // PENAMBAHAN BARU: Key untuk menyimpan nomor kontak darurat
         val EMERGENCY_CONTACT = stringPreferencesKey("emergency_contact_number")
         val USER_ID = intPreferencesKey("user_id")
+        val CHAT_ONBOARD_SHOWN = booleanPreferencesKey("chat_onboard_shown")
     }
 
     val authToken: Flow<String?> = dataStore.data.map { preferences ->
@@ -42,6 +44,10 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext context:
         preferences[PreferencesKeys.USER_ID]
     }
 
+    val chatOnboardShown: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.CHAT_ONBOARD_SHOWN] ?: false
+    }
+
     suspend fun saveAuthToken(token: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.AUTH_TOKEN] = token
@@ -51,6 +57,12 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext context:
     suspend fun saveUserId(id: Int) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.USER_ID] = id
+        }
+    }
+
+    suspend fun setChatOnboardShown(shown: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.CHAT_ONBOARD_SHOWN] = shown
         }
     }
 

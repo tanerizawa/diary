@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -17,18 +18,21 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeChatViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var repository: ChatRepository
     private lateinit var viewModel: HomeChatViewModel
+    private lateinit var conversationFlow: MutableStateFlow<List<ChatMessage>>
 
     @Before
     fun setup() {
         Dispatchers.setMain(dispatcher)
         repository = mock()
-        whenever(repository.getConversation()).thenReturn(MutableStateFlow(emptyList()))
+        conversationFlow = MutableStateFlow(emptyList())
+        whenever(repository.getConversation()).thenReturn(conversationFlow)
         viewModel = HomeChatViewModel(repository)
     }
 
@@ -48,5 +52,13 @@ class HomeChatViewModelTest {
         verify(repository).addMessage("Sedang mengetik jawaban...", false, true)
         verify(repository).fetchReply("hi")
         verify(repository).replaceMessage(2, "hello")
+    }
+
+    @Test
+    fun collectsConversation_updatesMessages() = runTest {
+        val msg = ChatMessage(id = 1, text = "hello", isUser = false, userId = 1)
+        conversationFlow.value = listOf(msg)
+        advanceUntilIdle()
+        assertEquals(listOf(msg), viewModel.messages.value)
     }
 }

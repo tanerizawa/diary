@@ -184,4 +184,9 @@ class JournalRepository @Inject constructor(
         val uid = userPreferencesRepository.userId.first() ?: 0
         return withContext(Dispatchers.IO) { journalDao.getAllEntriesOnce(uid) }
     }
+
+    suspend fun getLatestMood(): String? {
+        val uid = userPreferencesRepository.userId.first() ?: return null
+        return withContext(Dispatchers.IO) { journalDao.getLatestMood(uid) }
+    }
 }
