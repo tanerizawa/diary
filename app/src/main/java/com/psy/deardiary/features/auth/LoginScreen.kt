@@ -23,7 +23,10 @@ import com.psy.deardiary.data.repository.AuthRepository
 import com.psy.deardiary.ui.components.PasswordTextField
 import com.psy.deardiary.ui.components.PrimaryButton
 import com.psy.deardiary.ui.components.PrimaryTextField
+import com.psy.deardiary.ui.components.InfoDialog
 import com.psy.deardiary.ui.theme.DearDiaryTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -41,16 +44,10 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+    var showErrorDialog by remember { mutableStateOf(false) }
 
-    // Menampilkan Snackbar ketika ada errorMessage
     LaunchedEffect(uiState.errorMessage) {
-        uiState.errorMessage?.let { message ->
-            scope.launch {
-                snackbarHostState.showSnackbar(message)
-                authViewModel.clearErrorMessage() // Hapus pesan setelah ditampilkan
-            }
-        }
+        showErrorDialog = uiState.errorMessage != null
     }
 
     Scaffold(
@@ -121,6 +118,17 @@ fun LoginScreen(
             // Tampilkan Indikator Loading di tengah layar
             if (uiState.isLoading) {
                 CircularProgressIndicator()
+            }
+
+            if (showErrorDialog) {
+                InfoDialog(
+                    onDismissRequest = {
+                        showErrorDialog = false
+                        authViewModel.clearErrorMessage()
+                    },
+                    title = "Login Gagal",
+                    text = uiState.errorMessage ?: "Terjadi kesalahan"
+                )
             }
         }
     }

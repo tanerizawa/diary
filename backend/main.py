@@ -1,11 +1,7 @@
 from fastapi import FastAPI
 from app.api.v1.api import api_router
 from app.core.config import settings
-from app.db.session import engine
-from app.db import base_class
-
-# Membuat tabel di database (jika belum ada)
-base_class.Base.metadata.create_all(bind=engine)
+# Database schema now managed via Alembic migrations
 
 app = FastAPI(title=settings.PROJECT_NAME)
 

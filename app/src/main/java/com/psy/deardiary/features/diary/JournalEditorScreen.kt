@@ -21,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,8 +30,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.psy.deardiary.ui.components.ConfirmationDialog
+import com.psy.deardiary.ui.components.PermissionDeniedDialog
 import com.psy.deardiary.ui.theme.Crisis
 import com.psy.deardiary.ui.theme.DearDiaryTheme
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,10 +45,18 @@ fun JournalEditorScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) } // State untuk dialog
+    var showPermissionDialog by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted -> if (isGranted) viewModel.onStartRecording() }
+        onResult = { isGranted ->
+            if (isGranted) {
+                viewModel.onStartRecording()
+            } else {
+                showPermissionDialog = true
+            }
+        }
     )
 
     LaunchedEffect(uiState.isSaved) {
@@ -144,6 +157,19 @@ fun JournalEditorScreen(
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 // ... (Sisa kode UI tidak berubah)
+            }
+
+            if (showPermissionDialog) {
+                PermissionDeniedDialog(
+                    onDismissRequest = { showPermissionDialog = false },
+                    onOpenSettings = {
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        }
+                        context.startActivity(intent)
+                    },
+                    message = "Izin merekam audio diperlukan untuk merekam jurnal suara."
+                )
             }
         }
     }
