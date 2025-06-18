@@ -28,6 +28,8 @@ class HomeChatViewModel @Inject constructor(
         viewModelScope.launch {
             // 1. Tambahkan pesan pengguna ke history
             chatRepository.addMessage(text, isUser = true)
+            // Perbarui UI setelah menambahkan pesan pengguna
+            _messages.value = chatRepository.getConversation()
 
             // 2. Sisipkan pesan sementara sebagai indikator mengetik
             val placeholder = chatRepository.addMessage(
