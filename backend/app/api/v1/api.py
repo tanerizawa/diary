@@ -3,9 +3,10 @@
 
 from fastapi import APIRouter
 from app.api.v1.endpoints import auth, journal
-from app.api.v1.endpoints import chat
+from app.api.v1.endpoints import chat, feed
 
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/users", tags=["auth"])
 api_router.include_router(journal.router, prefix="/journal", tags=["journal"])
 api_router.include_router(chat.router, prefix="/chat", tags=["chat"])
+api_router.include_router(feed.router, prefix="/feed", tags=["feed"])

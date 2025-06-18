@@ -7,6 +7,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SentimentNeutral
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -158,6 +159,33 @@ fun ArticleSuggestionCard(article: Article, modifier: Modifier = Modifier) {
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun ChatPromptCard(message: String, modifier: Modifier = Modifier) {
+    AnimatedVisibility(
+        visible = true,
+        enter = fadeIn() + scaleIn(),
+        exit = fadeOut()
+    ) {
+        OutlinedCard(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.ChatBubbleOutline,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+                Text(message)
             }
         }
     }
