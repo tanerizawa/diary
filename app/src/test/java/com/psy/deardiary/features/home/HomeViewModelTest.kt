@@ -1,6 +1,3 @@
-import com.psy.deardiary.data.repository.FeedRepository
-import com.psy.deardiary.data.repository.Result
-import com.psy.deardiary.features.home.FeedItem
 import com.psy.deardiary.features.home.HomeViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -12,22 +9,18 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
-    private lateinit var repository: FeedRepository
     private lateinit var viewModel: HomeViewModel
 
     @Before
     fun setup() {
         Dispatchers.setMain(dispatcher)
-        repository = mock()
-        whenever(repository.getFeed()).thenReturn(Result.Success(emptyList()))
-        viewModel = HomeViewModel(mock(), repository)
+        viewModel = HomeViewModel(mock())
     }
 
     @After
@@ -36,13 +29,9 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun feedUpdates_whenEntriesEmitted() = runTest {
-        whenever(repository.getFeed()).thenReturn(
-            Result.Success(listOf(FeedItem.ChatPromptItem("hi")))
-        )
-        advanceUntilIdle()
-        val feed = viewModel.uiState.value.feedItems
-        assertEquals(1, feed.size)
-        assertTrue(feed[0] is FeedItem.ChatPromptItem)
+    fun initializesGreeting() = runTest {
+        val state = viewModel.uiState.value
+        assertTrue(state.timeOfDay.isNotBlank())
+        assertEquals("Odang", state.userName)
     }
 }
