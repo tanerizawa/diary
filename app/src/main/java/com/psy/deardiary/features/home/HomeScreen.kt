@@ -44,7 +44,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("${uiState.timeOfDay}, ${uiState.userName}.") },
+                title = { Text(composeGreeting(uiState.timeOfDay, uiState.userName, uiState.lastMood)) },
                 actions = {
                     IconButton(onClick = onNavigateToCrisisSupport) {
                         Icon(Icons.Outlined.CrisisAlert, contentDescription = "Dukungan Krisis")
@@ -189,5 +189,12 @@ private fun ChatBubble(message: ChatMessage, modifier: Modifier = Modifier) {
                 )
             }
         }
+    }
+}
+
+private fun composeGreeting(timeOfDay: String, name: String, lastMood: String?): String {
+    return when (lastMood) {
+        "\uD83D\uDE22" -> "Aku di sini untukmu, $name. Ceritakan apa yang kamu rasakan."
+        else -> "$timeOfDay, $name."
     }
 }

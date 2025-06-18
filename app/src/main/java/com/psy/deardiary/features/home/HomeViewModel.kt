@@ -3,6 +3,8 @@ package com.psy.deardiary.features.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.psy.deardiary.data.repository.JournalRepository
+import com.psy.deardiary.data.repository.UserRepository
+import com.psy.deardiary.data.repository.Result
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,12 +17,14 @@ import javax.inject.Inject
 data class HomeUiState(
     val isLoading: Boolean = true,
     val timeOfDay: String = "",
-    val userName: String = ""
+    val userName: String = "",
+    val lastMood: String? = null
 )
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val journalRepository: JournalRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -28,11 +32,17 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            val name = when (val result = userRepository.getProfile()) {
+                is Result.Success -> result.data.name.orEmpty()
+                else -> ""
+            }
+            val mood = journalRepository.getLatestMood()
             _uiState.update {
                 it.copy(
                     isLoading = false,
                     timeOfDay = getTimeOfDay(),
-                    userName = "Odang"
+                    userName = name,
+                    lastMood = mood
                 )
             }
         }

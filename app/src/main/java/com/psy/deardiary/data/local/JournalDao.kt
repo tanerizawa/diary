@@ -39,6 +39,9 @@ interface JournalDao {
     @Query("SELECT * FROM journal_entries WHERE userId = :userId")
     suspend fun getAllEntriesOnce(userId: Int): List<JournalEntry>
 
+    @Query("SELECT mood FROM journal_entries WHERE userId = :userId ORDER BY timestamp DESC LIMIT 1")
+    suspend fun getLatestMood(userId: Int): String?
+
     // --- PENAMBAHAN BARU ---
     @Query("DELETE FROM journal_entries WHERE id = :localId AND userId = :userId")
     suspend fun deleteEntryByLocalId(localId: Int, userId: Int)

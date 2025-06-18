@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
 import com.psy.deardiary.data.network.ChatApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -30,7 +31,19 @@ class ChatRepository @Inject constructor(
             id?.let { chatMessageDao.getAllMessages(it) } ?: flowOf(emptyList())
         }
 
-    fun getConversation(): Flow<List<ChatMessage>> = messages
+    fun getConversation(): Flow<List<ChatMessage>> =
+        messages.onEach { history ->
+            if (history.isEmpty()) {
+                val shown = userPreferencesRepository.chatOnboardShown.first()
+                if (!shown) {
+                    addMessage(
+                        "Hai! Aku teman bicaramu di sini. Ceritakan apa yang kamu rasakan.",
+                        isUser = false
+                    )
+                    userPreferencesRepository.setChatOnboardShown(true)
+                }
+            }
+        }
 
     suspend fun refreshMessages(): Result<Unit> {
         return withContext(Dispatchers.IO) {
