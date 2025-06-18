@@ -10,6 +10,7 @@ data class JournalEntry(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val remoteId: Int? = null,
+    val userId: Int = 0,
     val title: String,
     val content: String,
     val mood: String,

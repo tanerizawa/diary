@@ -39,8 +39,8 @@ class HomeChatViewModelTest {
 
     @Test
     fun sendMessage_delegatesToRepository() = runTest {
-        whenever(repository.addMessage(any(), eq(true), eq(false))).thenReturn(ChatMessage(text="hi", isUser=true))
-        whenever(repository.addMessage(any(), eq(false), eq(true))).thenReturn(ChatMessage(id=2, text="placeholder", isUser=false, isPlaceholder=true))
+        whenever(repository.addMessage(any(), eq(true), eq(false))).thenReturn(ChatMessage(text="hi", isUser=true, userId = 1))
+        whenever(repository.addMessage(any(), eq(false), eq(true))).thenReturn(ChatMessage(id=2, text="placeholder", isUser=false, isPlaceholder=true, userId = 1))
         whenever(repository.fetchReply("hi")).thenReturn(Result.Success("hello"))
         viewModel.sendMessage("hi")
         advanceUntilIdle()

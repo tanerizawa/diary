@@ -7,8 +7,12 @@ import com.psy.deardiary.data.dto.toJournalEntry
 import com.psy.deardiary.data.local.JournalDao
 import com.psy.deardiary.data.model.JournalEntry
 import com.psy.deardiary.data.network.JournalApiService
+import com.psy.deardiary.data.datastore.UserPreferencesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
@@ -18,18 +22,23 @@ import javax.inject.Singleton
 @Singleton
 class JournalRepository @Inject constructor(
     private val journalApiService: JournalApiService,
-    private val journalDao: JournalDao
+    private val journalDao: JournalDao,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) {
 
-    val journals: Flow<List<JournalEntry>> = journalDao.getAllEntries()
+    val journals: Flow<List<JournalEntry>> =
+        userPreferencesRepository.userId.flatMapLatest { id ->
+            id?.let { journalDao.getAllEntries(it) } ?: flowOf(emptyList())
+        }
 
     suspend fun refreshJournals(): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
                 val response = journalApiService.getJournals()
                 if (response.isSuccessful && response.body() != null) {
+                    val uid = userPreferencesRepository.userId.first() ?: return@withContext Result.Error("User not logged in")
                     val journalEntities = response.body()!!.map { it.toJournalEntry() }
-                    journalDao.upsertAll(journalEntities)
+                    journalDao.upsertAll(journalEntities.map { it.copy(userId = uid) })
                     Result.Success(Unit)
                 } else {
                     Result.Error("Gagal menyegarkan data: ${response.message()}")
@@ -50,13 +59,15 @@ class JournalRepository @Inject constructor(
     ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
+                val uid = userPreferencesRepository.userId.first() ?: 0
                 val newEntry = JournalEntry(
                     title = title,
                     content = content,
                     mood = mood,
                     voiceNotePath = voiceNotePath,
                     isSynced = false,
-                    tags = emptyList()
+                    tags = emptyList(),
+                    userId = uid
                 )
                 journalDao.insertEntry(newEntry)
                 Result.Success(Unit)
@@ -112,7 +123,8 @@ class JournalRepository @Inject constructor(
                 }
 
                 // Hapus dari database lokal
-                journalDao.deleteEntryByLocalId(localId)
+                val uid = userPreferencesRepository.userId.first() ?: 0
+                journalDao.deleteEntryByLocalId(localId, uid)
                 Result.Success(Unit)
 
             } catch (e: HttpException) {
@@ -135,7 +147,8 @@ class JournalRepository @Inject constructor(
     suspend fun syncPendingJournals(): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val unsyncedEntries = journalDao.getUnsyncedEntries()
+                val uid = userPreferencesRepository.userId.first() ?: return@withContext Result.Error("User not logged in")
+                val unsyncedEntries = journalDao.getUnsyncedEntries(uid)
                 for (entry in unsyncedEntries) {
                     val request = entry.toJournalCreateRequest()
 
@@ -162,11 +175,13 @@ class JournalRepository @Inject constructor(
 
     suspend fun deleteAllLocalEntries() {
         withContext(Dispatchers.IO) {
-            journalDao.deleteAllEntries()
+            val uid = userPreferencesRepository.userId.first() ?: 0
+            journalDao.deleteAllEntries(uid)
         }
     }
 
     suspend fun getAllEntriesOnce(): List<JournalEntry> {
-        return withContext(Dispatchers.IO) { journalDao.getAllEntriesOnce() }
+        val uid = userPreferencesRepository.userId.first() ?: 0
+        return withContext(Dispatchers.IO) { journalDao.getAllEntriesOnce(uid) }
     }
 }
