@@ -33,7 +33,7 @@ async def get_ai_reply(message: str, context: str = "") -> str | None:
         }
 
         completion = client.chat.completions.create(
-            model="google/gemini-flash-1.5",  # Ganti model jika perlu
+            model="google/gemini-2.0-flash-001",  # Ganti model jika perlu
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": message}
