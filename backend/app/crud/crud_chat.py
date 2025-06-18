@@ -25,6 +25,16 @@ class CRUDChatMessage(CRUDBase[ChatMessage, ChatMessageCreate, ChatMessageUpdate
             .all()
         )
 
+    def get_last_user_messages(self, db: Session, *, owner_id: int, limit: int) -> List[ChatMessage]:
+        """Return the latest user messages for a given owner."""
+        return (
+            db.query(self.model)
+            .filter(ChatMessage.owner_id == owner_id, ChatMessage.is_user == True)
+            .order_by(self.model.timestamp.desc())
+            .limit(limit)
+            .all()
+        )
+
     async def process_and_update_sentiment(self, *, chat_id: int):
         """Analyze sentiment for a chat message and store the result."""
         db = SessionLocal()
