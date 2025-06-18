@@ -22,15 +22,17 @@ class HomeChatViewModel @Inject constructor(
     val messages = _messages.asStateFlow()
 
     init {
-        _messages.value = chatRepository.getConversation()
+        viewModelScope.launch {
+            chatRepository.getConversation().collect { history ->
+                _messages.value = history
+            }
+        }
     }
 
     fun sendMessage(text: String) {
         viewModelScope.launch {
             // 1. Tambahkan pesan pengguna ke history
             chatRepository.addMessage(text, isUser = true)
-            // Perbarui UI setelah menambahkan pesan pengguna
-            _messages.value = chatRepository.getConversation()
 
             // 2. Sisipkan pesan sementara sebagai indikator mengetik
             val placeholder = chatRepository.addMessage(
@@ -38,9 +40,6 @@ class HomeChatViewModel @Inject constructor(
                 isUser = false,
                 isPlaceholder = true
             )
-
-            // Perbarui UI segera agar placeholder terlihat
-            _messages.value = chatRepository.getConversation()
 
             // 3. Tunda pengiriman pesan sekitar 5 detik untuk meniru jeda ketika
             //    manusia mengetik. Setelah itu baru teruskan ke server.
@@ -63,7 +62,6 @@ class HomeChatViewModel @Inject constructor(
                     )
                 }
             }
-            _messages.value = chatRepository.getConversation()
         }
     }
 }

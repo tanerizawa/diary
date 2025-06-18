@@ -4,3 +4,4 @@
 
 from app.db.models.user import User
 from app.db.models.journal import JournalEntry
+from app.db.models.chat import ChatMessage

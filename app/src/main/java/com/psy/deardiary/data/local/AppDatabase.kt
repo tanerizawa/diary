@@ -6,10 +6,16 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.psy.deardiary.data.model.JournalEntry
+import com.psy.deardiary.data.model.ChatMessage
 
-// --- PERBAIKAN: Naikkan versi database dari 1 menjadi 2 ---
-@Database(entities = [JournalEntry::class], version = 2, exportSchema = false)
+// --- PERBAIKAN: Naikkan versi database dari 2 menjadi 3 ---
+@Database(
+    entities = [JournalEntry::class, ChatMessage::class],
+    version = 3,
+    exportSchema = false
+)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun journalDao(): JournalDao
+    abstract fun chatMessageDao(): ChatMessageDao
 }

@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.psy.deardiary.data.datastore.UserPreferencesRepository
 import com.psy.deardiary.data.local.AppDatabase
 import com.psy.deardiary.data.local.JournalDao
+import com.psy.deardiary.data.local.ChatMessageDao
 import com.psy.deardiary.data.network.AuthApiService
 import com.psy.deardiary.data.network.AuthInterceptor
 import com.psy.deardiary.data.network.ChatApiService
@@ -44,6 +45,12 @@ object AppModule {
     @Singleton
     fun provideJournalDao(appDatabase: AppDatabase): JournalDao {
         return appDatabase.journalDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideChatMessageDao(appDatabase: AppDatabase): ChatMessageDao {
+        return appDatabase.chatMessageDao()
     }
 
     @Provides
@@ -117,7 +124,10 @@ object AppModule {
     }
     @Provides
     @Singleton
-    fun provideChatRepository(chatApiService: ChatApiService): ChatRepository {
-        return ChatRepository(chatApiService)
+    fun provideChatRepository(
+        chatApiService: ChatApiService,
+        chatMessageDao: ChatMessageDao
+    ): ChatRepository {
+        return ChatRepository(chatApiService, chatMessageDao)
     }
 }
