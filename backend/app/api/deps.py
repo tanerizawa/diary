@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 from app import crud, models, schemas
 # PERBAIKAN: Impor 'settings' dari config
 from app.core.config import settings
-from app.api import deps # Baris ini sepertinya salah, seharusnya tidak mengimpor dirinya sendiri
 from app.db.session import SessionLocal
 
 reusable_oauth2 = OAuth2PasswordBearer(
