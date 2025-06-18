@@ -39,8 +39,8 @@ class HomeChatViewModel @Inject constructor(
             // Perbarui UI segera agar placeholder terlihat
             _messages.value = chatRepository.getConversation()
 
-            // 3. Panggil API dengan batas waktu lima detik
-            val result = withTimeoutOrNull(5_000) { chatRepository.fetchReply(text) }
+            // 3. Panggil API dengan batas waktu sepuluh detik
+            val result = withTimeoutOrNull(10_000) { chatRepository.fetchReply(text) }
 
             // 4. Ganti pesan placeholder dengan hasil atau pesan kesalahan
             when (result) {
