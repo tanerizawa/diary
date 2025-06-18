@@ -49,7 +49,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     # PENAMBAHAN/PERBAIKAN: Menambahkan fungsi 'remove' generik
     def remove(self, db: Session, *, id: int) -> Optional[ModelType]:
-        obj = db.query(self.model).get(id)
+        obj = db.get(self.model, id)
         if obj:
             db.delete(obj)
             db.commit()
