@@ -25,7 +25,7 @@ async def get_ai_reply(message: str, context: str = "") -> str | None:
     try:
         headers = {
             "Authorization": f"Bearer {settings.AI_API_KEY}",
-            "HTTP-Referer": "https://github.com/tanerizawa/diary",  # Ganti jika perlu
+            "Referer": "https://github.com/tanerizawa/diary",  # Ganti jika perlu
             "X-Title": "Dear Diary App",
             "Content-Type": "application/json"
         }
