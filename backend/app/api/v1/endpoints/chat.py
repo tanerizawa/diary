@@ -32,8 +32,5 @@ async def chat_with_ai(
     reply = await get_ai_reply(chat_in.message, context=context)
     if reply is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
-    # Artificial delay gives the impression that the AI is "typing".
-    # Consider shortening or removing this once the client has proper
-    # waiting logic to avoid unnecessary latency.
-    await asyncio.sleep(2)
+    # Removed artificial delay to improve responsiveness.
     return schemas.ChatResponse(reply=reply)
