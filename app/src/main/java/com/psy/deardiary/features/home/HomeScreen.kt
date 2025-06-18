@@ -84,6 +84,7 @@ fun HomeScreen(
                             when (item) {
                                 is FeedItem.JournalItem -> JournalItemCard(item.journalEntry)
                                 is FeedItem.ArticleSuggestionItem -> ArticleSuggestionCard(item.article)
+                                is FeedItem.ChatPromptItem -> ChatPromptCard(item.message)
                             }
                         }
                         items(messages, key = { it.id }) { msg ->

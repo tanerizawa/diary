@@ -10,3 +10,4 @@ from .chat_message import (
     ChatMessageUpdate,
 )
 from .token import Token, TokenData
+from .feed import FeedItem, Article

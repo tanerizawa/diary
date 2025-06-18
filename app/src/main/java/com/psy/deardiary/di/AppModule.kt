@@ -10,9 +10,11 @@ import com.psy.deardiary.data.network.AuthApiService
 import com.psy.deardiary.data.network.AuthInterceptor
 import com.psy.deardiary.data.network.ChatApiService
 import com.psy.deardiary.data.network.JournalApiService
+import com.psy.deardiary.data.network.FeedApiService
 import com.psy.deardiary.data.repository.AuthRepository
 import com.psy.deardiary.data.repository.ChatRepository
 import com.psy.deardiary.data.repository.JournalRepository
+import com.psy.deardiary.data.repository.FeedRepository
 import com.psy.deardiary.BuildConfig
 import dagger.Module
 import dagger.Provides
@@ -107,6 +109,12 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideFeedApiService(retrofit: Retrofit): FeedApiService {
+        return retrofit.create(FeedApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideAuthRepository(
         authApiService: AuthApiService,
         userPreferencesRepository: UserPreferencesRepository
@@ -129,5 +137,13 @@ object AppModule {
         chatMessageDao: ChatMessageDao
     ): ChatRepository {
         return ChatRepository(chatApiService, chatMessageDao)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFeedRepository(
+        feedApiService: FeedApiService
+    ): FeedRepository {
+        return FeedRepository(feedApiService)
     }
 }

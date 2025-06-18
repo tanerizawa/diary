@@ -3,12 +3,11 @@ package com.psy.deardiary.features.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.psy.deardiary.data.repository.JournalRepository
-import com.psy.deardiary.features.media.Article
+import com.psy.deardiary.data.repository.FeedRepository
+import com.psy.deardiary.data.repository.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -23,7 +22,8 @@ data class HomeUiState(
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val journalRepository: JournalRepository
+    private val journalRepository: JournalRepository,
+    private val feedRepository: FeedRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -36,27 +36,21 @@ class HomeViewModel @Inject constructor(
     private fun loadFeedContent() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-
-            journalRepository.journals.onEach { entries ->
-                val feed = mutableListOf<FeedItem>()
-
-                entries.forEach { entry ->
-                    feed.add(FeedItem.JournalItem(entry))
+            when (val result = feedRepository.getFeed()) {
+                is Result.Success -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            feedItems = result.data,
+                            timeOfDay = getTimeOfDay(),
+                            userName = "Odang"
+                        )
+                    }
                 }
-
-                if (entries.any { it.content.contains("cemas", true) || it.content.contains("stres", true) }) {
-                    feed.add(FeedItem.ArticleSuggestionItem(Article("Memahami Overthinking", "Psikologi+", "https://placehold.co/600x400/D3E4F7/001D35?text=Artikel")))
+                is Result.Error -> {
+                    _uiState.update { it.copy(isLoading = false) }
                 }
-
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        feedItems = feed,
-                        timeOfDay = getTimeOfDay(),
-                        userName = "Odang"
-                    )
-                }
-            }.launchIn(viewModelScope)
+            }
         }
     }
 

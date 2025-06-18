@@ -1,10 +1,9 @@
-import com.psy.deardiary.data.model.JournalEntry
-import com.psy.deardiary.data.repository.JournalRepository
+import com.psy.deardiary.data.repository.FeedRepository
+import com.psy.deardiary.data.repository.Result
 import com.psy.deardiary.features.home.FeedItem
 import com.psy.deardiary.features.home.HomeViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -20,16 +19,15 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
-    private val journalFlow = MutableStateFlow<List<JournalEntry>>(emptyList())
-    private lateinit var repository: JournalRepository
+    private lateinit var repository: FeedRepository
     private lateinit var viewModel: HomeViewModel
 
     @Before
     fun setup() {
         Dispatchers.setMain(dispatcher)
         repository = mock()
-        whenever(repository.journals).thenReturn(journalFlow)
-        viewModel = HomeViewModel(repository)
+        whenever(repository.getFeed()).thenReturn(Result.Success(emptyList()))
+        viewModel = HomeViewModel(mock(), repository)
     }
 
     @After
@@ -39,12 +37,12 @@ class HomeViewModelTest {
 
     @Test
     fun feedUpdates_whenEntriesEmitted() = runTest {
-        val entry = JournalEntry(title = "t", content = "saya cemas", mood = "😟", tags = emptyList())
-        journalFlow.value = listOf(entry)
+        whenever(repository.getFeed()).thenReturn(
+            Result.Success(listOf(FeedItem.ChatPromptItem("hi")))
+        )
         advanceUntilIdle()
         val feed = viewModel.uiState.value.feedItems
-        assertEquals(2, feed.size)
-        assertTrue(feed[0] is FeedItem.JournalItem)
-        assertTrue(feed[1] is FeedItem.ArticleSuggestionItem)
+        assertEquals(1, feed.size)
+        assertTrue(feed[0] is FeedItem.ChatPromptItem)
     }
 }

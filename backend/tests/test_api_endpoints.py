@@ -84,3 +84,10 @@ def test_journal_crud_endpoints(client):
 
     delete_resp = client.delete(f"/api/v1/journal/{journal_id}", headers=headers)
     assert delete_resp.status_code == 200
+
+
+def test_feed_endpoint(client):
+    headers = register_and_login(client, email="feed@example.com")
+    resp = client.get("/api/v1/feed", headers=headers)
+    assert resp.status_code == 200
+    assert isinstance(resp.json(), list)
