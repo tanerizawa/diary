@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import asyncio
@@ -32,5 +33,46 @@ async def chat_with_ai(
     reply = await get_ai_reply(chat_in.message, context=context)
     if reply is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+    # Persist conversation
+    user_msg = schemas.ChatMessageCreate(
+        text=chat_in.message,
+        is_user=True,
+        timestamp=int(asyncio.get_event_loop().time() * 1000),
+    )
+    crud.chat_message.create_with_owner(db, obj_in=user_msg, owner_id=current_user.id)
+    ai_msg = schemas.ChatMessageCreate(
+        text=reply,
+        is_user=False,
+        timestamp=int(asyncio.get_event_loop().time() * 1000),
+    )
+    crud.chat_message.create_with_owner(db, obj_in=ai_msg, owner_id=current_user.id)
+
     # Removed artificial delay to improve responsiveness.
     return schemas.ChatResponse(reply=reply)
+
+
+@router.post("/messages", response_model=schemas.ChatMessage)
+def create_message(
+    *,
+    db: Session = Depends(deps.get_db),
+    message_in: schemas.ChatMessageCreate,
+    current_user: models.User = Depends(deps.get_current_user),
+):
+    """Record a chat message."""
+    return crud.chat_message.create_with_owner(
+        db=db, obj_in=message_in, owner_id=current_user.id
+    )
+
+
+@router.get("/messages", response_model=List[schemas.ChatMessage])
+def read_messages(
+    *,
+    db: Session = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 100,
+    current_user: models.User = Depends(deps.get_current_user),
+):
+    """Fetch chat history for the current user."""
+    return crud.chat_message.get_multi_by_owner(
+        db, owner_id=current_user.id, skip=skip, limit=limit
+    )
