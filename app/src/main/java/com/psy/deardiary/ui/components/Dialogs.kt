@@ -39,3 +39,43 @@ fun ConfirmationDialog(
         }
     )
 }
+
+@Composable
+fun InfoDialog(
+    onDismissRequest: () -> Unit,
+    title: String,
+    text: String,
+    confirmText: String = "OK",
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text(text = title) },
+        text = { Text(text = text) },
+        confirmButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text(confirmText)
+            }
+        },
+    )
+}
+
+@Composable
+fun PermissionDeniedDialog(
+    onDismissRequest: () -> Unit,
+    onOpenSettings: () -> Unit,
+    message: String,
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text("Izin Diperlukan") },
+        text = { Text(message) },
+        confirmButton = {
+            TextButton(onClick = { onOpenSettings(); onDismissRequest() }) {
+                Text("Buka Pengaturan")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) { Text("Tutup") }
+        }
+    )
+}

@@ -80,3 +80,25 @@
 > **Catatan:** berkas `.jar` tidak dapat dieksekusi di lingkungan ini, termasuk `gradle-wrapper.jar`. Jalankan Gradle melalui instalasi lokal atau unduh jar tersebut secara manual bila diperlukan. Berkas wrapper telah diabaikan di `.gitignore`.
 
 File APK hasil build dapat ditemukan di `app/build/outputs/apk/`.
+
+## Menjalankan Backend
+
+Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alembic.
+
+1. Install dependensi Python:
+
+   ```bash
+   pip install -r backend/requirements.txt
+   ```
+
+2. Jalankan migrasi database:
+
+   ```bash
+   alembic -c backend/alembic.ini upgrade head
+   ```
+
+3. Mulai server pengembangan:
+
+   ```bash
+   uvicorn backend.main:app --reload
+   ```

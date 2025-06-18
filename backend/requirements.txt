@@ -9,6 +9,9 @@ python-jose[cryptography]
 python-multipart
 httpx # PENAMBAHAN BARU
 
+# Untuk migrasi database
+alembic
+
 # Tambahkan driver database jika Anda tidak menggunakan SQLite
 # Contoh untuk PostgreSQL:
 # psycopg2-binary

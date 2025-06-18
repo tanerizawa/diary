@@ -5,6 +5,9 @@ package com.psy.deardiary.features.settings
 
 import android.Manifest
 import android.os.Build
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -17,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.psy.deardiary.utils.NotificationReceiver
+import com.psy.deardiary.ui.components.PermissionDeniedDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,7 +30,8 @@ fun NotificationSettingsScreen(onBackClick: () -> Unit) {
     // Untuk aplikasi nyata, ini sebaiknya disimpan di DataStore.
     var remindersEnabled by remember { mutableStateOf(false) }
 
-    // Launcher untuk meminta izin notifikasi di Android 13+
+    var showPermissionDialog by remember { mutableStateOf(false) }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
@@ -34,7 +39,7 @@ fun NotificationSettingsScreen(onBackClick: () -> Unit) {
                 remindersEnabled = true
                 NotificationReceiver.scheduleDailyReminder(context)
             } else {
-                // Tampilkan pesan bahwa izin diperlukan
+                showPermissionDialog = true
             }
         }
     )
@@ -85,6 +90,19 @@ fun NotificationSettingsScreen(onBackClick: () -> Unit) {
                 "Anda akan menerima pengingat setiap hari pada jam 8 malam.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        if (showPermissionDialog) {
+            PermissionDeniedDialog(
+                onDismissRequest = { showPermissionDialog = false },
+                onOpenSettings = {
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                    context.startActivity(intent)
+                },
+                message = "Izin notifikasi diperlukan agar pengingat dapat ditampilkan."
             )
         }
     }
