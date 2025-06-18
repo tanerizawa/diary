@@ -28,7 +28,7 @@ class ChatRepository @Inject constructor(
     fun replaceMessage(id: Int, newText: String) {
         val index = history.indexOfFirst { it.id == id }
         if (index != -1) {
-            history[index] = history[index].copy(text = newText)
+            history[index] = history[index].copy(text = newText, isPlaceholder = false)
         }
     }
 
