@@ -96,6 +96,8 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
 
    Contoh nilai default dapat dilihat pada berkas `.env.example`.
 
+   > **Catatan**: File `.env` berisi informasi sensitif dan telah dimasukkan ke `.gitignore`. Pastikan Anda tidak meng-commit file ini ke repository publik.
+
 2. Install dependensi Python:
 
    ```bash
