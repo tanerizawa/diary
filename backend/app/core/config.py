@@ -9,14 +9,15 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./test.db")
 
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "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")
+    # Isi nilainya melalui environment variable
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE_ME")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8 # 8 hari
 
     # --- PENAMBAHAN BARU ---
     # Konfigurasi untuk Layanan AI (contoh menggunakan OpenRouter)
-    # Ambil API Key dari environment variable
-    AI_API_KEY: str = os.getenv("AI_API_KEY", "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")
+    # Ambil API Key melalui environment variable
+    AI_API_KEY: str = os.getenv("AI_API_KEY", "CHANGE_ME")
     AI_API_URL: str = "https://openrouter.ai/api/v1/chat/completions"
     # --- AKHIR PENAMBAHAN ---
 
