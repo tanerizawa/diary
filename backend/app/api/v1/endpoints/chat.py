@@ -26,10 +26,19 @@ async def chat_with_ai(
     moods: dict[str, int] = {}
     for j in journals:
         moods[j.mood] = moods.get(j.mood, 0) + 1
+
+    recent_msgs = crud.chat_message.get_last_user_messages(db, owner_id=current_user.id, limit=4)
+    message_lines = [m.text for m in recent_msgs]
+
     mood_summary = ", ".join(f"{m}:{c}" for m, c in moods.items())
-    context = "Recent journal entries:\n" + "\n".join(context_lines)
+    context_sections = []
+    if context_lines:
+        context_sections.append("Recent journal entries:\n" + "\n".join(context_lines))
+    if message_lines:
+        context_sections.append("Recent conversation:\n" + "\n".join(message_lines))
     if mood_summary:
-        context += f"\nMood frequencies: {mood_summary}"
+        context_sections.append(f"Mood frequencies: {mood_summary}")
+    context = "\n".join(context_sections)
 
     reply = await get_ai_reply(chat_in.message, context=context)
     if reply is None:
