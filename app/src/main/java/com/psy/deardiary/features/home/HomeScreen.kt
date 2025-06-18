@@ -71,32 +71,34 @@ fun HomeScreen(
                     CircularProgressIndicator()
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    state = listState,
-                ) {
-                    items(uiState.feedItems, key = { it.hashCode() }) { item ->
-                        when (item) {
-                            is FeedItem.WelcomeItem -> WelcomeCard(
-                                timeOfDay = item.timeOfDay,
-                                userName = item.userName,
-                            )
-                            is FeedItem.PromptItem -> PromptCard(prompt = item.promptText)
-                            is FeedItem.JournalItem -> JournalItemCard(item.journalEntry)
-                            is FeedItem.ArticleSuggestionItem -> ArticleSuggestionCard(item.article)
+                Column(modifier = Modifier.fillMaxSize()) {
+                    WelcomeCard(
+                        timeOfDay = uiState.timeOfDay,
+                        userName = uiState.userName,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        state = listState,
+                    ) {
+                        items(uiState.feedItems, key = { it.hashCode() }) { item ->
+                            when (item) {
+                                is FeedItem.JournalItem -> JournalItemCard(item.journalEntry)
+                                is FeedItem.ArticleSuggestionItem -> ArticleSuggestionCard(item.article)
+                            }
                         }
-                    }
-                    items(messages, key = { it.id }) { msg ->
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn() + slideInVertically { it / 2 },
-                            exit = fadeOut() + slideOutVertically()
-                        ) {
-                            ChatBubble(
-                                message = msg,
-                                modifier = Modifier.animateItemPlacement() // PENGGUNAAN animateItemPlacement
-                            )
+                        items(messages, key = { it.id }) { msg ->
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = fadeIn() + slideInVertically { it / 2 },
+                                exit = fadeOut() + slideOutVertically()
+                            ) {
+                                ChatBubble(
+                                    message = msg,
+                                    modifier = Modifier.animateItemPlacement() // PENGGUNAAN animateItemPlacement
+                                )
+                            }
                         }
                     }
                 }

@@ -50,32 +50,6 @@ fun WelcomeCard(
     }
 }
 
-@Composable
-fun PromptCard(prompt: String, modifier: Modifier = Modifier) {
-    AnimatedVisibility(
-        visible = true,
-        enter = fadeIn() + scaleIn(),
-        exit = fadeOut()
-    ) {
-        OutlinedCard(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("💡 Prompt Untukmu", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(prompt, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-        }
-    }
-}
 
 @Composable
 fun JournalItemCard(entry: JournalEntry, modifier: Modifier = Modifier) {
