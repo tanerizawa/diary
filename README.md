@@ -91,7 +91,8 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
    pip install -r backend/requirements.txt
    ```
 
-2. Jalankan migrasi database (secara default database SQLite akan dibuat di `backend/test.db`):
+2. Dari direktori *root* repository, jalankan migrasi database (secara default
+   database SQLite akan dibuat di `backend/test.db`):
 
    ```bash
    alembic -c backend/alembic.ini upgrade head
@@ -105,7 +106,9 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
 
 ### Troubleshooting
 
-Jika saat menjalankan backend Anda melihat pesan `sqlite3.OperationalError: no such table: users`, jalankan migrasi dari direktori root untuk membuat `backend/test.db`:
+Jika saat menjalankan backend Anda melihat pesan `sqlite3.OperationalError: no such table: users`,
+pastikan perintah migrasi dijalankan dari direktori *root* sehingga file
+`backend/test.db` dibuat pada lokasi yang benar:
 
 ```bash
 alembic -c backend/alembic.ini upgrade head
