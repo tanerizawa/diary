@@ -91,7 +91,7 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
    pip install -r backend/requirements.txt
    ```
 
-2. Jalankan migrasi database:
+2. Jalankan migrasi database (secara default database SQLite akan dibuat di `backend/test.db`):
 
    ```bash
    alembic -c backend/alembic.ini upgrade head

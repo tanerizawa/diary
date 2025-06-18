@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Dear Diary API"
     API_V1_STR: str = "/api/v1"
 
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./test.db")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///backend/test.db")
 
     # Isi nilainya melalui environment variable
     SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE_ME")
