@@ -1,0 +1,52 @@
+import com.psy.deardiary.data.model.ChatMessage
+import com.psy.deardiary.data.repository.ChatRepository
+import com.psy.deardiary.data.repository.Result
+import com.psy.deardiary.features.home.HomeChatViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class HomeChatViewModelTest {
+    private val dispatcher = UnconfinedTestDispatcher()
+    private lateinit var repository: ChatRepository
+    private lateinit var viewModel: HomeChatViewModel
+
+    @Before
+    fun setup() {
+        Dispatchers.setMain(dispatcher)
+        repository = mock()
+        whenever(repository.getConversation()).thenReturn(MutableStateFlow(emptyList()))
+        viewModel = HomeChatViewModel(repository)
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
+    @Test
+    fun sendMessage_delegatesToRepository() = runTest {
+        whenever(repository.addMessage(any(), eq(true), eq(false))).thenReturn(ChatMessage(text="hi", isUser=true))
+        whenever(repository.addMessage(any(), eq(false), eq(true))).thenReturn(ChatMessage(id=2, text="placeholder", isUser=false, isPlaceholder=true))
+        whenever(repository.fetchReply("hi")).thenReturn(Result.Success("hello"))
+        viewModel.sendMessage("hi")
+        advanceUntilIdle()
+        verify(repository).addMessage("hi", true, false)
+        verify(repository).addMessage("Sedang mengetik jawaban...", false, true)
+        verify(repository).fetchReply("hi")
+        verify(repository).replaceMessage(2, "hello")
+    }
+}
