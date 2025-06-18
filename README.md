@@ -85,20 +85,32 @@ File APK hasil build dapat ditemukan di `app/build/outputs/apk/`.
 
 Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alembic.
 
-1. Install dependensi Python:
+### Konfigurasi Environment
+
+1. Salin berkas `.env.example` menjadi `.env` dan isi variabel di bawah ini:
+
+   - `DATABASE_URL` – URL koneksi database
+   - `SECRET_KEY` – kunci rahasia untuk JWT
+   - `AI_API_KEY` – kunci API layanan AI
+   - `AI_API_URL` – endpoint layanan AI
+   - `AI_MODEL` – model AI yang digunakan
+
+   Contoh nilai default dapat dilihat pada berkas `.env.example`.
+
+2. Install dependensi Python:
 
    ```bash
    pip install -r backend/requirements.txt
    ```
 
-2. Dari direktori *root* repository, jalankan migrasi database (secara default
+3. Dari direktori *root* repository, jalankan migrasi database (secara default
    database SQLite akan dibuat di `backend/test.db`):
 
    ```bash
    alembic -c backend/alembic.ini upgrade head
    ```
 
-3. Mulai server pengembangan:
+4. Mulai server pengembangan:
 
    ```bash
    uvicorn backend.main:app --reload
