@@ -102,3 +102,17 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
    ```bash
    uvicorn backend.main:app --reload
    ```
+
+## Running Tests
+
+1. Install dependensi Python beserta `pytest`:
+
+   ```bash
+   pip install -r backend/requirements.txt pytest
+   ```
+
+2. Jalankan seluruh tes unit dari direktori root:
+
+   ```bash
+   pytest
+   ```
