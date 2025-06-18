@@ -2,7 +2,6 @@
 # Deskripsi: Menambahkan endpoint DELETE /me untuk menghapus akun.
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
