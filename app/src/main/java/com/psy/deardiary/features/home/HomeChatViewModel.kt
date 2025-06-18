@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,12 +42,16 @@ class HomeChatViewModel @Inject constructor(
             // Perbarui UI segera agar placeholder terlihat
             _messages.value = chatRepository.getConversation()
 
-            // 3. Panggil API dengan batas waktu lebih lama agar server punya waktu
+            // 3. Tunda pengiriman pesan sekitar 5 detik untuk meniru jeda ketika
+            //    manusia mengetik. Setelah itu baru teruskan ke server.
+            delay(5_000)
+
+            // 4. Panggil API dengan batas waktu lebih lama agar server punya waktu
             //    yang cukup untuk merespons. Batas lama sebelumnya kadang terlalu
             //    singkat sehingga balasan AI tidak sempat diterima sepenuhnya.
             val result = withTimeoutOrNull(30_000) { chatRepository.fetchReply(text) }
 
-            // 4. Ganti pesan placeholder dengan hasil atau pesan kesalahan
+            // 5. Ganti pesan placeholder dengan hasil atau pesan kesalahan
             when (result) {
                 is Result.Success -> {
                     chatRepository.replaceMessage(placeholder.id, result.data)
