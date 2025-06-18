@@ -51,3 +51,4 @@ local.properties
 __pycache__/
 *.pyc
 test.db
+*.db
