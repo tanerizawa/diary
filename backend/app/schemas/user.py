@@ -10,9 +10,15 @@ class LoginRequest(BaseModel):
 
 class UserBase(BaseModel):
     email: EmailStr
+    name: str | None = None
+    bio: str | None = None
 
 class UserCreate(UserBase):
     password: str
+
+class UserUpdate(BaseModel):
+    name: str | None = None
+    bio: str | None = None
 
 class User(UserBase):
     id: int
