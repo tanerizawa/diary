@@ -14,7 +14,6 @@ import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -186,16 +185,7 @@ private fun ChatBubble(message: ChatMessage, modifier: Modifier = Modifier) {
             .padding(vertical = 4.dp),
         horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start
     ) {
-        var dots by remember(message.id) { mutableStateOf(".") }
-
-        if (message.isPlaceholder) {
-            LaunchedEffect(message.id) {
-                while (true) {
-                    delay(500)
-                    dots = if (dots.length >= 5) "." else dots + "."
-                }
-            }
-        }
+        // Remove old dot-based placeholder animation in favor of TypingIndicator
 
         val bubbleColor = when {
             message.isPlaceholder -> Color.Gray.copy(alpha = 0.5f)
@@ -203,16 +193,18 @@ private fun ChatBubble(message: ChatMessage, modifier: Modifier = Modifier) {
             else -> MaterialTheme.colorScheme.surfaceVariant
         }
 
-        val displayText = if (message.isPlaceholder) dots else message.text
-
         Surface(
             color = bubbleColor,
             shape = MaterialTheme.shapes.medium
         ) {
-            Text(
-                text = displayText,
-                modifier = Modifier.padding(8.dp)
-            )
+            if (message.isPlaceholder) {
+                TypingIndicator(modifier = Modifier.padding(8.dp))
+            } else {
+                Text(
+                    text = message.text,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
         }
     }
 }
