@@ -24,13 +24,12 @@
 ### ❤️ Tab Layanan
 - **Tes Psikologi**:
   - Tes Kepribadian (MBTI)
-  - Beck Depression Inventory (BDI)
-  - Tes Minat & Bakat
+  - Tes Tingkat Stres (DASS-21)
 - **Direktori Psikolog Profesional**: Temukan dan hubungi psikolog berpengalaman.
 - **Tombol Bantuan Darurat**: Akses cepat ke layanan bantuan krisis.
 
 ### 🌳 Tab Pertumbuhan
-- **Pohon Kehidupan**: Visualisasi unik yang tumbuh seiring aktivitas positif pengguna.
+- **Pohon Ketenangan**: Visualisasi unik yang tumbuh seiring aktivitas positif pengguna.
 - **Kalender Mood**: Pantau mood harian secara visual melalui kalender intuitif.
 - **Statistik & Pencapaian**: Lihat perkembangan pribadi, total jurnal, runtutan konsistensi, dan lencana penghargaan.
 
@@ -87,7 +86,7 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
 
 ### Konfigurasi Environment
 
-1. Salin berkas `.env.example` menjadi `.env` dan isi variabel di bawah ini:
+1. Salin berkas `.env.example` di direktori root menjadi `.env` dan isi variabel di bawah ini:
 
    - `DATABASE_URL` – URL koneksi database
    - `SECRET_KEY` – kunci rahasia untuk JWT
@@ -103,8 +102,9 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
    pip install -r backend/requirements.txt
    ```
 
-3. Dari direktori *root* repository, jalankan migrasi database (secara default
-   database SQLite akan dibuat di `backend/test.db`):
+3. Dari direktori *root* repository, jalankan migrasi database (database SQLite
+   akan dibuat sesuai nilai `DATABASE_URL`, default-nya `dear_diary.db` di
+   direktori root):
 
    ```bash
    alembic -c backend/alembic.ini upgrade head
@@ -119,8 +119,8 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
 ### Troubleshooting
 
 Jika saat menjalankan backend Anda melihat pesan `sqlite3.OperationalError: no such table: users`,
-pastikan perintah migrasi dijalankan dari direktori *root* sehingga file
-`backend/test.db` dibuat pada lokasi yang benar:
+pastikan perintah migrasi dijalankan dari direktori *root* sehingga file database sesuai `DATABASE_URL`
+(misalnya `dear_diary.db`) dibuat pada lokasi yang benar:
 
 ```bash
 alembic -c backend/alembic.ini upgrade head
