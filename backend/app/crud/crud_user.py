@@ -27,7 +27,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserCreate]):
     # PERBAIKAN: Menambahkan fungsi remove
     def remove(self, db: Session, *, id: int) -> User | None:
         """Menghapus pengguna berdasarkan ID."""
-        obj = db.query(self.model).get(id)
+        obj = db.get(self.model, id)
         if obj:
             db.delete(obj)
             db.commit()
