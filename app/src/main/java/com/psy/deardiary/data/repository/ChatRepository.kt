@@ -64,12 +64,6 @@ class ChatRepository @Inject constructor(
                 val response = chatApiService.sendMessage(ChatRequest(text))
                 if (response.isSuccessful && response.body() != null) {
                     val reply = response.body()!!.reply
-                    val message = ChatMessage(
-                        text = reply,
-                        isUser = false,
-                        isSynced = true
-                    )
-                    chatMessageDao.insertMessage(message)
                     Result.Success(reply)
                 } else {
                     Result.Error("${'$'}{response.message()}")

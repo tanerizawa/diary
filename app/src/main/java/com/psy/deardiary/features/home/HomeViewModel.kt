@@ -16,7 +16,9 @@ import javax.inject.Inject
 
 data class HomeUiState(
     val isLoading: Boolean = true,
-    val feedItems: List<FeedItem> = emptyList()
+    val feedItems: List<FeedItem> = emptyList(),
+    val timeOfDay: String = "",
+    val userName: String = ""
 )
 
 @HiltViewModel
@@ -37,8 +39,6 @@ class HomeViewModel @Inject constructor(
 
             journalRepository.journals.onEach { entries ->
                 val feed = mutableListOf<FeedItem>()
-                feed.add(FeedItem.WelcomeItem(getTimeOfDay(), "Odang"))
-                feed.add(FeedItem.PromptItem("Apa satu hal yang membuatmu tersenyum hari ini?"))
 
                 entries.forEach { entry ->
                     feed.add(FeedItem.JournalItem(entry))
@@ -48,7 +48,14 @@ class HomeViewModel @Inject constructor(
                     feed.add(FeedItem.ArticleSuggestionItem(Article("Memahami Overthinking", "Psikologi+", "https://placehold.co/600x400/D3E4F7/001D35?text=Artikel")))
                 }
 
-                _uiState.update { it.copy(isLoading = false, feedItems = feed) }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        feedItems = feed,
+                        timeOfDay = getTimeOfDay(),
+                        userName = "Odang"
+                    )
+                }
             }.launchIn(viewModelScope)
         }
     }
