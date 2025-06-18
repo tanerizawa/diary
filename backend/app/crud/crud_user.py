@@ -6,7 +6,6 @@ from app.crud.base import CRUDBase
 from app.db.models.user import User
 from app.schemas.user import UserCreate
 from app.core.security import get_password_hash
-from app.db.base_class import Base # Import Base
 
 class CRUDUser(CRUDBase[User, UserCreate, UserCreate]):
     def get_by_email(self, db: Session, *, email: str) -> User | None:
