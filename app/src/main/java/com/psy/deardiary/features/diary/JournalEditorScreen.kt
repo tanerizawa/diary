@@ -11,6 +11,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -156,6 +157,25 @@ fun JournalEditorScreen(
                     onPlaybackClick = { viewModel.onPlaybackClicked() }
                 )
                 Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "Mood", // Simple heading for mood section
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    com.psy.deardiary.features.home.emojiOptions.forEach { option ->
+                        MoodSelector(
+                            mood = option.emoji,
+                            isSelected = uiState.journalMood == option.emoji,
+                            onSelect = { viewModel.updateMood(it) },
+                            enabled = !uiState.isRecording && !uiState.isPlayingAudio
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
                 // ... (Sisa kode UI tidak berubah)
             }
 
@@ -177,11 +197,119 @@ fun JournalEditorScreen(
 
 // ... (Sisa file tidak berubah)
 @Composable
-private fun VoiceJournalSection( isRecording: Boolean, hasRecording: Boolean, isPlaying: Boolean, onRecordClick: () -> Unit, onStopClick: () -> Unit, onPlaybackClick: () -> Unit ) { /* ... */ }
+private fun VoiceJournalSection(
+    isRecording: Boolean,
+    hasRecording: Boolean,
+    isPlaying: Boolean,
+    onRecordClick: () -> Unit,
+    onStopClick: () -> Unit,
+    onPlaybackClick: () -> Unit
+) {
+    Column {
+        Text(
+            text = "Jurnal Suara",
+            style = MaterialTheme.typography.titleMedium
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (isRecording) {
+                IconButton(onClick = onStopClick) {
+                    Icon(Icons.Default.Stop, contentDescription = "Stop")
+                }
+                val transition = rememberInfiniteTransition(label = "rec")
+                val alpha by transition.animateFloat(
+                    initialValue = 0.3f,
+                    targetValue = 1f,
+                    animationSpec = infiniteRepeatable(tween(500)),
+                    label = "alpha"
+                )
+                Box(
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .size(12.dp)
+                        .clip(CircleShape)
+                        .background(Crisis.copy(alpha = alpha))
+                )
+            } else {
+                IconButton(
+                    onClick = onRecordClick,
+                    enabled = !isPlaying
+                ) {
+                    Icon(Icons.Default.Mic, contentDescription = "Rekam")
+                }
+            }
+
+            if (hasRecording) {
+                IconButton(onClick = onPlaybackClick) {
+                    val icon = if (isPlaying) Icons.Default.Stop else Icons.Default.PlayArrow
+                    val desc = if (isPlaying) "Hentikan" else "Putar"
+                    Icon(icon, contentDescription = desc)
+                }
+            }
+        }
+    }
+}
 
 @Composable
-private fun MoodSelector( mood: String, isSelected: Boolean, onSelect: (String) -> Unit, enabled: Boolean ) { /* ... */ }
+private fun MoodSelector(
+    mood: String,
+    isSelected: Boolean,
+    onSelect: (String) -> Unit,
+    enabled: Boolean
+) {
+    val background = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .background(background)
+            .clickable(enabled = enabled) { onSelect(mood) },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = mood,
+            style = MaterialTheme.typography.headlineSmall
+        )
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
-private fun JournalEditorScreenPreview() { /* ... */ }
+private fun JournalEditorScreenPreview() {
+    DearDiaryTheme {
+        val context = LocalContext.current
+        val fakeDao = object : com.psy.deardiary.data.local.JournalDao {
+            override suspend fun insertEntry(entry: com.psy.deardiary.data.model.JournalEntry) = 1L
+            override fun getAllEntries(userId: Int) = kotlinx.coroutines.flow.flowOf(emptyList<com.psy.deardiary.data.model.JournalEntry>())
+            override suspend fun getUnsyncedEntries(userId: Int) = emptyList<com.psy.deardiary.data.model.JournalEntry>()
+            override suspend fun markAsSynced(localId: Int, newRemoteId: Int) {}
+            override suspend fun getEntryByRemoteId(remoteId: Int?, userId: Int) = null
+            override suspend fun getEntryById(id: Int) = null
+            override suspend fun updateEntry(id: Int, remoteId: Int?, title: String, content: String, mood: String, timestamp: Long, tags: List<String>, isSynced: Boolean) {}
+            override suspend fun updateLocalEntry(entry: com.psy.deardiary.data.model.JournalEntry) {}
+            override suspend fun deleteAllEntries(userId: Int) {}
+            override suspend fun getAllEntriesOnce(userId: Int) = emptyList<com.psy.deardiary.data.model.JournalEntry>()
+            override suspend fun deleteEntryByLocalId(localId: Int, userId: Int) {}
+        }
+
+        val fakeApi = retrofit2.Retrofit.Builder()
+            .baseUrl("http://localhost/")
+            .addConverterFactory(retrofit2.converter.gson.GsonConverterFactory.create())
+            .build()
+            .create(com.psy.deardiary.data.network.JournalApiService::class.java)
+
+        val userPrefs = com.psy.deardiary.data.datastore.UserPreferencesRepository(context)
+
+        val repo = com.psy.deardiary.data.repository.JournalRepository(fakeApi, fakeDao, userPrefs)
+
+        val vm = JournalEditorViewModel(
+            repo,
+            com.psy.deardiary.utils.AudioRecorder(context),
+            com.psy.deardiary.utils.AudioPlayer(),
+            context,
+            androidx.lifecycle.SavedStateHandle()
+        )
+
+        JournalEditorScreen(onBackClick = {}, viewModel = vm)
+    }
+}
