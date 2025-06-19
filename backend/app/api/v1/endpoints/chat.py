@@ -103,16 +103,62 @@ async def chat_with_ai(
     )
 
 
-@router.post("/messages", response_model=schemas.ChatMessage)
-def create_message(
+@router.post("/messages", response_model=schemas.ChatResponse)
+async def create_message(
     *,
     db: Session = Depends(deps.get_db),
     message_in: schemas.ChatMessageCreate,
     current_user: models.User = Depends(deps.get_current_user),
 ):
-    """Record a chat message."""
-    return crud.chat_message.create_with_owner(
+    """Create a chat message and return an AI reply with sentiment data."""
+
+    created_msg = crud.chat_message.create_with_owner(
         db=db, obj_in=message_in, owner_id=current_user.id
+    )
+
+    analysis_result = await analyze_sentiment_with_ai(message_in.text)
+    detected_mood = detect_mood(message_in.text)
+
+    crud.chat_message.update(
+        db,
+        db_obj=created_msg,
+        obj_in={
+            "sentiment_score": analysis_result.get("sentiment_score") if analysis_result else None,
+            "key_emotions": analysis_result.get("key_emotions") if analysis_result else None,
+            "detected_mood": detected_mood,
+        },
+    )
+
+    crud.emotion_log.create_with_owner(
+        db,
+        obj_in=schemas.EmotionLogCreate(
+            timestamp=message_in.timestamp,
+            detected_mood=detected_mood,
+            source_text=message_in.text,
+            source_feature="chat_home",
+        ),
+        owner_id=current_user.id,
+    )
+
+    reply = await get_ai_reply(message_in.text)
+    if reply is None:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+
+    crud.chat_message.create_with_owner(
+        db,
+        obj_in=schemas.ChatMessageCreate(
+            text=reply,
+            is_user=False,
+            timestamp=int(asyncio.get_event_loop().time() * 1000),
+        ),
+        owner_id=current_user.id,
+    )
+
+    return schemas.ChatResponse(
+        reply_text=reply,
+        sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
+        key_emotions=analysis_result.get("key_emotions") if analysis_result else None,
+        detected_mood=detected_mood,
     )
 
 
