@@ -175,3 +175,10 @@ DELETE /api/v1/chat/messages
 Kirimkan body JSON `{ "ids": [1, 2, 3] }` untuk menghapus pesan dengan ID
 tertentu. Pesan yang dihapus akan hilang dari basis data dan tidak muncul lagi
 di riwayat percakapan.
+
+### Analisis Percakapan Terkini
+
+Endpoint ini kini meninjau beberapa pesan terakhir sebelum memberikan balasan.
+Bila relevan, AI dapat menutup jawabannya dengan pertanyaan singkat untuk
+mendorong interaksi. Pertanyaan tidak akan diulang apabila pada balasan
+sebelumnya AI sudah menanyakannya.
