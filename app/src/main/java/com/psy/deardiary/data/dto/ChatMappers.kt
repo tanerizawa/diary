@@ -11,6 +11,7 @@ fun ChatMessageResponse.toChatMessage(): ChatMessage {
         timestamp = this.timestamp,
         sentimentScore = this.sentimentScore,
         keyEmotions = this.keyEmotions,
+        detectedMood = this.detectedMood,
         isSynced = true
     )
 }
@@ -21,6 +22,7 @@ fun ChatMessage.toCreateRequest(): ChatMessageCreateRequest {
         isUser = this.isUser,
         timestamp = this.timestamp,
         sentimentScore = this.sentimentScore,
-        keyEmotions = this.keyEmotions
+        keyEmotions = this.keyEmotions,
+        detectedMood = this.detectedMood
     )
 }
