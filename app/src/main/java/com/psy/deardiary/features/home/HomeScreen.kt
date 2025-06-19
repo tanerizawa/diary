@@ -24,6 +24,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.psy.deardiary.data.model.ChatMessage
 import com.psy.deardiary.features.home.components.TypingIndicator
 import com.psy.deardiary.features.home.emojiOptions
+import com.psy.deardiary.ui.components.InfoDialog
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class) // ANOTASI BARU
 @Composable
@@ -35,8 +36,15 @@ fun HomeScreen(
 ) {
     val messages by chatViewModel.messages.collectAsState()
     val sentimentScore by chatViewModel.latestSentiment.collectAsState(initial = null)
+    val chatUiState by chatViewModel.uiState.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
+
+    var showErrorDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(chatUiState.errorMessage) {
+        showErrorDialog = chatUiState.errorMessage != null
+    }
 
     LaunchedEffect(messages) {
         if (messages.isNotEmpty()) listState.animateScrollToItem(messages.lastIndex)
@@ -84,6 +92,17 @@ fun HomeScreen(
                         }
                     }
                 }
+            }
+
+            if (showErrorDialog) {
+                InfoDialog(
+                    onDismissRequest = {
+                        showErrorDialog = false
+                        chatViewModel.clearErrorMessage()
+                    },
+                    title = "Sinkronisasi Gagal",
+                    text = chatUiState.errorMessage ?: "Terjadi kesalahan"
+                )
             }
         }
     }
