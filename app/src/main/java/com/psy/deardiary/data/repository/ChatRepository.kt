@@ -109,8 +109,13 @@ class ChatRepository @Inject constructor(
                 for (msg in unsynced) {
                     val response = chatApiService.postMessage(msg.toCreateRequest())
                     if (response.isSuccessful && response.body() != null) {
-                        val remoteId = response.body()!!.id
-                        chatMessageDao.markAsSynced(msg.id, remoteId)
+                        val body = response.body()!!
+                        chatMessageDao.markAsSynced(
+                            msg.id,
+                            body.id,
+                            body.sentimentScore,
+                            body.keyEmotions
+                        )
                     } else {
                         return@withContext Result.Error("Gagal menyinkronkan pesan")
                     }
