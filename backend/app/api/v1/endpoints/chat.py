@@ -80,6 +80,21 @@ async def chat_with_ai(
     if analysis_result and analysis_result.get("sentiment_score") is not None:
         score = analysis_result.get("sentiment_score")
         detected_mood = "positive" if score > 0.2 else "negative" if score < -0.2 else "neutral"
+        crud.chat_message.update(
+            db,
+            db_obj=created_user_msg,
+            obj_in={"detected_mood": detected_mood},
+        )
+        crud.emotion_log.create_with_owner(
+            db,
+            obj_in=schemas.EmotionLogCreate(
+                timestamp=int(asyncio.get_event_loop().time() * 1000),
+                detected_mood=detected_mood,
+                source_text=chat_in.message,
+                source_feature="chat_home",
+            ),
+            owner_id=current_user.id,
+        )
 
     # Removed artificial delay to improve responsiveness.
     return schemas.ChatResponse(
