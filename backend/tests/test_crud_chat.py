@@ -56,3 +56,18 @@ def test_chat_message_crud(db_session):
     assert chat_message.get(db_session, id=created.id) is None
 
 
+def test_remove_multi(db_session):
+    msgs = [
+        chat_message.create_with_owner(
+            db_session,
+            obj_in=ChatMessageCreate(text=f"m{i}", is_user=True, timestamp=i),
+            owner_id=1,
+        )
+        for i in range(3)
+    ]
+    count = chat_message.remove_multi(db_session, ids=[m.id for m in msgs[:2]], owner_id=1)
+    assert count == 2
+    remaining = chat_message.get_multi_by_owner(db_session, owner_id=1)
+    assert len(remaining) == 1 and remaining[0].id == msgs[2].id
+
+

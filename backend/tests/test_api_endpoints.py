@@ -168,3 +168,33 @@ def test_message_post_handler(client, monkeypatch):
     assert len(logs) == 1
     assert logs[0]["sentiment_score"] == 0.2
     assert logs[0]["key_emotions_detected"] == ["calm"]
+
+
+def test_delete_messages_endpoint(client, monkeypatch):
+    headers = register_and_login(client, email="delmsg@example.com")
+
+    async def fake_reply(message: str, context: str = ""):
+        return "ok"
+
+    async def fake_sentiment(text: str):
+        return None
+
+    monkeypatch.setattr("app.api.v1.endpoints.chat.get_ai_reply", fake_reply)
+    monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_sentiment)
+
+    for i in range(3):
+        client.post(
+            "/api/v1/chat/messages",
+            json={"text": f"msg{i}", "is_user": True, "timestamp": i},
+            headers=headers,
+        )
+
+    resp = client.get("/api/v1/chat/messages", headers=headers)
+    ids = [m["id"] for m in resp.json()]
+    del_resp = client.request("DELETE", "/api/v1/chat/messages", json={"ids": ids[:2]}, headers=headers)
+    assert del_resp.status_code == 200
+    assert del_resp.json() == 2
+
+    remaining = client.get("/api/v1/chat/messages", headers=headers).json()
+    assert len(remaining) == 1
+    assert remaining[0]["id"] == ids[2]

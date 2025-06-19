@@ -20,3 +20,8 @@ class ChatMessage(ChatMessageBase):
 
     class Config:
         from_attributes = True
+
+
+class ChatMessageDeleteRequest(BaseModel):
+    """Payload for deleting one or more chat messages."""
+    ids: list[int]

@@ -34,3 +34,7 @@ data class AiChatResponse(
     @SerializedName("reply_text") val replyText: String,
     @SerializedName("detected_mood") val detectedMood: String? = null
 )
+
+data class DeleteMessagesRequest(
+    val ids: List<Int>
+)
