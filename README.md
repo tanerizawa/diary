@@ -106,11 +106,20 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
 
 3. Dari direktori *root* repository, jalankan migrasi database (database SQLite
    akan dibuat sesuai nilai `DATABASE_URL`, default-nya `dear_diary.db` di
-   direktori root):
+   direktori root). Jalankan langkah ini setiap kali Anda menarik perubahan yang
+   menambah atau mengubah skema database:
 
    ```bash
    alembic -c backend/alembic.ini upgrade head
    ```
+
+   Jika Anda memodifikasi model sendiri, buat berkas migrasi baru lebih dulu
+   dengan perintah:
+
+   ```bash
+   alembic -c backend/alembic.ini revision --autogenerate -m "Pesan migrasi"
+   ```
+   Setelah itu jalankan perintah `upgrade` di atas.
 
 4. Mulai server pengembangan:
 
@@ -141,3 +150,17 @@ alembic -c backend/alembic.ini upgrade head
    ```bash
    pytest
    ```
+
+## Cara Kerja Analisis Sentimen Chat
+
+Endpoint `/api/v1/chat/` tidak hanya mengirimkan pesan Anda ke model AI, namun
+juga melakukan analisis sentimen. Urutannya sebagai berikut:
+
+1. Pesan pengguna disimpan di tabel `chatmessages`.
+2. Fungsi `analyze_sentiment_with_ai` memanggil layanan AI dan
+   mengembalikan `sentiment_score` serta `key_emotions`.
+3. Nilai tersebut dikirim kembali bersama balasan AI dan disimpan kembali
+   secara asinkron lewat `process_and_update_sentiment`.
+
+Hasil analisis dapat dilihat pada kolom `sentiment_score` dan `key_emotions`
+di database.
