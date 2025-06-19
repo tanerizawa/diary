@@ -1,7 +1,7 @@
 import com.psy.deardiary.data.model.ChatMessage
 import com.psy.deardiary.data.repository.ChatRepository
 import com.psy.deardiary.data.repository.Result
-import com.psy.deardiary.data.model.SentimentInfo
+import com.psy.deardiary.data.dto.AiChatResponse
 import com.psy.deardiary.features.home.HomeChatViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -50,14 +50,14 @@ class HomeChatViewModelTest {
         whenever(repository.addMessage(any(), eq(true), eq(false))).thenReturn(ChatMessage(text="hi", isUser=true, userId = 1))
         whenever(repository.addMessage(any(), eq(false), eq(true))).thenReturn(ChatMessage(id=2, text="placeholder", isUser=false, isPlaceholder=true, userId = 1))
         whenever(repository.fetchReply("hi")).thenReturn(
-            Result.Success("hello" to SentimentInfo(0.5f, "happy"))
+            Result.Success(AiChatResponse("hello", "happy"))
         )
         viewModel.sendMessage("hi")
         advanceUntilIdle()
         verify(repository).addMessage("hi", true, false)
         verify(repository).addMessage("Sedang mengetik jawaban...", false, true)
         verify(repository).fetchReply("hi")
-        verify(repository).replaceMessage(2, "hello", 0.5f, "happy")
+        verify(repository).replaceMessage(2, "hello", detectedMood = "happy")
     }
 
     @Test

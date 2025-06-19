@@ -29,3 +29,8 @@ data class ChatMessageCreateRequest(
     @SerializedName("key_emotions") val keyEmotions: String? = null,
     @SerializedName("detected_mood") val detectedMood: String? = null
 )
+
+data class AiChatResponse(
+    @SerializedName("reply_text") val replyText: String,
+    @SerializedName("detected_mood") val detectedMood: String? = null
+)
