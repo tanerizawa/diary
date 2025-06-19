@@ -171,10 +171,25 @@ private fun ChatBubble(message: ChatMessage, modifier: Modifier = Modifier) {
     ) {
         // Remove old dot-based placeholder animation in favor of TypingIndicator
 
-        val bubbleColor = when {
-            message.isPlaceholder -> Color.Gray.copy(alpha = 0.5f)
-            message.isUser -> MaterialTheme.colorScheme.primaryContainer
-            else -> MaterialTheme.colorScheme.surfaceVariant
+        // Base colors depending on sender
+        val defaultColor = if (message.isUser) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        }
+
+        // Adjust color based on detected mood when available
+        val moodColor = when (message.detectedMood) {
+            "\uD83D\uDE00", "\uD83D\uDE42" -> Color(0xFFFFF59D) // happy tones
+            "\uD83D\uDE22" -> Color(0xFFB3E5FC) // sad tones
+            "\uD83D\uDE21" -> Color(0xFFFFCDD2) // angry tones
+            else -> defaultColor
+        }
+
+        val bubbleColor = if (message.isPlaceholder) {
+            Color.Gray.copy(alpha = 0.5f)
+        } else {
+            moodColor
         }
 
         Surface(
@@ -185,7 +200,12 @@ private fun ChatBubble(message: ChatMessage, modifier: Modifier = Modifier) {
                 TypingIndicator(modifier = Modifier.padding(8.dp))
             } else {
                 Column(modifier = Modifier.padding(8.dp)) {
-                    Text(text = message.text)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = message.text)
+                        message.detectedMood?.takeIf { it.isNotBlank() }?.let { mood ->
+                            Text(text = " $mood", fontSize = MaterialTheme.typography.bodyLarge.fontSize)
+                        }
+                    }
                     message.keyEmotions?.takeIf { it.isNotBlank() }?.let { emotions ->
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
