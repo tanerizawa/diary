@@ -13,7 +13,7 @@ data class ChatResponse(
 data class ChatMessageResponse(
     val id: Int,
     val text: String,
-    val isUser: Boolean,
+    @SerializedName("is_user") val isUser: Boolean,
     val timestamp: Long,
     @SerializedName("owner_id") val ownerId: Int,
     @SerializedName("sentiment_score") val sentimentScore: Float? = null,
@@ -23,7 +23,7 @@ data class ChatMessageResponse(
 
 data class ChatMessageCreateRequest(
     val text: String,
-    val isUser: Boolean,
+    @SerializedName("is_user") val isUser: Boolean,
     val timestamp: Long,
     @SerializedName("sentiment_score") val sentimentScore: Float? = null,
     @SerializedName("key_emotions") val keyEmotions: String? = null,
