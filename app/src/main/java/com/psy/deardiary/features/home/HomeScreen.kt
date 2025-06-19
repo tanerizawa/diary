@@ -66,7 +66,7 @@ fun HomeScreen(
 
     LaunchedEffect(messages, feedItems) {
         if (messages.isNotEmpty()) {
-            val offset = feedItems.size + 1 // +1 for quick note bar
+            val offset = feedItems.size
             listState.animateScrollToItem(offset + messages.lastIndex)
         }
     }
@@ -126,10 +126,6 @@ fun HomeScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     state = listState,
                 ) {
-                    item {
-                        QuickNoteBar(onSave = { viewModel.saveQuickNote(it) })
-                    }
-
                     items(feedItems) { item ->
                         when (item) {
                             is FeedItem.JournalItem -> JournalItemCard(item.journalEntry)
@@ -254,39 +250,6 @@ private fun ChatInputBar(onSend: (String) -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun QuickNoteBar(onSave: (String) -> Unit) {
-    var text by remember { mutableStateOf("") }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        TextField(
-            value = text,
-            onValueChange = { text = it },
-            modifier = Modifier.weight(1f),
-            placeholder = { Text("Tulis catatan singkat...") },
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-            )
-        )
-        IconButton(
-            onClick = {
-                onSave(text)
-                text = ""
-            },
-            enabled = text.isNotBlank()
-        ) {
-            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Simpan")
-        }
-    }
-}
 
 @Composable
 private fun ChatBubble(
