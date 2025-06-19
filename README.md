@@ -103,6 +103,8 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
 
    > **Catatan**: File `.env` berisi informasi sensitif dan telah dimasukkan ke `.gitignore`. Pastikan Anda tidak meng-commit file ini ke repository publik.
 
+   Aplikasi akan otomatis mencari dan memuat berkas `.env` baik di folder `backend/` maupun di direktori root proyek.
+
 2. Install dependensi Python:
 
    ```bash

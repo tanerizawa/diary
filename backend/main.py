@@ -1,5 +1,5 @@
-from dotenv import load_dotenv  # <-- 1. TAMBAHKAN IMPORT INI
-load_dotenv()                   # <-- 2. PANGGIL FUNGSI INI DI SINI
+from dotenv import load_dotenv, find_dotenv  # <-- 1. TAMBAHKAN IMPORT INI
+load_dotenv(find_dotenv())                   # <-- 2. PANGGIL FUNGSI INI DI SINI
 
 from app.core import logging as log_setup
 log_setup.setup_logging()
