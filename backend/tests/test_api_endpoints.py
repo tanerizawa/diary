@@ -101,7 +101,7 @@ def test_feed_endpoint(client):
 def test_chat_sentiment_response(client, monkeypatch):
     headers = register_and_login(client, email="chat@example.com")
 
-    async def fake_reply(message: str, context: str = ""):
+    async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
         return "hi"
 
     async def fake_sentiment(text: str):
@@ -139,7 +139,7 @@ def test_chat_sentiment_response(client, monkeypatch):
 def test_message_post_handler(client, monkeypatch):
     headers = register_and_login(client, email="msg@example.com")
 
-    async def fake_reply(message: str, context: str = ""):
+    async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
         return "reply"
 
     async def fake_sentiment(text: str):
@@ -173,7 +173,7 @@ def test_message_post_handler(client, monkeypatch):
 def test_delete_messages_endpoint(client, monkeypatch):
     headers = register_and_login(client, email="delmsg@example.com")
 
-    async def fake_reply(message: str, context: str = ""):
+    async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
         return "ok"
 
     async def fake_sentiment(text: str):
@@ -198,3 +198,82 @@ def test_delete_messages_endpoint(client, monkeypatch):
     remaining = client.get("/api/v1/chat/messages", headers=headers).json()
     assert len(remaining) == 1
     assert remaining[0]["id"] == ids[2]
+
+
+def test_relationship_level_prompt_variation(client, monkeypatch):
+    headers = register_and_login(client, email="rel@example.com")
+
+    class DummyClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+        async def post(self, url, headers=None, json=None, timeout=None):
+            prompts.append(json["messages"][0]["content"])
+            class Resp:
+                def raise_for_status(self):
+                    pass
+
+                def json(self):
+                    return {"choices": [{"message": {"content": "hi"}}]}
+
+            return Resp()
+
+    prompts = []
+
+    monkeypatch.setattr(
+        "app.services.chat_responder.httpx.AsyncClient", DummyClient
+    )
+    async def noop(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", noop
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.crud.chat_message.process_and_update_sentiment",
+        lambda *a, **k: None,
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.journal.crud.journal.process_and_update_sentiment",
+        lambda *a, **k: None,
+    )
+
+    client.post(
+        "/api/v1/chat/messages",
+        json={"text": "hi", "is_user": True, "timestamp": 1},
+        headers=headers,
+    )
+    assert any("acquaintance" in p for p in prompts)
+
+    for i in range(11):
+        client.post(
+            "/api/v1/journal/",
+            json={"title": "t", "content": "c", "mood": "ok", "timestamp": i},
+            headers=headers,
+        )
+
+    prompts.clear()
+    client.post(
+        "/api/v1/chat/messages",
+        json={"text": "hi", "is_user": True, "timestamp": 2},
+        headers=headers,
+    )
+    assert any("friend" in p for p in prompts)
+
+    for i in range(20):
+        client.post(
+            "/api/v1/journal/",
+            json={"title": "t", "content": "c", "mood": "ok", "timestamp": i + 20},
+            headers=headers,
+        )
+
+    prompts.clear()
+    client.post(
+        "/api/v1/chat/messages",
+        json={"text": "hi", "is_user": True, "timestamp": 3},
+        headers=headers,
+    )
+    assert any("close confidant" in p for p in prompts)

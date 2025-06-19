@@ -39,6 +39,7 @@ def test_user_crud_flow(db_session):
     assert new_user.id is not None
     assert new_user.email == "a@b.com"
     assert new_user.hashed_password != "pass"
+    assert new_user.relationship_level == 0
 
     # update
     updated = user.update(db_session, db_obj=new_user, obj_in={"is_active": False})

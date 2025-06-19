@@ -43,7 +43,11 @@ async def chat_with_ai(
         context_sections.append(f"Mood frequencies: {mood_summary}")
     context = "\n".join(context_sections)
 
-    reply = await get_ai_reply(chat_in.message, context=context)
+    reply = await get_ai_reply(
+        chat_in.message,
+        context=context,
+        relationship_level=current_user.relationship_level,
+    )
     if reply is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
     # Persist conversation
@@ -145,19 +149,14 @@ async def create_message(
         owner_id=current_user.id,
     )
 
-    reply = await get_ai_reply(message_in.text)
+    reply = await get_ai_reply(
+        message_in.text,
+        relationship_level=current_user.relationship_level,
+    )
     if reply is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
 
-    crud.chat_message.create_with_owner(
-        db,
-        obj_in=schemas.ChatMessageCreate(
-            text=reply,
-            is_user=False,
-            timestamp=int(asyncio.get_event_loop().time() * 1000),
-        ),
-        owner_id=current_user.id,
-    )
+    # The simple message endpoint does not store AI responses
 
     return schemas.ChatResponse(
         reply_text=reply,
