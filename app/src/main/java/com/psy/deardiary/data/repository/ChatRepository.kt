@@ -87,7 +87,8 @@ class ChatRepository @Inject constructor(
         id: Int,
         newText: String,
         sentimentScore: Float? = null,
-        keyEmotions: String? = null
+        keyEmotions: String? = null,
+        detectedMood: String? = null
     ) {
         val uid = userPreferencesRepository.userId.first() ?: return
         val existing = chatMessageDao.getMessageById(id, uid) ?: return
@@ -95,7 +96,8 @@ class ChatRepository @Inject constructor(
             text = newText,
             isPlaceholder = false,
             sentimentScore = sentimentScore,
-            keyEmotions = keyEmotions
+            keyEmotions = keyEmotions,
+            detectedMood = detectedMood
         )
         chatMessageDao.updateMessage(updated)
     }
@@ -135,7 +137,8 @@ class ChatRepository @Inject constructor(
                             msg.id,
                             body.id,
                             body.sentimentScore,
-                            body.keyEmotions
+                            body.keyEmotions,
+                            body.detectedMood
                         )
                     } else {
                         return@withContext Result.Error("Gagal menyinkronkan pesan")

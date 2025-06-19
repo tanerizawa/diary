@@ -14,6 +14,7 @@ data class ChatMessage(
     val timestamp: Long = System.currentTimeMillis(),
     val sentimentScore: Float? = null,
     val keyEmotions: String? = null,
+    val detectedMood: String? = null,
     val isSynced: Boolean = false,
     val isPlaceholder: Boolean = false
 )

@@ -16,13 +16,14 @@ interface ChatMessageDao {
     suspend fun getUnsyncedMessages(userId: Int): List<ChatMessage>
 
     @Query(
-        "UPDATE chat_messages SET remoteId = :remoteId, sentimentScore = :sentimentScore, keyEmotions = :keyEmotions, isSynced = 1 WHERE id = :id"
+        "UPDATE chat_messages SET remoteId = :remoteId, sentimentScore = :sentimentScore, keyEmotions = :keyEmotions, detectedMood = :detectedMood, isSynced = 1 WHERE id = :id"
     )
     suspend fun markAsSynced(
         id: Int,
         remoteId: Int,
         sentimentScore: Float?,
-        keyEmotions: String?
+        keyEmotions: String?,
+        detectedMood: String?
     )
 
     @Update
