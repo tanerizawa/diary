@@ -178,7 +178,7 @@ di riwayat percakapan.
 
 ### Analisis Percakapan Terkini
 
-Endpoint ini kini meninjau beberapa pesan terakhir sebelum memberikan balasan.
+Endpoint ini kini meninjau beberapa pesan terakhir setelah meberikan balasan AI akan membuat chat baru dan memberikan balasan.
 Bila relevan, AI dapat menutup jawabannya dengan pertanyaan singkat untuk
 mendorong interaksi. Pertanyaan tidak akan diulang apabila pada balasan
 sebelumnya AI sudah menanyakannya.
