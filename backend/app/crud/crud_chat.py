@@ -35,6 +35,18 @@ class CRUDChatMessage(CRUDBase[ChatMessage, ChatMessageCreate, ChatMessageUpdate
             .all()
         )
 
+    def remove_multi(self, db: Session, *, ids: List[int], owner_id: int) -> int:
+        """Delete multiple messages belonging to the given owner.
+
+        Returns the number of rows deleted."""
+        result = (
+            db.query(self.model)
+            .filter(ChatMessage.owner_id == owner_id, ChatMessage.id.in_(ids))
+            .delete(synchronize_session=False)
+        )
+        db.commit()
+        return result
+
     async def process_and_update_sentiment(self, *, chat_id: int):
         """Analyze sentiment for a chat message and store the result."""
         db = SessionLocal()

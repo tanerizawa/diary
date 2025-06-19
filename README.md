@@ -164,3 +164,14 @@ juga melakukan analisis sentimen. Urutannya sebagai berikut:
 
 Hasil analisis dapat dilihat pada kolom `sentiment_score` dan `key_emotions`
 di database.
+
+Mulai versi ini, Anda juga dapat menghapus beberapa pesan sekaligus melalui
+endpoint:
+
+```http
+DELETE /api/v1/chat/messages
+```
+
+Kirimkan body JSON `{ "ids": [1, 2, 3] }` untuk menghapus pesan dengan ID
+tertentu. Pesan yang dihapus akan hilang dari basis data dan tidak muncul lagi
+di riwayat percakapan.

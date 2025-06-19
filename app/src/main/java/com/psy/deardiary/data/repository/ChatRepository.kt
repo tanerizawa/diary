@@ -3,6 +3,7 @@ package com.psy.deardiary.data.repository
 import com.psy.deardiary.data.dto.ChatRequest
 import com.psy.deardiary.data.dto.toCreateRequest
 import com.psy.deardiary.data.dto.toChatMessage
+import com.psy.deardiary.data.dto.DeleteMessagesRequest
 import com.psy.deardiary.data.model.ChatMessage
 import com.psy.deardiary.data.local.ChatMessageDao
 import com.psy.deardiary.data.datastore.UserPreferencesRepository
@@ -150,6 +151,26 @@ class ChatRepository @Inject constructor(
                 Result.Success(Unit)
             } catch (e: Exception) {
                 Result.Error("Gagal sinkronisasi: ${'$'}{e.message}")
+            }
+        }
+    }
+
+    suspend fun deleteMessages(ids: List<Int>): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val uid = userPreferencesRepository.userId.first() ?: return@withContext Result.Error("User not logged in")
+                val response = chatApiService.deleteMessages(DeleteMessagesRequest(ids))
+                if (!response.isSuccessful) {
+                    return@withContext Result.Error("Gagal menghapus pesan di server")
+                }
+                chatMessageDao.deleteMessages(ids, uid)
+                Result.Success(Unit)
+            } catch (e: HttpException) {
+                Result.Error("Server error: ${'$'}{e.code()}")
+            } catch (e: IOException) {
+                Result.Error("Tidak dapat terhubung ke server.")
+            } catch (e: Exception) {
+                Result.Error("Terjadi kesalahan: ${'$'}{e.message}")
             }
         }
     }

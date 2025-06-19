@@ -1,9 +1,10 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Body
 from sqlalchemy.orm import Session
 import asyncio
 
 from app import crud, models, schemas
+from app.schemas.chat_message import ChatMessageDeleteRequest
 from app.api import deps
 from app.services.chat_responder import get_ai_reply
 from app.services.sentiment_analyzer import analyze_sentiment_with_ai
@@ -178,3 +179,21 @@ def read_messages(
     return crud.chat_message.get_multi_by_owner(
         db, owner_id=current_user.id, skip=skip, limit=limit
     )
+
+
+@router.delete("/messages", response_model=int)
+def delete_messages(
+    *,
+    db: Session = Depends(deps.get_db),
+    delete_in: ChatMessageDeleteRequest = Body(...),
+    current_user: models.User = Depends(deps.get_current_user),
+):
+    """Delete one or more chat messages for the current user.
+
+    Returns the number of messages removed."""
+    deleted = crud.chat_message.remove_multi(
+        db, ids=delete_in.ids, owner_id=current_user.id
+    )
+    if deleted == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Messages not found")
+    return deleted

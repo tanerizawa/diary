@@ -35,6 +35,9 @@ interface ChatMessageDao {
     @Query("DELETE FROM chat_messages WHERE userId = :userId")
     suspend fun deleteAllMessages(userId: Int)
 
+    @Query("DELETE FROM chat_messages WHERE id IN (:ids) AND userId = :userId")
+    suspend fun deleteMessages(ids: List<Int>, userId: Int)
+
     @Transaction
     suspend fun upsertAll(messages: List<ChatMessage>) {
         messages.forEach { message ->
