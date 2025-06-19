@@ -190,3 +190,10 @@ tidak berinteraksi. Backend menyediakan endpoint `/api/v1/chat/prompt` yang
 mengumpulkan riwayat jurnal dan percakapan lalu menghasilkan sapaan singkat yang
 selalu diakhiri pertanyaan probing. Endpoint ini menyimpan pesan tersebut dan
 membatasi pemanggilan jika dalam 6 jam terakhir sudah ada prompt serupa.
+
+### Konteks Dinamis Chat
+
+Balasan dari endpoint `/api/v1/chat/` kini mempertimbangkan konteks profil.
+Informasi nama, bio, MBTI (jika ada), waktu saat ini, statistik mood, riwayat
+jurnal terkini, serta percakapan terakhir disusun menjadi satu string dan
+dikirim ke model AI. Hal ini membuat respons terasa lebih personal dan relevan.
