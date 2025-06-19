@@ -18,6 +18,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserCreate]):
             is_active=True,
             name=obj_in.name,
             bio=obj_in.bio,
+            mbti_type=obj_in.mbti_type,
             relationship_level=0,
         )
         db.add(db_obj)

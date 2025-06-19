@@ -64,6 +64,22 @@ def test_user_registration_login_delete(client):
     assert resp.status_code == 200
 
 
+def test_mbti_update_endpoint(client):
+    headers = register_and_login(client, email="mbti@example.com")
+
+    resp = client.put(
+        "/api/v1/users/me/mbti",
+        json={"mbti_type": "ENTP"},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    assert resp.json()["mbti_type"] == "ENTP"
+
+    check = client.get("/api/v1/users/me", headers=headers)
+    assert check.status_code == 200
+    assert check.json()["mbti_type"] == "ENTP"
+
+
 def test_journal_crud_endpoints(client):
     headers = register_and_login(client)
 

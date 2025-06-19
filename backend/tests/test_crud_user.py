@@ -40,14 +40,20 @@ def test_user_crud_flow(db_session):
     assert new_user.email == "a@b.com"
     assert new_user.hashed_password != "pass"
     assert new_user.relationship_level == 0
+    assert new_user.mbti_type is None
 
     # update
     updated = user.update(db_session, db_obj=new_user, obj_in={"is_active": False})
     assert updated.is_active is False
 
+    # update mbti
+    updated = user.update(db_session, db_obj=new_user, obj_in={"mbti_type": "INTJ"})
+    assert updated.mbti_type == "INTJ"
+
     # get by email
     got = user.get_by_email(db_session, email="a@b.com")
     assert got.id == new_user.id
+    assert got.mbti_type == "INTJ"
 
     # remove
     user.remove(db_session, id=new_user.id)

@@ -14,5 +14,6 @@ class User(Base):
     name = Column(String, nullable=True)
     bio = Column(Text, nullable=True)
     relationship_level = Column(Integer, default=0)
+    mbti_type = Column(String, nullable=True)
 
     journals = relationship("JournalEntry", back_populates="owner", cascade="all, delete-orphan")

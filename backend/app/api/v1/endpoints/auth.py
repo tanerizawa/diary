@@ -66,6 +66,17 @@ def update_current_user(
     user = crud.user.update(db=db, db_obj=current_user, obj_in=user_in)
     return user
 
+@router.put("/me/mbti", response_model=schemas.User)
+def update_mbti_type(
+        *,
+        db: Session = Depends(deps.get_db),
+        mbti_in: schemas.UserMBTIUpdate,
+        current_user: models.User = Depends(deps.get_current_user),
+):
+    """Simpan hasil tes MBTI untuk pengguna saat ini."""
+    user = crud.user.update(db=db, db_obj=current_user, obj_in=mbti_in)
+    return user
+
 # PERBAIKAN: Menambahkan endpoint baru untuk menghapus akun
 @router.delete("/me", response_model=schemas.User)
 def delete_current_user(
