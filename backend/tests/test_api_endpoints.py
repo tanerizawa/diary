@@ -1,4 +1,9 @@
 import os
+os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
+os.environ.setdefault("SECRET_KEY", "test")
+os.environ.setdefault("AI_API_KEY", "test")
+os.environ.setdefault("AI_API_URL", "http://test")
+os.environ.setdefault("AI_MODEL", "test-model")
 import sys
 import pytest
 from fastapi.testclient import TestClient
@@ -91,3 +96,32 @@ def test_feed_endpoint(client):
     resp = client.get("/api/v1/feed", headers=headers)
     assert resp.status_code == 200
     assert isinstance(resp.json(), list)
+
+
+def test_chat_sentiment_response(client, monkeypatch):
+    headers = register_and_login(client, email="chat@example.com")
+
+    async def fake_reply(message: str, context: str = ""):
+        return "hi"
+
+    async def fake_sentiment(text: str):
+        return {"sentiment_score": 0.5, "key_emotions": "happy"}
+
+    async def noop(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr("app.api.v1.endpoints.chat.get_ai_reply", fake_reply)
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_sentiment
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.crud.chat_message.process_and_update_sentiment",
+        noop,
+    )
+
+    resp = client.post("/api/v1/chat/", json={"message": "hello"}, headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["reply"] == "hi"
+    assert data["sentiment_score"] == 0.5
+    assert data["key_emotions"] == "happy"
