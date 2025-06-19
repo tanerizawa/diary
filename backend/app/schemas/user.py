@@ -12,6 +12,7 @@ class UserBase(BaseModel):
     email: EmailStr
     name: str | None = None
     bio: str | None = None
+    mbti_type: str | None = None
 
 class UserCreate(UserBase):
     password: str
@@ -20,6 +21,10 @@ class UserUpdate(BaseModel):
     name: str | None = None
     bio: str | None = None
     relationship_level: int | None = None
+    mbti_type: str | None = None
+
+class UserMBTIUpdate(BaseModel):
+    mbti_type: str
 
 class User(UserBase):
     id: int
