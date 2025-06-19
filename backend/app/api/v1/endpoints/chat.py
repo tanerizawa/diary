@@ -90,6 +90,8 @@ async def chat_with_ai(
             detected_mood=detected_mood,
             source_text=chat_in.message,
             source_feature="chat_home",
+            sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
+            key_emotions_detected=(analysis_result.get("key_emotions").split(",") if analysis_result and analysis_result.get("key_emotions") else None),
         ),
         owner_id=current_user.id,
     )
@@ -136,6 +138,8 @@ async def create_message(
             detected_mood=detected_mood,
             source_text=message_in.text,
             source_feature="chat_home",
+            sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
+            key_emotions_detected=(analysis_result.get("key_emotions").split(",") if analysis_result and analysis_result.get("key_emotions") else None),
         ),
         owner_id=current_user.id,
     )

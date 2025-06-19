@@ -5,6 +5,8 @@ class EmotionLogBase(BaseModel):
     detected_mood: str | None = None
     source_text: str
     source_feature: str
+    sentiment_score: float | None = None
+    key_emotions_detected: list[str] | None = None
 
 class EmotionLogCreate(EmotionLogBase):
     pass
