@@ -4,18 +4,26 @@ import com.google.gson.annotations.SerializedName
 
 data class ChatRequest(val message: String)
 
-data class ChatResponse(val reply: String)
+data class ChatResponse(
+    val reply: String,
+    @SerializedName("sentiment_score") val sentimentScore: Float? = null,
+    @SerializedName("key_emotions") val keyEmotions: String? = null
+)
 
 data class ChatMessageResponse(
     val id: Int,
     val text: String,
     val isUser: Boolean,
     val timestamp: Long,
-    @SerializedName("owner_id") val ownerId: Int
+    @SerializedName("owner_id") val ownerId: Int,
+    @SerializedName("sentiment_score") val sentimentScore: Float? = null,
+    @SerializedName("key_emotions") val keyEmotions: String? = null
 )
 
 data class ChatMessageCreateRequest(
     val text: String,
     val isUser: Boolean,
-    val timestamp: Long
+    val timestamp: Long,
+    @SerializedName("sentiment_score") val sentimentScore: Float? = null,
+    @SerializedName("key_emotions") val keyEmotions: String? = null
 )

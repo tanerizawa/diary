@@ -9,6 +9,8 @@ fun ChatMessageResponse.toChatMessage(): ChatMessage {
         text = this.text,
         isUser = this.isUser,
         timestamp = this.timestamp,
+        sentimentScore = this.sentimentScore,
+        keyEmotions = this.keyEmotions,
         isSynced = true
     )
 }
@@ -17,6 +19,8 @@ fun ChatMessage.toCreateRequest(): ChatMessageCreateRequest {
     return ChatMessageCreateRequest(
         text = this.text,
         isUser = this.isUser,
-        timestamp = this.timestamp
+        timestamp = this.timestamp,
+        sentimentScore = this.sentimentScore,
+        keyEmotions = this.keyEmotions
     )
 }
