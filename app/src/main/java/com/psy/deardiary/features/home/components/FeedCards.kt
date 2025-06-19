@@ -155,7 +155,7 @@ fun ArticleSuggestionCard(article: Article, modifier: Modifier = Modifier) {
                 Text(article.title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "Sumber: ${'$'}{article.source}",
+                    "Sumber: ${article.source}",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

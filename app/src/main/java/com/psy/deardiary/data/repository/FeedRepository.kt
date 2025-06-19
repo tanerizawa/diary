@@ -23,10 +23,10 @@ class FeedRepository @Inject constructor(
                     val items = response.body()!!.mapNotNull { it.toFeedItem() }
                     Result.Success(items)
                 } else {
-                    Result.Error("${'$'}{response.message()}")
+                    Result.Error(response.message())
                 }
             } catch (e: HttpException) {
-                Result.Error("Server error: ${'$'}{e.code()}")
+                Result.Error("Server error: ${e.code()}")
             } catch (e: IOException) {
                 Result.Error("Tidak dapat terhubung ke server.")
             }

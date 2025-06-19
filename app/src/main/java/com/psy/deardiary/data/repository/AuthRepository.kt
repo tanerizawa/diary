@@ -34,10 +34,10 @@ class AuthRepository @Inject constructor(
                         userPreferencesRepository.saveUserId(profileResponse.body()!!.id)
                         Result.Success(Unit)
                     } else {
-                        Result.Error("Login gagal: ${'$'}{profileResponse.message()}")
+                        Result.Error("Login gagal: ${profileResponse.message()}")
                     }
                 } else {
-                    Result.Error("Login gagal: ${'$'}{response.message()}")
+                    Result.Error("Login gagal: ${response.message()}")
                 }
             } catch (e: HttpException) {
                 Result.Error("Terjadi kesalahan pada server. Kode: ${e.code()}")
