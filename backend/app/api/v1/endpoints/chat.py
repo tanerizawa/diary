@@ -7,6 +7,7 @@ from app import crud, models, schemas
 from app.api import deps
 from app.services.chat_responder import get_ai_reply
 from app.services.sentiment_analyzer import analyze_sentiment_with_ai
+from app.services.emotion_classifier import detect_mood
 
 router = APIRouter()
 
@@ -75,26 +76,23 @@ async def chat_with_ai(
     )
     crud.chat_message.create_with_owner(db, obj_in=ai_msg, owner_id=current_user.id)
 
-    # Determine a simple mood classification from sentiment score
-    detected_mood = None
-    if analysis_result and analysis_result.get("sentiment_score") is not None:
-        score = analysis_result.get("sentiment_score")
-        detected_mood = "positive" if score > 0.2 else "negative" if score < -0.2 else "neutral"
-        crud.chat_message.update(
-            db,
-            db_obj=created_user_msg,
-            obj_in={"detected_mood": detected_mood},
-        )
-        crud.emotion_log.create_with_owner(
-            db,
-            obj_in=schemas.EmotionLogCreate(
-                timestamp=int(asyncio.get_event_loop().time() * 1000),
-                detected_mood=detected_mood,
-                source_text=chat_in.message,
-                source_feature="chat_home",
-            ),
-            owner_id=current_user.id,
-        )
+    # Classify user's mood using the heuristic classifier
+    detected_mood = detect_mood(chat_in.message)
+    crud.chat_message.update(
+        db,
+        db_obj=created_user_msg,
+        obj_in={"detected_mood": detected_mood},
+    )
+    crud.emotion_log.create_with_owner(
+        db,
+        obj_in=schemas.EmotionLogCreate(
+            timestamp=int(asyncio.get_event_loop().time() * 1000),
+            detected_mood=detected_mood,
+            source_text=chat_in.message,
+            source_feature="chat_home",
+        ),
+        owner_id=current_user.id,
+    )
 
     # Removed artificial delay to improve responsiveness.
     return schemas.ChatResponse(
