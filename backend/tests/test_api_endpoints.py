@@ -132,3 +132,35 @@ def test_chat_sentiment_response(client, monkeypatch):
     logs = logs_resp.json()
     assert len(logs) == 1
     assert logs[0]["detected_mood"] == "\U0001F610"
+
+
+def test_message_post_handler(client, monkeypatch):
+    headers = register_and_login(client, email="msg@example.com")
+
+    async def fake_reply(message: str, context: str = ""):
+        return "reply"
+
+    async def fake_sentiment(text: str):
+        return {"sentiment_score": 0.2, "key_emotions": "calm"}
+
+    monkeypatch.setattr("app.api.v1.endpoints.chat.get_ai_reply", fake_reply)
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_sentiment
+    )
+
+    resp = client.post(
+        "/api/v1/chat/messages",
+        json={"text": "hi", "is_user": True, "timestamp": 1},
+        headers=headers,
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["reply_text"] == "reply"
+    assert data["sentiment_score"] == 0.2
+    assert data["key_emotions"] == "calm"
+    assert data["detected_mood"] == "\U0001F610"
+
+    logs_resp = client.get("/api/v1/emotion/", headers=headers)
+    assert logs_resp.status_code == 200
+    logs = logs_resp.json()
+    assert len(logs) == 1
