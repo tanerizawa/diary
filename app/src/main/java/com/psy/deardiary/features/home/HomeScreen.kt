@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.psy.deardiary.data.model.ChatMessage
@@ -30,6 +31,7 @@ import com.psy.deardiary.features.home.components.ArticleSuggestionCard
 import com.psy.deardiary.features.home.components.ChatPromptCard
 import com.psy.deardiary.features.home.FeedItem
 import com.psy.deardiary.ui.components.InfoDialog
+import com.psy.deardiary.utils.playNotificationFeedback
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class) // ANOTASI BARU
 @Composable
@@ -45,6 +47,8 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val feedItems by viewModel.feedItems.collectAsState()
     val listState = rememberLazyListState()
+    val context = LocalContext.current
+    var previousCount by remember { mutableStateOf(0) }
 
     var showErrorDialog by remember { mutableStateOf(false) }
 
@@ -57,6 +61,16 @@ fun HomeScreen(
             val offset = feedItems.size + 1 // +1 for quick note bar
             listState.animateScrollToItem(offset + messages.lastIndex)
         }
+    }
+
+    LaunchedEffect(messages) {
+        if (messages.size > previousCount) {
+            val newMsgs = messages.subList(previousCount, messages.size)
+            if (newMsgs.any { !it.isUser && !it.isPlaceholder }) {
+                playNotificationFeedback(context)
+            }
+        }
+        previousCount = messages.size
     }
 
     Scaffold(
