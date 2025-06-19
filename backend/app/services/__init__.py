@@ -1,2 +1,3 @@
-# File ini sengaja dikosongkan.
-# Keberadaannya menjadikan direktori 'services' sebuah Python package.
+"""Helper and service utilities used across the backend."""
+
+from .chat_context import build_chat_context

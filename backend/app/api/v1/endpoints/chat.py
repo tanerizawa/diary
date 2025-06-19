@@ -9,6 +9,7 @@ from app.api import deps
 from app.services.chat_responder import get_ai_reply
 from app.services.sentiment_analyzer import analyze_sentiment_with_ai
 from app.services.emotion_classifier import detect_mood
+from app.services import build_chat_context
 
 router = APIRouter()
 
@@ -24,24 +25,7 @@ async def chat_with_ai(
     Adds a short delay to mimic typing behavior. This delay can be
     removed or shortened once the client implements its own waiting
     logic so responses remain snappy."""
-    journals = crud.journal.get_multi_by_owner(db, owner_id=current_user.id, limit=5)
-    context_lines = [j.content for j in journals]
-    moods: dict[str, int] = {}
-    for j in journals:
-        moods[j.mood] = moods.get(j.mood, 0) + 1
-
-    recent_msgs = crud.chat_message.get_last_user_messages(db, owner_id=current_user.id, limit=4)
-    message_lines = [m.text for m in recent_msgs]
-
-    mood_summary = ", ".join(f"{m}:{c}" for m, c in moods.items())
-    context_sections = []
-    if context_lines:
-        context_sections.append("Recent journal entries:\n" + "\n".join(context_lines))
-    if message_lines:
-        context_sections.append("Recent conversation:\n" + "\n".join(message_lines))
-    if mood_summary:
-        context_sections.append(f"Mood frequencies: {mood_summary}")
-    context = "\n".join(context_sections)
+    context = build_chat_context(db, current_user)
 
     reply = await get_ai_reply(
         chat_in.message,
@@ -187,24 +171,7 @@ async def prompt_chat(
     if last_prompt_ts and now_ts - last_prompt_ts < 6 * 60 * 60 * 1000:
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Prompt recently generated")
 
-    journals = crud.journal.get_multi_by_owner(db, owner_id=current_user.id, limit=5)
-    context_lines = [j.content for j in journals]
-    moods: dict[str, int] = {}
-    for j in journals:
-        moods[j.mood] = moods.get(j.mood, 0) + 1
-
-    recent_msgs = crud.chat_message.get_last_user_messages(db, owner_id=current_user.id, limit=4)
-    message_lines = [m.text for m in recent_msgs]
-
-    mood_summary = ", ".join(f"{m}:{c}" for m, c in moods.items())
-    context_sections = []
-    if context_lines:
-        context_sections.append("Recent journal entries:\n" + "\n".join(context_lines))
-    if message_lines:
-        context_sections.append("Recent conversation:\n" + "\n".join(message_lines))
-    if mood_summary:
-        context_sections.append(f"Mood frequencies: {mood_summary}")
-    context = "\n".join(context_sections)
+    context = build_chat_context(db, current_user)
     context += "\nAkhiri jawaban dengan pertanyaan singkat yang bersifat probing."
 
     reply = await get_ai_reply(

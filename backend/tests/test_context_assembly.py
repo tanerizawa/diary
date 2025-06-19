@@ -77,6 +77,7 @@ def test_chat_context_assembly(client, monkeypatch):
         "app.api.v1.endpoints.journal.crud.journal.process_and_update_sentiment",
         lambda *a, **k: None,
     )
+    monkeypatch.setattr("app.services.chat_context._time_of_day", lambda: "morning")
 
     headers = register_and_login(client)
 
@@ -106,13 +107,14 @@ def test_chat_context_assembly(client, monkeypatch):
     assert resp.status_code == 200
 
     expected = (
+        "Time of day: morning\n"
+        "Mood frequencies: sad:1, happy:1\n"
         "Recent journal entries:\n"
         "I am sad\n"
         "I am happy\n"
         "Recent conversation:\n"
         "m2\n"
-        "m1\n"
-        "Mood frequencies: sad:1, happy:1"
+        "m1"
     )
     assert captured["context"] == expected
 
@@ -136,6 +138,7 @@ def test_prompt_context_assembly(client, monkeypatch):
         "app.api.v1.endpoints.journal.crud.journal.process_and_update_sentiment",
         lambda *a, **k: None,
     )
+    monkeypatch.setattr("app.services.chat_context._time_of_day", lambda: "morning")
 
     headers = register_and_login(client, email="prompt@example.com")
 
@@ -165,13 +168,14 @@ def test_prompt_context_assembly(client, monkeypatch):
     assert resp.status_code == 200
 
     expected = (
+        "Time of day: morning\n"
+        "Mood frequencies: sad:1, happy:1\n"
         "Recent journal entries:\n"
         "I am sad\n"
         "I am happy\n"
         "Recent conversation:\n"
         "m2\n"
         "m1\n"
-        "Mood frequencies: sad:1, happy:1\n"
         "Akhiri jawaban dengan pertanyaan singkat yang bersifat probing."
     )
     assert captured["context"] == expected
