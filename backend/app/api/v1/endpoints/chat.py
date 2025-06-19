@@ -166,6 +166,63 @@ async def create_message(
     )
 
 
+@router.post("/prompt", response_model=schemas.ChatResponse)
+async def prompt_chat(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_user),
+):
+    """Generate a proactive AI message using recent context."""
+    # Rate limit: avoid sending if last auto prompt was within 6 hours
+    recent = crud.chat_message.get_recent_messages(db, owner_id=current_user.id, limit=10)
+    last_prompt_ts = None
+    for i, msg in enumerate(recent):
+        if not msg.is_user:
+            prev = recent[i + 1] if i + 1 < len(recent) else None
+            if prev is None or not prev.is_user:
+                last_prompt_ts = msg.timestamp
+                break
+
+    now_ts = int(asyncio.get_event_loop().time() * 1000)
+    if last_prompt_ts and now_ts - last_prompt_ts < 6 * 60 * 60 * 1000:
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Prompt recently generated")
+
+    journals = crud.journal.get_multi_by_owner(db, owner_id=current_user.id, limit=5)
+    context_lines = [j.content for j in journals]
+    moods: dict[str, int] = {}
+    for j in journals:
+        moods[j.mood] = moods.get(j.mood, 0) + 1
+
+    recent_msgs = crud.chat_message.get_last_user_messages(db, owner_id=current_user.id, limit=4)
+    message_lines = [m.text for m in recent_msgs]
+
+    mood_summary = ", ".join(f"{m}:{c}" for m, c in moods.items())
+    context_sections = []
+    if context_lines:
+        context_sections.append("Recent journal entries:\n" + "\n".join(context_lines))
+    if message_lines:
+        context_sections.append("Recent conversation:\n" + "\n".join(message_lines))
+    if mood_summary:
+        context_sections.append(f"Mood frequencies: {mood_summary}")
+    context = "\n".join(context_sections)
+    context += "\nAkhiri jawaban dengan pertanyaan singkat yang bersifat probing."
+
+    reply = await get_ai_reply(
+        "", context=context, relationship_level=current_user.relationship_level
+    )
+    if reply is None:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+
+    ai_msg = schemas.ChatMessageCreate(
+        text=reply,
+        is_user=False,
+        timestamp=now_ts,
+    )
+    crud.chat_message.create_with_owner(db, obj_in=ai_msg, owner_id=current_user.id)
+
+    return schemas.ChatResponse(reply_text=reply)
+
+
 @router.get("/messages", response_model=List[schemas.ChatMessage])
 def read_messages(
     *,

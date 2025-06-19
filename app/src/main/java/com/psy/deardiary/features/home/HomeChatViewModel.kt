@@ -13,12 +13,16 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository
 ) : ViewModel() {
+
+    private val PROMPT_COOLDOWN = 6 * 60 * 60 * 1000L
+    private val AUTO_PROMPT_AFTER = 12 * 60 * 60 * 1000L
 
     data class UiState(
         val errorMessage: String? = null
@@ -44,8 +48,24 @@ class HomeChatViewModel @Inject constructor(
                 )
                 else -> Unit
             }
+            checkAutoPrompt()
             chatRepository.getConversation().collect { history ->
                 _messages.value = history
+            }
+        }
+    }
+
+    private suspend fun checkAutoPrompt() {
+        val lastPrompt = chatRepository.userPreferencesRepository.lastAiPrompt.first() ?: 0L
+        val now = System.currentTimeMillis()
+        if (now - lastPrompt < PROMPT_COOLDOWN) return
+
+        val history = chatRepository.messages.first()
+        val lastActivity = history.lastOrNull()?.timestamp ?: 0L
+        if (now - lastActivity > AUTO_PROMPT_AFTER) {
+            when (chatRepository.promptChat()) {
+                is Result.Error -> Log.e("HomeChatViewModel", "promptChat failed")
+                else -> Unit
             }
         }
     }
