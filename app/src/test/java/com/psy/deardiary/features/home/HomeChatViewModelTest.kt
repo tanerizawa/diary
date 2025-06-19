@@ -49,15 +49,15 @@ class HomeChatViewModelTest {
     fun sendMessage_delegatesToRepository() = runTest {
         whenever(repository.addMessage(any(), eq(true), eq(false))).thenReturn(ChatMessage(text="hi", isUser=true, userId = 1))
         whenever(repository.addMessage(any(), eq(false), eq(true))).thenReturn(ChatMessage(id=2, text="placeholder", isUser=false, isPlaceholder=true, userId = 1))
-        whenever(repository.fetchReply("hi")).thenReturn(
+        whenever(repository.sendMessage("hi")).thenReturn(
             Result.Success(AiChatResponse("hello", "happy"))
         )
         viewModel.sendMessage("hi")
         advanceUntilIdle()
         verify(repository).addMessage("hi", true, false)
         verify(repository).addMessage("Sedang mengetik jawaban...", false, true)
-        verify(repository).fetchReply("hi")
-        verify(repository).replaceMessage(2, "hello", detectedMood = "happy")
+        verify(repository).sendMessage("hi")
+        verify(repository).updateMessageWithReply(2, "hello", "happy")
     }
 
     @Test

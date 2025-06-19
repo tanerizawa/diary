@@ -119,6 +119,14 @@ class ChatRepository @Inject constructor(
         }
     }
 
+    suspend fun sendMessage(text: String): Result<AiChatResponse> {
+        return fetchReply(text)
+    }
+
+    suspend fun updateMessageWithReply(id: Int, replyText: String, detectedMood: String? = null) {
+        replaceMessage(id, replyText, detectedMood = detectedMood)
+    }
+
     suspend fun syncPendingMessages(): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {

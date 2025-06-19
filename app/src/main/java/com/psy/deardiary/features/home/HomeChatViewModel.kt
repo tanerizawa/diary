@@ -50,16 +50,16 @@ class HomeChatViewModel @Inject constructor(
             // 4. Panggil API dengan batas waktu lebih lama agar server punya waktu
             //    yang cukup untuk merespons. Batas lama sebelumnya kadang terlalu
             //    singkat sehingga balasan AI tidak sempat diterima sepenuhnya.
-            val result = withTimeoutOrNull(30_000) { chatRepository.fetchReply(text) }
+            val result = withTimeoutOrNull(30_000) { chatRepository.sendMessage(text) }
 
             // 5. Ganti pesan placeholder dengan hasil atau pesan kesalahan
             when (result) {
                 is Result.Success -> {
                     val response = result.data
-                    chatRepository.replaceMessage(
+                    chatRepository.updateMessageWithReply(
                         placeholder.id,
                         response.replyText,
-                        detectedMood = response.detectedMood
+                        response.detectedMood
                     )
                 }
                 is Result.Error, null -> {
