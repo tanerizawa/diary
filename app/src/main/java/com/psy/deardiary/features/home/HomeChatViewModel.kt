@@ -9,6 +9,7 @@ import com.psy.deardiary.data.repository.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.delay
@@ -18,6 +19,13 @@ import javax.inject.Inject
 class HomeChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository
 ) : ViewModel() {
+
+    data class UiState(
+        val errorMessage: String? = null
+    )
+
+    private val _uiState = MutableStateFlow(UiState())
+    val uiState = _uiState.asStateFlow()
 
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages = _messages.asStateFlow()
@@ -77,6 +85,16 @@ class HomeChatViewModel @Inject constructor(
                     )
                 }
             }
+
+            // 6. Sinkronkan pesan yang belum terkirim dan tangani error
+            when (val syncResult = chatRepository.syncPendingMessages()) {
+                is Result.Error -> _uiState.update { it.copy(errorMessage = syncResult.message) }
+                else -> Unit
+            }
         }
+    }
+
+    fun clearErrorMessage() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 }
