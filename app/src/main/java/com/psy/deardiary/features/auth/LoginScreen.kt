@@ -23,7 +23,6 @@ import com.psy.deardiary.data.repository.AuthRepository
 import com.psy.deardiary.ui.components.PasswordTextField
 import com.psy.deardiary.ui.components.PrimaryButton
 import com.psy.deardiary.ui.components.PrimaryTextField
-import com.psy.deardiary.ui.components.InfoDialog
 import com.psy.deardiary.ui.theme.DearDiaryTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -36,7 +35,7 @@ import com.psy.deardiary.data.network.UserApiService
 @Composable
 fun LoginScreen(
     onNavigateToRegister: () -> Unit,
-    // Menghapus parameter onLoginClick karena logika akan ditangani oleh ViewModel
+    mainViewModel: com.psy.deardiary.features.main.MainViewModel,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
     val uiState by authViewModel.uiState.collectAsState()
@@ -45,14 +44,15 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
 
     val snackbarHostState = remember { SnackbarHostState() }
-    var showErrorDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.errorMessage) {
-        showErrorDialog = uiState.errorMessage != null
+        uiState.errorMessage?.let {
+            mainViewModel.showError(it)
+            authViewModel.clearErrorMessage()
+        }
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.surface
     ) { paddingValues ->
         Box(
@@ -121,16 +121,6 @@ fun LoginScreen(
                 CircularProgressIndicator()
             }
 
-            if (showErrorDialog) {
-                InfoDialog(
-                    onDismissRequest = {
-                        showErrorDialog = false
-                        authViewModel.clearErrorMessage()
-                    },
-                    title = "Login Gagal",
-                    text = uiState.errorMessage ?: "Terjadi kesalahan"
-                )
-            }
         }
     }
 }

@@ -9,6 +9,7 @@ import com.psy.deardiary.features.auth.*
 import com.psy.deardiary.features.crisis_support.CrisisSupportScreen
 import com.psy.deardiary.features.diary.JournalEditorScreen
 import com.psy.deardiary.features.main.MainScreen
+import com.psy.deardiary.features.main.MainViewModel
 import com.psy.deardiary.features.onboarding.OnboardingScreen
 import com.psy.deardiary.features.services.dass.DassResultScreen
 import com.psy.deardiary.features.services.dass.DassTestScreen
@@ -49,8 +50,10 @@ fun AppNavigation(navController: NavHostController) {
                 }
             }
 
+            val mainViewModel: MainViewModel = hiltViewModel()
             LoginScreen(
-                onNavigateToRegister = { navController.navigate(Screen.Register.route) }
+                onNavigateToRegister = { navController.navigate(Screen.Register.route) },
+                mainViewModel = mainViewModel
             )
         }
 
@@ -67,20 +70,23 @@ fun AppNavigation(navController: NavHostController) {
                 }
             }
 
+            val mainViewModel: MainViewModel = hiltViewModel()
             RegisterScreen(
                 onNavigateToLogin = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
                 },
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                mainViewModel = mainViewModel
             )
         }
 
         // --- UTAMA ---
 
         composable(Screen.MainAppFlow.route) {
-            MainScreen(mainNavController = navController)
+            val mainViewModel: MainViewModel = hiltViewModel()
+            MainScreen(mainNavController = navController, mainViewModel = mainViewModel)
         }
 
         // --- JURNAL ---
@@ -89,8 +95,10 @@ fun AppNavigation(navController: NavHostController) {
             route = Screen.Editor.route,
             arguments = Screen.Editor.arguments
         ) {
+            val mainViewModel: MainViewModel = hiltViewModel()
             JournalEditorScreen(
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                mainViewModel = mainViewModel
             )
         }
 

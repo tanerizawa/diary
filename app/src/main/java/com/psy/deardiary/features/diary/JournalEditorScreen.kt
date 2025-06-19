@@ -42,7 +42,8 @@ import android.provider.Settings
 @Composable
 fun JournalEditorScreen(
     onBackClick: () -> Unit,
-    viewModel: JournalEditorViewModel = hiltViewModel()
+    viewModel: JournalEditorViewModel = hiltViewModel(),
+    mainViewModel: com.psy.deardiary.features.main.MainViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) } // State untuk dialog
@@ -72,6 +73,13 @@ fun JournalEditorScreen(
         if (uiState.isDeleted) {
             onBackClick()
             viewModel.onDeleteComplete()
+        }
+    }
+
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { message ->
+            mainViewModel.showError(message)
+            viewModel.clearErrorMessage()
         }
     }
 

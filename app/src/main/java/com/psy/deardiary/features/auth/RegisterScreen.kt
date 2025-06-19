@@ -23,7 +23,6 @@ import com.psy.deardiary.ui.components.PasswordTextField
 import com.psy.deardiary.ui.components.PrimaryButton
 import com.psy.deardiary.ui.components.PrimaryTextField
 import com.psy.deardiary.ui.theme.DearDiaryTheme
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +30,8 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
     onBackClick: () -> Unit,
     // Menghapus parameter onRegisterClick dan isLoading
-    authViewModel: AuthViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel(),
+    mainViewModel: com.psy.deardiary.features.main.MainViewModel
 ) {
     val uiState by authViewModel.uiState.collectAsState()
     var email by remember { mutableStateOf("") }
@@ -39,21 +39,14 @@ fun RegisterScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf<String?>(null) }
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
-    // Menampilkan Snackbar ketika ada errorMessage dari ViewModel
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->
-            scope.launch {
-                snackbarHostState.showSnackbar(message)
-                authViewModel.clearErrorMessage()
-            }
+            mainViewModel.showError(message)
+            authViewModel.clearErrorMessage()
         }
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {},

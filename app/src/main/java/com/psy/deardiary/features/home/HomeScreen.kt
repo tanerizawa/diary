@@ -35,7 +35,6 @@ import com.psy.deardiary.features.home.components.JournalItemCard
 import com.psy.deardiary.features.home.components.ArticleSuggestionCard
 import com.psy.deardiary.features.home.components.ChatPromptCard
 import com.psy.deardiary.features.home.FeedItem
-import com.psy.deardiary.ui.components.InfoDialog
 import com.psy.deardiary.ui.components.ConfirmationDialog
 import com.psy.deardiary.utils.playNotificationFeedback
 
@@ -44,6 +43,7 @@ import com.psy.deardiary.utils.playNotificationFeedback
 fun HomeScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToCrisisSupport: () -> Unit,
+    mainViewModel: com.psy.deardiary.features.main.MainViewModel,
     viewModel: HomeViewModel = hiltViewModel(),
     chatViewModel: HomeChatViewModel = hiltViewModel()
 ) {
@@ -58,10 +58,11 @@ fun HomeScreen(
     var previousCount by remember { mutableStateOf(0) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    var showErrorDialog by remember { mutableStateOf(false) }
-
     LaunchedEffect(chatUiState.errorMessage) {
-        showErrorDialog = chatUiState.errorMessage != null
+        chatUiState.errorMessage?.let {
+            mainViewModel.showError(it)
+            chatViewModel.clearErrorMessage()
+        }
     }
 
     LaunchedEffect(messages, feedItems) {
@@ -163,15 +164,6 @@ fun HomeScreen(
                     onConfirm = { chatViewModel.deleteSelectedMessages() },
                     title = "Hapus Pesan",
                     text = "Hapus pesan yang dipilih?"
-                )
-            } else if (showErrorDialog) {
-                InfoDialog(
-                    onDismissRequest = {
-                        showErrorDialog = false
-                        chatViewModel.clearErrorMessage()
-                    },
-                    title = "Sinkronisasi Gagal",
-                    text = chatUiState.errorMessage ?: "Terjadi kesalahan"
                 )
             }
         }
