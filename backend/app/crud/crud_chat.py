@@ -4,6 +4,7 @@ from app.crud.base import CRUDBase
 from app.db.models.chat import ChatMessage
 from app.schemas.chat_message import ChatMessageCreate, ChatMessageUpdate
 from app.db.session import SessionLocal
+from .crud_user import user as crud_user
 from app.services.sentiment_analyzer import analyze_sentiment_with_ai
 
 class CRUDChatMessage(CRUDBase[ChatMessage, ChatMessageCreate, ChatMessageUpdate]):
@@ -13,6 +14,10 @@ class CRUDChatMessage(CRUDBase[ChatMessage, ChatMessageCreate, ChatMessageUpdate
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
+        if db_obj.is_user:
+            user_obj = crud_user.get(db, id=owner_id)
+            if user_obj:
+                crud_user.increment_relationship_level(db, db_obj=user_obj)
         return db_obj
 
     def get_multi_by_owner(self, db: Session, *, owner_id: int, skip: int = 0, limit: int = 100) -> List[ChatMessage]:

@@ -45,6 +45,7 @@ def test_journal_crud_flow(db_session):
     )
     assert entry.id is not None
     assert entry.owner_id == owner.id
+    assert user.get(db_session, id=owner.id).relationship_level == 1
 
     all_journals = journal.get_multi_by_owner(db_session, owner_id=owner.id)
     assert len(all_journals) == 1

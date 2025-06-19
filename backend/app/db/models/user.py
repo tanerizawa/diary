@@ -13,5 +13,6 @@ class User(Base):
     is_active = Column(Boolean(), default=True)
     name = Column(String, nullable=True)
     bio = Column(Text, nullable=True)
+    relationship_level = Column(Integer, default=0)
 
     journals = relationship("JournalEntry", back_populates="owner", cascade="all, delete-orphan")

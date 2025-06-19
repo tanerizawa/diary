@@ -19,10 +19,12 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     name: str | None = None
     bio: str | None = None
+    relationship_level: int | None = None
 
 class User(UserBase):
     id: int
     is_active: bool
+    relationship_level: int
 
     # Config untuk kompatibilitas dengan ORM
     class Config:

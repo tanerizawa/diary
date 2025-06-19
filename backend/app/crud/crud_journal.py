@@ -9,6 +9,7 @@ from app.schemas.journal import JournalCreate, JournalUpdate
 from app.services.sentiment_analyzer import (
     analyze_sentiment_with_ai,
 )  # PENAMBAHAN IMPORT
+from .crud_user import user as crud_user
 
 
 class CRUDJournal(CRUDBase[JournalEntry, JournalCreate, JournalUpdate]):
@@ -20,6 +21,9 @@ class CRUDJournal(CRUDBase[JournalEntry, JournalCreate, JournalUpdate]):
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
+        owner = crud_user.get(db, id=owner_id)
+        if owner:
+            crud_user.increment_relationship_level(db, db_obj=owner)
         return db_obj
 
     def get_multi_by_owner(

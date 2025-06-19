@@ -18,6 +18,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserCreate]):
             is_active=True,
             name=obj_in.name,
             bio=obj_in.bio,
+            relationship_level=0,
         )
         db.add(db_obj)
         db.commit()
@@ -32,5 +33,12 @@ class CRUDUser(CRUDBase[User, UserCreate, UserCreate]):
             db.delete(obj)
             db.commit()
         return obj
+
+    def increment_relationship_level(self, db: Session, *, db_obj: User, amount: int = 1) -> User:
+        db_obj.relationship_level = (db_obj.relationship_level or 0) + amount
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
 
 user = CRUDUser(User)

@@ -4,7 +4,7 @@ from app.core.config import settings
 
 MAX_REPLY_LENGTH = 280
 
-async def get_ai_reply(message: str, context: str = "") -> str | None:
+async def get_ai_reply(message: str, context: str = "", relationship_level: int = 0) -> str | None:
     """
     Mengirim pesan ke OpenRouter API dan mengembalikan balasan.
     Balasan dibatasi maksimal 280 karakter dan bersifat personal-supportif.
@@ -14,9 +14,17 @@ async def get_ai_reply(message: str, context: str = "") -> str | None:
         "Panjang jawaban maksimum 280 karakter."
     )
 
+    if relationship_level > 30:
+        relation = "close confidant"
+    elif relationship_level > 10:
+        relation = "friend"
+    else:
+        relation = "acquaintance"
+
+    base = f"Anda adalah {relation} pengguna dan pendamping kesehatan mental yang suportif. "
     system_prompt = (
-        f"{context}\n{instructions}" if context
-        else "Anda adalah pendamping kesehatan mental yang suportif. " + instructions
+        f"{context}\n{base}{instructions}" if context
+        else base + instructions
     )
 
     if not settings.AI_API_KEY or settings.AI_API_KEY == "CHANGE_ME":

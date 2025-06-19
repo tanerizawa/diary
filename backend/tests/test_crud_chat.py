@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from app.db import Base
 from app.db.models.chat import ChatMessage
+from app.db.models.user import User
 from app.schemas.chat_message import ChatMessageCreate
 from app.crud.crud_chat import chat_message
 
@@ -45,9 +46,12 @@ def test_get_last_user_messages(db_session):
 
 
 def test_chat_message_crud(db_session):
+    db_session.add(User(id=1, email="u@test.com", hashed_password="x"))
+    db_session.commit()
     msg_in = ChatMessageCreate(text="hi", is_user=True, timestamp=1)
     created = chat_message.create_with_owner(db_session, obj_in=msg_in, owner_id=1)
     assert created.id is not None
+    assert db_session.get(User, 1).relationship_level == 1
 
     updated = chat_message.update(db_session, db_obj=created, obj_in={"text": "bye"})
     assert updated.text == "bye"
@@ -57,6 +61,8 @@ def test_chat_message_crud(db_session):
 
 
 def test_remove_multi(db_session):
+    db_session.add(User(id=1, email="u@test.com", hashed_password="x"))
+    db_session.commit()
     msgs = [
         chat_message.create_with_owner(
             db_session,
