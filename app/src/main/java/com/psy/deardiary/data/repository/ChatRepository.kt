@@ -20,7 +20,7 @@ import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.psy.deardiary.data.repository.Result
-import com.psy.deardiary.data.model.SentimentInfo
+import com.psy.deardiary.data.dto.AiChatResponse
 
 @Singleton
 class ChatRepository @Inject constructor(
@@ -102,17 +102,12 @@ class ChatRepository @Inject constructor(
         chatMessageDao.updateMessage(updated)
     }
 
-    suspend fun fetchReply(text: String): Result<Pair<String, SentimentInfo>> {
+    suspend fun fetchReply(text: String): Result<AiChatResponse> {
         return withContext(Dispatchers.IO) {
             try {
                 val response = chatApiService.sendMessage(ChatRequest(text))
                 if (response.isSuccessful && response.body() != null) {
-                    val body = response.body()!!
-                    val info = SentimentInfo(
-                        body.sentimentScore,
-                        body.keyEmotions
-                    )
-                    Result.Success(body.reply to info)
+                    Result.Success(response.body()!!)
                 } else {
                     Result.Error("${'$'}{response.message()}")
                 }
