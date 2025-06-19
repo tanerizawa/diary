@@ -1,10 +1,16 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class ChatRequest(BaseModel):
-    message: str
+    message: str = Field(..., description="Message from the user")
 
 class ChatResponse(BaseModel):
-    reply_text: str
-    sentiment_score: float | None = None
-    key_emotions: str | None = None
-    detected_mood: str | None = None
+    reply_text: str = Field(..., description="Assistant reply text")
+    sentiment_score: float | None = Field(
+        None, description="Sentiment score for the reply"
+    )
+    key_emotions: str | None = Field(
+        None, description="Key emotions detected in the conversation"
+    )
+    detected_mood: str | None = Field(
+        None, description="Overall mood detected from the conversation"
+    )
