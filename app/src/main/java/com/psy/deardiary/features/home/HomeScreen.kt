@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -245,28 +246,35 @@ private fun ChatBubble(message: ChatMessage, modifier: Modifier = Modifier) {
         // Remove old dot-based placeholder animation in favor of TypingIndicator
 
         // Base colors depending on sender
-        val defaultColor = if (message.isUser) {
+        val baseColor = if (message.isUser) {
             MaterialTheme.colorScheme.primaryContainer
         } else {
-            MaterialTheme.colorScheme.surfaceVariant
+            MaterialTheme.colorScheme.secondaryContainer
         }
 
-        // Adjust color based on detected mood when available
-        val moodColor = when (message.detectedMood) {
+        // Highlight color for detected mood (overlay)
+        val moodHighlight = when (message.detectedMood) {
             "\uD83D\uDE00", "\uD83D\uDE42" -> Color(0xFFFFF59D) // happy tones
             "\uD83D\uDE22" -> Color(0xFFB3E5FC) // sad tones
             "\uD83D\uDE21" -> Color(0xFFFFCDD2) // angry tones
-            else -> defaultColor
+            else -> null
         }
 
         val bubbleColor = if (message.isPlaceholder) {
             Color.Gray.copy(alpha = 0.5f)
         } else {
-            moodColor
+            moodHighlight?.copy(alpha = 0.4f)?.compositeOver(baseColor) ?: baseColor
+        }
+
+        val contentColor = if (message.isUser) {
+            MaterialTheme.colorScheme.onPrimaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSecondaryContainer
         }
 
         Surface(
             color = bubbleColor,
+            contentColor = contentColor,
             shape = MaterialTheme.shapes.medium
         ) {
             if (message.isPlaceholder) {
