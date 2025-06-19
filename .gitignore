@@ -55,8 +55,3 @@ test.db
 # Environment variables
 .env
 backend/.env
-backend/.env
-backend/.env
-backend/main.py
-/backend
-*.py
