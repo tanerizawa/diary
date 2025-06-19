@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.map
 import com.psy.deardiary.data.network.ChatApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -30,6 +31,11 @@ class ChatRepository @Inject constructor(
     val messages: Flow<List<ChatMessage>> =
         userPreferencesRepository.userId.flatMapLatest { id ->
             id?.let { chatMessageDao.getAllMessages(it) } ?: flowOf(emptyList())
+        }
+
+    val latestSentiment: Flow<Float?> =
+        messages.map { history ->
+            history.lastOrNull { it.sentimentScore != null }?.sentimentScore
         }
 
     fun getConversation(): Flow<List<ChatMessage>> =

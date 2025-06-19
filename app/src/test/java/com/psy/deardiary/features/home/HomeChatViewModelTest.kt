@@ -27,13 +27,16 @@ class HomeChatViewModelTest {
     private lateinit var repository: ChatRepository
     private lateinit var viewModel: HomeChatViewModel
     private lateinit var conversationFlow: MutableStateFlow<List<ChatMessage>>
+    private lateinit var sentimentFlow: MutableStateFlow<Float?>
 
     @Before
     fun setup() {
         Dispatchers.setMain(dispatcher)
         repository = mock()
         conversationFlow = MutableStateFlow(emptyList())
+        sentimentFlow = MutableStateFlow(null)
         whenever(repository.getConversation()).thenReturn(conversationFlow)
+        whenever(repository.latestSentiment).thenReturn(sentimentFlow)
         viewModel = HomeChatViewModel(repository)
     }
 

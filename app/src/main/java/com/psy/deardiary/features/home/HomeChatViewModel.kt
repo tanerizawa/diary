@@ -21,6 +21,8 @@ class HomeChatViewModel @Inject constructor(
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages = _messages.asStateFlow()
 
+    val latestSentiment = chatRepository.latestSentiment
+
     init {
         viewModelScope.launch {
             chatRepository.getConversation().collect { history ->

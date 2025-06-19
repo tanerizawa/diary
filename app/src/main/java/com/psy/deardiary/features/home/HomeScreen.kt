@@ -34,6 +34,7 @@ fun HomeScreen(
     chatViewModel: HomeChatViewModel = hiltViewModel()
 ) {
     val messages by chatViewModel.messages.collectAsState()
+    val sentimentScore by chatViewModel.latestSentiment.collectAsState(initial = null)
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
 
@@ -44,7 +45,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(composeGreeting(uiState.timeOfDay, uiState.userName, uiState.lastMood)) },
+                title = { Text(composeGreeting(uiState.timeOfDay, uiState.userName, uiState.lastMood, sentimentScore)) },
                 actions = {
                     IconButton(onClick = onNavigateToCrisisSupport) {
                         Icon(Icons.Outlined.CrisisAlert, contentDescription = "Dukungan Krisis")
@@ -183,18 +184,31 @@ private fun ChatBubble(message: ChatMessage, modifier: Modifier = Modifier) {
             if (message.isPlaceholder) {
                 TypingIndicator(modifier = Modifier.padding(8.dp))
             } else {
-                Text(
-                    text = message.text,
-                    modifier = Modifier.padding(8.dp)
-                )
+                Column(modifier = Modifier.padding(8.dp)) {
+                    Text(text = message.text)
+                    message.keyEmotions?.takeIf { it.isNotBlank() }?.let { emotions ->
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = emotions,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
     }
 }
 
-private fun composeGreeting(timeOfDay: String, name: String, lastMood: String?): String {
-    return when (lastMood) {
-        "\uD83D\uDE22" -> "Aku di sini untukmu, $name. Ceritakan apa yang kamu rasakan."
+private fun composeGreeting(
+    timeOfDay: String,
+    name: String,
+    lastMood: String?,
+    sentiment: Float?
+): String {
+    return when {
+        sentiment != null && sentiment < 0 -> "Aku di sini untukmu, $name. Ceritakan apa yang kamu rasakan."
+        lastMood == "\uD83D\uDE22" -> "Aku di sini untukmu, $name. Ceritakan apa yang kamu rasakan."
         else -> "$timeOfDay, $name."
     }
 }
