@@ -38,10 +38,9 @@ def client():
 
     app.dependency_overrides[deps.get_db] = override_get_db
 
-    async def noop(*args, **kwargs):
-        return None
-
-    crud.journal.process_and_update_sentiment = noop
+    from app.tasks import process_journal_sentiment, process_chat_sentiment
+    process_journal_sentiment.delay = lambda *a, **k: None
+    process_chat_sentiment.delay = lambda *a, **k: None
 
     with TestClient(app) as c:
         yield c
@@ -123,17 +122,12 @@ def test_chat_sentiment_response(client, monkeypatch):
     async def fake_sentiment(text: str):
         return {"sentiment_score": 0.5, "key_emotions": "happy"}
 
-    async def noop(*args, **kwargs):
-        return None
-
     monkeypatch.setattr("app.api.v1.endpoints.chat.get_ai_reply", fake_reply)
     monkeypatch.setattr(
         "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_sentiment
     )
-    monkeypatch.setattr(
-        "app.api.v1.endpoints.chat.crud.chat_message.process_and_update_sentiment",
-        noop,
-    )
+    from app.tasks import process_chat_sentiment
+    monkeypatch.setattr(process_chat_sentiment, "delay", lambda *a, **k: None)
 
     resp = client.post("/api/v1/chat/", json={"message": "hello"}, headers=headers)
     assert resp.status_code == 200
@@ -264,14 +258,9 @@ def test_relationship_level_prompt_variation(client, monkeypatch):
     monkeypatch.setattr(
         "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", noop
     )
-    monkeypatch.setattr(
-        "app.api.v1.endpoints.chat.crud.chat_message.process_and_update_sentiment",
-        lambda *a, **k: None,
-    )
-    monkeypatch.setattr(
-        "app.api.v1.endpoints.journal.crud.journal.process_and_update_sentiment",
-        lambda *a, **k: None,
-    )
+    from app.tasks import process_chat_sentiment, process_journal_sentiment
+    monkeypatch.setattr(process_chat_sentiment, "delay", lambda *a, **k: None)
+    monkeypatch.setattr(process_journal_sentiment, "delay", lambda *a, **k: None)
 
     client.post(
         "/api/v1/chat/messages",

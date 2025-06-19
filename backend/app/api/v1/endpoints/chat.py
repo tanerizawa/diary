@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.orm import Session
 import asyncio
 
@@ -10,6 +10,7 @@ from app.services.chat_responder import get_ai_reply
 from app.services.sentiment_analyzer import analyze_sentiment_with_ai
 from app.services.emotion_classifier import detect_mood
 from app.services import build_chat_context
+from app.tasks import process_chat_sentiment
 
 router = APIRouter()
 
@@ -18,7 +19,6 @@ async def chat_with_ai(
     *,
     db: Session = Depends(deps.get_db),
     chat_in: schemas.ChatRequest,
-    background_tasks: BackgroundTasks,
     current_user: models.User = Depends(deps.get_current_user),
 ):
     """Return a short AI reply based on user's message and context.
@@ -54,9 +54,7 @@ async def chat_with_ai(
                 "key_emotions": analysis_result.get("key_emotions"),
             },
         )
-    background_tasks.add_task(
-        crud.chat_message.process_and_update_sentiment, chat_id=created_user_msg.id
-    )
+    process_chat_sentiment.delay(created_user_msg.id)
 
     ai_msg = schemas.ChatMessageCreate(
         text=reply,

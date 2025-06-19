@@ -1,9 +1,10 @@
 # LOKASI: app/api/v1/endpoints/journal.py
 
 from typing import List, Any
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app import crud, models, schemas
+from app.tasks import process_journal_sentiment
 from app.api import deps
 
 router = APIRouter()
@@ -13,7 +14,6 @@ router = APIRouter()
 def create_journal(
     *,
     db: Session = Depends(deps.get_db),
-    background_tasks: BackgroundTasks,
     journal_in: schemas.JournalCreate,
     current_user: models.User = Depends(deps.get_current_user),
 ):
@@ -22,9 +22,7 @@ def create_journal(
         db=db, obj_in=journal_in, owner_id=current_user.id
     )
 
-    background_tasks.add_task(
-        crud.journal.process_and_update_sentiment, journal_id=journal.id
-    )
+    process_journal_sentiment.delay(journal.id)
 
     return journal
 
@@ -49,7 +47,6 @@ def read_journals(
 def update_journal(
     *,
     db: Session = Depends(deps.get_db),
-    background_tasks: BackgroundTasks,
     id: int,
     journal_in: schemas.JournalUpdate,
     current_user: models.User = Depends(deps.get_current_user),
@@ -67,9 +64,7 @@ def update_journal(
 
     updated_journal = crud.journal.update(db=db, db_obj=journal, obj_in=journal_in)
 
-    background_tasks.add_task(
-        crud.journal.process_and_update_sentiment, journal_id=updated_journal.id
-    )
+    process_journal_sentiment.delay(updated_journal.id)
 
     return updated_journal
 

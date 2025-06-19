@@ -131,6 +131,12 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
    uvicorn backend.main:app --reload
    ```
 
+5. Jalankan worker Celery (pastikan layanan Redis sudah berjalan):
+
+   ```bash
+   celery -A backend.app.celery_app.celery_app worker --loglevel=info
+   ```
+
 ### Troubleshooting
 
 Jika saat menjalankan backend Anda melihat pesan `sqlite3.OperationalError: no such table: users`,
@@ -164,7 +170,7 @@ juga melakukan analisis sentimen. Urutannya sebagai berikut:
 2. Fungsi `analyze_sentiment_with_ai` memanggil layanan AI dan
    mengembalikan `sentiment_score` serta `key_emotions`.
 3. Nilai tersebut dikirim kembali bersama balasan AI dan disimpan kembali
-   secara asinkron lewat `process_and_update_sentiment`.
+   melalui tugas Celery `process_chat_sentiment`.
 
 Hasil analisis dapat dilihat pada kolom `sentiment_score` dan `key_emotions`
 di database.

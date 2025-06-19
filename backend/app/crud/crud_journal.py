@@ -2,13 +2,9 @@
 
 from typing import List
 from sqlalchemy.orm import Session
-from app.db.session import SessionLocal
 from app.crud.base import CRUDBase
 from app.db.models.journal import JournalEntry
 from app.schemas.journal import JournalCreate, JournalUpdate
-from app.services.sentiment_analyzer import (
-    analyze_sentiment_with_ai,
-)  # PENAMBAHAN IMPORT
 from .crud_user import user as crud_user
 
 
@@ -37,28 +33,5 @@ class CRUDJournal(CRUDBase[JournalEntry, JournalCreate, JournalUpdate]):
             .limit(limit)
             .all()
         )
-
-    # --- PENAMBAHAN BARU ---
-    async def process_and_update_sentiment(self, *, journal_id: int):
-        """
-        Fungsi yang dijalankan di background untuk mengambil jurnal,
-        menganalisis sentimennya, dan menyimpan hasilnya.
-        """
-        db = SessionLocal()
-        try:
-            db_obj = self.get(db=db, id=journal_id)
-            if db_obj:
-                analysis_result = await analyze_sentiment_with_ai(db_obj.content)
-                if analysis_result:
-                    db_obj.sentiment_score = analysis_result.get("sentiment_score")
-                    db_obj.key_emotions = analysis_result.get("key_emotions")
-                    db.add(db_obj)
-                    db.commit()
-                    db.refresh(db_obj)
-        finally:
-            db.close()
-
-    # --- AKHIR PENAMBAHAN ---
-
 
 journal = CRUDJournal(JournalEntry)
