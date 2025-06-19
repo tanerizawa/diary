@@ -6,7 +6,12 @@ from app.api import deps
 
 router = APIRouter()
 
-@router.post("/", response_model=schemas.EmotionLog)
+@router.post(
+    "/",
+    response_model=schemas.EmotionLog,
+    summary="Log emotion",
+    description="Store a timestamped emotion reading from mood detection.",
+)
 def create_emotion_log(
     *,
     db: Session = Depends(deps.get_db),
@@ -16,7 +21,12 @@ def create_emotion_log(
     return crud.emotion_log.create_with_owner(db, obj_in=log_in, owner_id=current_user.id)
 
 
-@router.get("/", response_model=List[schemas.EmotionLog])
+@router.get(
+    "/",
+    response_model=List[schemas.EmotionLog],
+    summary="List emotion logs",
+    description="Return emotion logs belonging to the current user.",
+)
 def read_emotion_logs(
     *,
     db: Session = Depends(deps.get_db),
