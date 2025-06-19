@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -16,6 +17,13 @@ class Settings(BaseSettings):
     AI_API_KEY: str
     AI_API_URL: str
     AI_MODEL: str  # Perbaikan untuk error 'AttributeError' sebelumnya
+
+    @field_validator("AI_API_KEY")
+    @classmethod
+    def check_api_key(cls, v: str) -> str:
+        if not v or v == "CHANGE_ME":
+            raise ValueError("AI_API_KEY must be set to a real API key")
+        return v
 
     # Konfigurasi Pydantic untuk memuat dari file .env di direktori yang sama
     # saat aplikasi dijalankan (yaitu dari dalam folder 'backend')
