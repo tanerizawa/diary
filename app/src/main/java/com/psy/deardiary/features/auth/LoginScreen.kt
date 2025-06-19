@@ -147,7 +147,12 @@ private fun LoginScreenPreview() {
         val fakeUserPrefsRepo = UserPreferencesRepository(context)
         val fakeAuthRepo = AuthRepository(fakeAuthApiService, fakeUserApiService, fakeUserPrefsRepo)
         val fakeViewModel = AuthViewModel(fakeAuthRepo)
+        val fakeMainViewModel = com.psy.deardiary.features.main.MainViewModel()
 
-        LoginScreen(onNavigateToRegister = {}, authViewModel = fakeViewModel)
+        LoginScreen(
+            onNavigateToRegister = {},
+            mainViewModel = fakeMainViewModel,
+            authViewModel = fakeViewModel
+        )
     }
 }

@@ -150,9 +150,11 @@ fun RegisterScreen(
 @Composable
 private fun RegisterScreenPreview() {
     DearDiaryTheme {
+        val fakeMainViewModel = com.psy.deardiary.features.main.MainViewModel()
         RegisterScreen(
             onNavigateToLogin = {},
             onBackClick = {},
+            mainViewModel = fakeMainViewModel
         )
     }
 }

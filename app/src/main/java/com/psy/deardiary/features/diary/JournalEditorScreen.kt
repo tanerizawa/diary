@@ -334,7 +334,12 @@ private fun JournalEditorScreenPreview() {
             context,
             androidx.lifecycle.SavedStateHandle()
         )
+        val fakeMainViewModel = com.psy.deardiary.features.main.MainViewModel()
 
-        JournalEditorScreen(onBackClick = {}, viewModel = vm)
+        JournalEditorScreen(
+            onBackClick = {},
+            viewModel = vm,
+            mainViewModel = fakeMainViewModel
+        )
     }
 }
