@@ -129,9 +129,10 @@ object AppModule {
     @Singleton
     fun provideAuthRepository(
         authApiService: AuthApiService,
+        userApiService: UserApiService,
         userPreferencesRepository: UserPreferencesRepository
     ): AuthRepository {
-        return AuthRepository(authApiService, userPreferencesRepository)
+        return AuthRepository(authApiService, userApiService, userPreferencesRepository)
     }
 
     @Provides
