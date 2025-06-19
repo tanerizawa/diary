@@ -30,7 +30,8 @@ fun NetworkErrorSnackbar(
                 // Bisa ditambahkan jika ingin ada tombol close
             }
         ) {
-            Text(message)
+            val text = data.visuals.message.ifBlank { message }
+            Text(text)
         }
     }
 }

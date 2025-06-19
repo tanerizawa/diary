@@ -5,13 +5,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
+import com.psy.deardiary.ui.components.NetworkErrorSnackbar
 import com.psy.deardiary.features.growth.GrowthScreen
 import com.psy.deardiary.features.home.HomeScreen
 import com.psy.deardiary.features.media.MediaScreen
@@ -28,9 +29,19 @@ data class BottomNavItem(
 
 @Composable
 fun MainScreen(
-    mainNavController: androidx.navigation.NavController
+    mainNavController: androidx.navigation.NavController,
+    mainViewModel: MainViewModel = hiltViewModel()
 ) {
     val localNavController = rememberNavController()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val errorMessage by mainViewModel.errorMessage.collectAsState()
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            mainViewModel.clearError()
+        }
+    }
 
     // ▼▼▼ CHECKPOINT 1: Pastikan rute untuk "Beranda" adalah Screen.Home.route ▼▼▼
     val items = listOf(
@@ -41,6 +52,7 @@ fun MainScreen(
     )
 
     Scaffold(
+        snackbarHost = { NetworkErrorSnackbar(snackbarHostState, onRetry = { mainViewModel.clearError() }) },
         bottomBar = {
             NavigationBar {
                 val navBackStackEntry by localNavController.currentBackStackEntryAsState()
@@ -74,7 +86,8 @@ fun MainScreen(
             composable(Screen.Home.route) {
                 HomeScreen(
                     onNavigateToSettings = { mainNavController.navigate(Screen.Settings.route) },
-                    onNavigateToCrisisSupport = { mainNavController.navigate(Screen.CrisisSupport.route) }
+                    onNavigateToCrisisSupport = { mainNavController.navigate(Screen.CrisisSupport.route) },
+                    mainViewModel = mainViewModel
                 )
             }
             composable(Screen.Media.route) {
