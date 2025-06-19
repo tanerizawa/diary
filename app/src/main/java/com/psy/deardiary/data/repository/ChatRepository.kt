@@ -27,7 +27,7 @@ import com.psy.deardiary.data.dto.AiChatResponse
 class ChatRepository @Inject constructor(
     private val chatApiService: ChatApiService,
     private val chatMessageDao: ChatMessageDao,
-    private val userPreferencesRepository: UserPreferencesRepository
+    val userPreferencesRepository: UserPreferencesRepository
 ) {
     val messages: Flow<List<ChatMessage>> =
         userPreferencesRepository.userId.flatMapLatest { id ->
@@ -38,6 +38,8 @@ class ChatRepository @Inject constructor(
         messages.map { history ->
             history.lastOrNull { it.sentimentScore != null }?.sentimentScore
         }
+
+    val lastPromptTime: Flow<Long?> = userPreferencesRepository.lastAiPrompt
 
     fun getConversation(): Flow<List<ChatMessage>> =
         messages.onEach { history ->
@@ -122,6 +124,37 @@ class ChatRepository @Inject constructor(
 
     suspend fun sendMessage(text: String): Result<AiChatResponse> {
         return fetchReply(text)
+    }
+
+    suspend fun promptChat(): Result<AiChatResponse> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = chatApiService.requestPrompt()
+                if (response.isSuccessful && response.body() != null) {
+                    val body = response.body()!!
+                    val uid = userPreferencesRepository.userId.first() ?: 0
+                    chatMessageDao.insertMessage(
+                        ChatMessage(
+                            text = body.replyText,
+                            isUser = false,
+                            isSynced = true,
+                            userId = uid,
+                            detectedMood = body.detectedMood
+                        )
+                    )
+                    userPreferencesRepository.setLastAiPrompt(System.currentTimeMillis())
+                    Result.Success(body)
+                } else {
+                    Result.Error(response.message())
+                }
+            } catch (e: HttpException) {
+                Result.Error("Server error: ${e.code()}")
+            } catch (e: IOException) {
+                Result.Error("Tidak dapat terhubung ke server.")
+            } catch (e: Exception) {
+                Result.Error("Terjadi kesalahan: ${e.message}")
+            }
+        }
     }
 
     suspend fun updateMessageWithReply(id: Int, replyText: String, detectedMood: String? = null) {

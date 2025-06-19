@@ -200,6 +200,22 @@ def test_delete_messages_endpoint(client, monkeypatch):
     assert remaining[0]["id"] == ids[2]
 
 
+def test_prompt_endpoint_rate_limit(client, monkeypatch):
+    headers = register_and_login(client, email="prompt@example.com")
+
+    async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
+        return "hey?"
+
+    monkeypatch.setattr("app.api.v1.endpoints.chat.get_ai_reply", fake_reply)
+
+    resp = client.post("/api/v1/chat/prompt", headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["reply_text"] == "hey?"
+
+    second = client.post("/api/v1/chat/prompt", headers=headers)
+    assert second.status_code == 429
+
+
 def test_relationship_level_prompt_variation(client, monkeypatch):
     headers = register_and_login(client, email="rel@example.com")
 

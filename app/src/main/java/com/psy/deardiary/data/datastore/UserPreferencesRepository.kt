@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +30,7 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext context:
         val EMERGENCY_CONTACT = stringPreferencesKey("emergency_contact_number")
         val USER_ID = intPreferencesKey("user_id")
         val CHAT_ONBOARD_SHOWN = booleanPreferencesKey("chat_onboard_shown")
+        val LAST_AI_PROMPT = longPreferencesKey("last_ai_prompt")
     }
 
     val authToken: Flow<String?> = dataStore.data.map { preferences ->
@@ -42,6 +44,10 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext context:
 
     val userId: Flow<Int?> = dataStore.data.map { preferences ->
         preferences[PreferencesKeys.USER_ID]
+    }
+
+    val lastAiPrompt: Flow<Long?> = dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.LAST_AI_PROMPT]
     }
 
     val chatOnboardShown: Flow<Boolean> = dataStore.data.map { preferences ->
@@ -63,6 +69,12 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext context:
     suspend fun setChatOnboardShown(shown: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.CHAT_ONBOARD_SHOWN] = shown
+        }
+    }
+
+    suspend fun setLastAiPrompt(timestamp: Long) {
+        dataStore.edit { prefs ->
+            prefs[PreferencesKeys.LAST_AI_PROMPT] = timestamp
         }
     }
 

@@ -23,4 +23,7 @@ interface ChatApiService {
 
     @HTTP(method = "DELETE", path = "api/v1/chat/messages", hasBody = true)
     suspend fun deleteMessages(@Body request: DeleteMessagesRequest): Response<Unit>
+
+    @POST("api/v1/chat/prompt")
+    suspend fun requestPrompt(): Response<AiChatResponse>
 }

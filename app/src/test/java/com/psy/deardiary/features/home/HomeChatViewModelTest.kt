@@ -19,6 +19,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import com.psy.deardiary.data.datastore.UserPreferencesRepository
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -28,15 +29,25 @@ class HomeChatViewModelTest {
     private lateinit var viewModel: HomeChatViewModel
     private lateinit var conversationFlow: MutableStateFlow<List<ChatMessage>>
     private lateinit var sentimentFlow: MutableStateFlow<Float?>
+    private lateinit var messagesFlow: MutableStateFlow<List<ChatMessage>>
+    private lateinit var lastPromptFlow: MutableStateFlow<Long?>
+    private lateinit var prefRepo: UserPreferencesRepository
 
     @Before
     fun setup() {
         Dispatchers.setMain(dispatcher)
         repository = mock()
+        prefRepo = mock()
         conversationFlow = MutableStateFlow(emptyList())
         sentimentFlow = MutableStateFlow(null)
+        messagesFlow = MutableStateFlow(emptyList())
+        lastPromptFlow = MutableStateFlow(0L)
         whenever(repository.getConversation()).thenReturn(conversationFlow)
         whenever(repository.latestSentiment).thenReturn(sentimentFlow)
+        whenever(repository.messages).thenReturn(messagesFlow)
+        whenever(prefRepo.lastAiPrompt).thenReturn(lastPromptFlow)
+        whenever(repository.userPreferencesRepository).thenReturn(prefRepo)
+        whenever(repository.promptChat()).thenReturn(Result.Success(AiChatResponse("p", null)))
         whenever(repository.refreshMessages()).thenReturn(Result.Success(Unit))
         viewModel = HomeChatViewModel(repository)
     }

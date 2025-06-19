@@ -182,3 +182,11 @@ Endpoint ini kini meninjau beberapa pesan terakhir sebelum memberikan balasan.
 Bila relevan, AI dapat menutup jawabannya dengan pertanyaan singkat untuk
 mendorong interaksi. Pertanyaan tidak akan diulang apabila pada balasan
 sebelumnya AI sudah menanyakannya.
+
+### Prompt Otomatis dari AI
+
+Tab Beranda kini dapat memunculkan pesan pembuka otomatis ketika pengguna lama
+tidak berinteraksi. Backend menyediakan endpoint `/api/v1/chat/prompt` yang
+mengumpulkan riwayat jurnal dan percakapan lalu menghasilkan sapaan singkat yang
+selalu diakhiri pertanyaan probing. Endpoint ini menyimpan pesan tersebut dan
+membatasi pemanggilan jika dalam 6 jam terakhir sudah ada prompt serupa.

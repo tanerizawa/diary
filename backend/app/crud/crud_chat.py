@@ -40,6 +40,16 @@ class CRUDChatMessage(CRUDBase[ChatMessage, ChatMessageCreate, ChatMessageUpdate
             .all()
         )
 
+    def get_recent_messages(self, db: Session, *, owner_id: int, limit: int) -> List[ChatMessage]:
+        """Return the most recent messages regardless of sender."""
+        return (
+            db.query(self.model)
+            .filter(ChatMessage.owner_id == owner_id)
+            .order_by(self.model.timestamp.desc())
+            .limit(limit)
+            .all()
+        )
+
     def remove_multi(self, db: Session, *, ids: List[int], owner_id: int) -> int:
         """Delete multiple messages belonging to the given owner.
 
