@@ -9,6 +9,7 @@ passlib[bcrypt]
 python-jose[cryptography]
 python-multipart
 httpx # PENAMBAHAN BARU
+transformers
 
 # Untuk migrasi database
 alembic

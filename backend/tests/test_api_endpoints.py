@@ -125,10 +125,10 @@ def test_chat_sentiment_response(client, monkeypatch):
     assert data["reply_text"] == "hi"
     assert data["sentiment_score"] == 0.5
     assert data["key_emotions"] == "happy"
-    assert data["detected_mood"] == "positive"
+    assert data["detected_mood"] == "\U0001F610"
 
     logs_resp = client.get("/api/v1/emotion/", headers=headers)
     assert logs_resp.status_code == 200
     logs = logs_resp.json()
     assert len(logs) == 1
-    assert logs[0]["detected_mood"] == "positive"
+    assert logs[0]["detected_mood"] == "\U0001F610"
