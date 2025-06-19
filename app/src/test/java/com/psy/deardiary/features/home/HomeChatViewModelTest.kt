@@ -37,6 +37,7 @@ class HomeChatViewModelTest {
         sentimentFlow = MutableStateFlow(null)
         whenever(repository.getConversation()).thenReturn(conversationFlow)
         whenever(repository.latestSentiment).thenReturn(sentimentFlow)
+        whenever(repository.refreshMessages()).thenReturn(Result.Success(Unit))
         viewModel = HomeChatViewModel(repository)
     }
 
@@ -66,5 +67,11 @@ class HomeChatViewModelTest {
         conversationFlow.value = listOf(msg)
         advanceUntilIdle()
         assertEquals(listOf(msg), viewModel.messages.value)
+    }
+
+    @Test
+    fun refreshMessages_calledOnInit() = runTest {
+        advanceUntilIdle()
+        verify(repository).refreshMessages()
     }
 }
