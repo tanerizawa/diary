@@ -80,6 +80,10 @@
 
 File APK hasil build dapat ditemukan di `app/build/outputs/apk/`.
 
+Untuk mengganti alamat backend, edit nilai `BASE_URL` pada blok `buildTypes`
+di `app/build.gradle.kts`. Bagian `debug` umumnya diarahkan ke server lokal
+(`http://10.0.2.2:8000/`), sedangkan `release` menunjuk ke URL produksi.
+
 ## Menjalankan Backend
 
 Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alembic.

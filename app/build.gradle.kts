@@ -16,14 +16,17 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-        // Ensure BASE_URL is appropriate for your backend setup
-        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8000/\"")
+        // Ensure BASE_URL is set via buildTypes
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8000/\"")
+        }
         release {
+            buildConfigField("String", "BASE_URL", "\"https://<production-url>/\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
