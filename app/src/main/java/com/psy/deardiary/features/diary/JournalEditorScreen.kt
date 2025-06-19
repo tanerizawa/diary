@@ -305,6 +305,7 @@ private fun JournalEditorScreenPreview() {
             override suspend fun updateLocalEntry(entry: com.psy.deardiary.data.model.JournalEntry) {}
             override suspend fun deleteAllEntries(userId: Int) {}
             override suspend fun getAllEntriesOnce(userId: Int) = emptyList<com.psy.deardiary.data.model.JournalEntry>()
+            override suspend fun getLatestMood(userId: Int): String? = null
             override suspend fun deleteEntryByLocalId(localId: Int, userId: Int) {}
         }
 
