@@ -63,10 +63,10 @@ class ChatRepository @Inject constructor(
                     chatMessageDao.upsertAll(messages.map { it.copy(userId = uid) })
                     Result.Success(Unit)
                 } else {
-                    Result.Error("${'$'}{response.message()}")
+                    Result.Error(response.message())
                 }
             } catch (e: Exception) {
-                Result.Error("Gagal menyegarkan riwayat: ${'$'}{e.message}")
+                Result.Error("Gagal menyegarkan riwayat: ${e.message}")
             }
         }
     }
@@ -110,10 +110,10 @@ class ChatRepository @Inject constructor(
                 if (response.isSuccessful && response.body() != null) {
                     Result.Success(response.body()!!)
                 } else {
-                    Result.Error("${'$'}{response.message()}")
+                    Result.Error(response.message())
                 }
             } catch (e: HttpException) {
-                Result.Error("Server error: ${'$'}{e.code()}")
+                Result.Error("Server error: ${e.code()}")
             } catch (e: IOException) {
                 Result.Error("Tidak dapat terhubung ke server.")
             }
@@ -150,7 +150,11 @@ class ChatRepository @Inject constructor(
                 }
                 Result.Success(Unit)
             } catch (e: Exception) {
-                Result.Error("Gagal sinkronisasi: ${'$'}{e.message}")
+                // Interpolasi string sebelumnya menampilkan "$\{e.message}"
+                // alih-alih isi pesan kesalahan sebenarnya karena karakter
+                // dollar di-escape secara salah. Gunakan interpolasi biasa
+                // agar pesan error ditampilkan dengan benar.
+                Result.Error("Gagal sinkronisasi: ${e.message}")
             }
         }
     }
@@ -179,11 +183,11 @@ class ChatRepository @Inject constructor(
                 chatMessageDao.deleteMessages(ids, uid)
                 Result.Success(Unit)
             } catch (e: HttpException) {
-                Result.Error("Server error: ${'$'}{e.code()}")
+                Result.Error("Server error: ${e.code()}")
             } catch (e: IOException) {
                 Result.Error("Tidak dapat terhubung ke server.")
             } catch (e: Exception) {
-                Result.Error("Terjadi kesalahan: ${'$'}{e.message}")
+                Result.Error("Terjadi kesalahan: ${e.message}")
             }
         }
     }

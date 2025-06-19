@@ -23,10 +23,10 @@ class UserRepository @Inject constructor(
                 if (response.isSuccessful && response.body() != null) {
                     Result.Success(response.body()!!.toUserProfile())
                 } else {
-                    Result.Error("${'$'}{response.message()}")
+                    Result.Error(response.message())
                 }
             } catch (e: HttpException) {
-                Result.Error("Server error: ${'$'}{e.code()}")
+                Result.Error("Server error: ${e.code()}")
             } catch (e: IOException) {
                 Result.Error("Tidak dapat terhubung ke server.")
             }
@@ -41,10 +41,10 @@ class UserRepository @Inject constructor(
                 if (response.isSuccessful && response.body() != null) {
                     Result.Success(response.body()!!.toUserProfile())
                 } else {
-                    Result.Error("${'$'}{response.message()}")
+                    Result.Error(response.message())
                 }
             } catch (e: HttpException) {
-                Result.Error("Server error: ${'$'}{e.code()}")
+                Result.Error("Server error: ${e.code()}")
             } catch (e: IOException) {
                 Result.Error("Tidak dapat terhubung ke server.")
             }

@@ -85,7 +85,7 @@ fun HomeScreen(
         topBar = {
             if (selectedIds.isNotEmpty()) {
                 TopAppBar(
-                    title = { Text("${'$'}{selectedIds.size} dipilih") },
+                    title = { Text("${selectedIds.size} dipilih") },
                     navigationIcon = {
                         IconButton(onClick = { chatViewModel.clearSelection() }) {
                             Icon(Icons.Filled.Close, contentDescription = "Batal")
