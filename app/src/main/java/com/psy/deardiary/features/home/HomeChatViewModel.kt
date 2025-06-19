@@ -30,6 +30,9 @@ class HomeChatViewModel @Inject constructor(
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages = _messages.asStateFlow()
 
+    private val _selectedIds = MutableStateFlow<Set<Int>>(emptySet())
+    val selectedIds = _selectedIds.asStateFlow()
+
     val latestSentiment = chatRepository.latestSentiment
 
     init {
@@ -43,6 +46,27 @@ class HomeChatViewModel @Inject constructor(
             }
             chatRepository.getConversation().collect { history ->
                 _messages.value = history
+            }
+        }
+    }
+
+    fun toggleSelection(id: Int) {
+        _selectedIds.update { current ->
+            if (current.contains(id)) current - id else current + id
+        }
+    }
+
+    fun clearSelection() {
+        _selectedIds.value = emptySet()
+    }
+
+    fun deleteSelectedMessages() {
+        viewModelScope.launch {
+            val ids = _selectedIds.value.toList()
+            if (ids.isEmpty()) return@launch
+            when (val result = chatRepository.deleteMessages(ids)) {
+                is Result.Success -> _selectedIds.value = emptySet()
+                is Result.Error -> _uiState.update { it.copy(errorMessage = result.message) }
             }
         }
     }

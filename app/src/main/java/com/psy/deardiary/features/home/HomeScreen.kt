@@ -7,8 +7,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.CrisisAlert
 import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.material.icons.outlined.Settings
@@ -31,6 +36,7 @@ import com.psy.deardiary.features.home.components.ArticleSuggestionCard
 import com.psy.deardiary.features.home.components.ChatPromptCard
 import com.psy.deardiary.features.home.FeedItem
 import com.psy.deardiary.ui.components.InfoDialog
+import com.psy.deardiary.ui.components.ConfirmationDialog
 import com.psy.deardiary.utils.playNotificationFeedback
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class) // ANOTASI BARU
@@ -44,11 +50,13 @@ fun HomeScreen(
     val messages by chatViewModel.messages.collectAsState()
     val sentimentScore by chatViewModel.latestSentiment.collectAsState(initial = null)
     val chatUiState by chatViewModel.uiState.collectAsState()
+    val selectedIds by chatViewModel.selectedIds.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
     val feedItems by viewModel.feedItems.collectAsState()
     val listState = rememberLazyListState()
     val context = LocalContext.current
     var previousCount by remember { mutableStateOf(0) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     var showErrorDialog by remember { mutableStateOf(false) }
 
@@ -75,17 +83,33 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(composeGreeting(uiState.timeOfDay, uiState.userName, uiState.lastMood, sentimentScore)) },
-                actions = {
-                    IconButton(onClick = onNavigateToCrisisSupport) {
-                        Icon(Icons.Outlined.CrisisAlert, contentDescription = "Dukungan Krisis")
+            if (selectedIds.isNotEmpty()) {
+                TopAppBar(
+                    title = { Text("${'$'}{selectedIds.size} dipilih") },
+                    navigationIcon = {
+                        IconButton(onClick = { chatViewModel.clearSelection() }) {
+                            Icon(Icons.Filled.Close, contentDescription = "Batal")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(Icons.Filled.Delete, contentDescription = "Hapus")
+                        }
                     }
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Outlined.Settings, contentDescription = "Pengaturan")
+                )
+            } else {
+                TopAppBar(
+                    title = { Text(composeGreeting(uiState.timeOfDay, uiState.userName, uiState.lastMood, sentimentScore)) },
+                    actions = {
+                        IconButton(onClick = onNavigateToCrisisSupport) {
+                            Icon(Icons.Outlined.CrisisAlert, contentDescription = "Dukungan Krisis")
+                        }
+                        IconButton(onClick = onNavigateToSettings) {
+                            Icon(Icons.Outlined.Settings, contentDescription = "Pengaturan")
+                        }
                     }
-                }
-            )
+                )
+            }
         },
         bottomBar = {
             ChatInputBar(onSend = { chatViewModel.sendMessage(it) })
@@ -122,14 +146,29 @@ fun HomeScreen(
                         ) {
                             ChatBubble(
                                 message = msg,
-                                modifier = Modifier.animateItemPlacement() // PENGGUNAAN animateItemPlacement
+                                isSelected = selectedIds.contains(msg.id),
+                                modifier = Modifier
+                                    .animateItemPlacement()
+                                    .combinedClickable(
+                                        onClick = {
+                                            if (selectedIds.isNotEmpty()) chatViewModel.toggleSelection(msg.id)
+                                        },
+                                        onLongClick = { chatViewModel.toggleSelection(msg.id) }
+                                    )
                             )
                         }
                     }
                 }
             }
 
-            if (showErrorDialog) {
+            if (showDeleteDialog) {
+                ConfirmationDialog(
+                    onDismissRequest = { showDeleteDialog = false },
+                    onConfirm = { chatViewModel.deleteSelectedMessages() },
+                    title = "Hapus Pesan",
+                    text = "Hapus pesan yang dipilih?"
+                )
+            } else if (showErrorDialog) {
                 InfoDialog(
                     onDismissRequest = {
                         showErrorDialog = false
@@ -250,7 +289,11 @@ private fun QuickNoteBar(onSave: (String) -> Unit) {
 }
 
 @Composable
-private fun ChatBubble(message: ChatMessage, modifier: Modifier = Modifier) {
+private fun ChatBubble(
+    message: ChatMessage,
+    isSelected: Boolean = false,
+    modifier: Modifier = Modifier
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -289,7 +332,8 @@ private fun ChatBubble(message: ChatMessage, modifier: Modifier = Modifier) {
         Surface(
             color = bubbleColor,
             contentColor = contentColor,
-            shape = MaterialTheme.shapes.medium
+            shape = MaterialTheme.shapes.medium,
+            border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null
         ) {
             if (message.isPlaceholder) {
                 TypingIndicator(modifier = Modifier.padding(8.dp))
