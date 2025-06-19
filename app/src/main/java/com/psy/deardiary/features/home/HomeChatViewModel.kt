@@ -2,6 +2,7 @@ package com.psy.deardiary.features.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.util.Log
 import com.psy.deardiary.data.model.ChatMessage
 import com.psy.deardiary.data.repository.ChatRepository
 import com.psy.deardiary.data.repository.Result
@@ -25,6 +26,13 @@ class HomeChatViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            when (val result = chatRepository.refreshMessages()) {
+                is Result.Error -> Log.e(
+                    "HomeChatViewModel",
+                    "refreshMessages failed: ${result.message}"
+                )
+                else -> Unit
+            }
             chatRepository.getConversation().collect { history ->
                 _messages.value = history
             }
