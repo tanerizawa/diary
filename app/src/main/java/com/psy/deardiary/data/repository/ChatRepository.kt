@@ -158,11 +158,24 @@ class ChatRepository @Inject constructor(
     suspend fun deleteMessages(ids: List<Int>): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val uid = userPreferencesRepository.userId.first() ?: return@withContext Result.Error("User not logged in")
-                val response = chatApiService.deleteMessages(DeleteMessagesRequest(ids))
-                if (!response.isSuccessful) {
-                    return@withContext Result.Error("Gagal menghapus pesan di server")
+                val uid = userPreferencesRepository.userId.first()
+                    ?: return@withContext Result.Error("User not logged in")
+
+                // Fetch messages to get their remote IDs
+                val messages = ids.mapNotNull { id ->
+                    chatMessageDao.getMessageById(id, uid)
                 }
+                val remoteIds = messages.mapNotNull { it.remoteId }
+
+                if (remoteIds.isNotEmpty()) {
+                    val response = chatApiService.deleteMessages(
+                        DeleteMessagesRequest(remoteIds)
+                    )
+                    if (!response.isSuccessful) {
+                        return@withContext Result.Error("Gagal menghapus pesan di server")
+                    }
+                }
+
                 chatMessageDao.deleteMessages(ids, uid)
                 Result.Success(Unit)
             } catch (e: HttpException) {
