@@ -132,6 +132,8 @@ def test_chat_sentiment_response(client, monkeypatch):
     logs = logs_resp.json()
     assert len(logs) == 1
     assert logs[0]["detected_mood"] == "\U0001F610"
+    assert logs[0]["sentiment_score"] == 0.5
+    assert logs[0]["key_emotions_detected"] == ["happy"]
 
 
 def test_message_post_handler(client, monkeypatch):
@@ -164,3 +166,5 @@ def test_message_post_handler(client, monkeypatch):
     assert logs_resp.status_code == 200
     logs = logs_resp.json()
     assert len(logs) == 1
+    assert logs[0]["sentiment_score"] == 0.2
+    assert logs[0]["key_emotions_detected"] == ["calm"]
