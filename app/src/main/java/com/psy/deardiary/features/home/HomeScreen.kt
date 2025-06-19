@@ -308,6 +308,14 @@ private fun ChatBubble(
                             Text(text = " $mood", fontSize = MaterialTheme.typography.bodyLarge.fontSize)
                         }
                     }
+                    message.sentimentScore?.let { score ->
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Sentimen: " + String.format("%.2f", score),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     message.keyEmotions?.takeIf { it.isNotBlank() }?.let { emotions ->
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
