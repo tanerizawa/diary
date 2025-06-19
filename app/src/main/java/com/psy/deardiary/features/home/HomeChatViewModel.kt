@@ -53,7 +53,13 @@ class HomeChatViewModel @Inject constructor(
             // 5. Ganti pesan placeholder dengan hasil atau pesan kesalahan
             when (result) {
                 is Result.Success -> {
-                    chatRepository.replaceMessage(placeholder.id, result.data)
+                    val (reply, info) = result.data
+                    chatRepository.replaceMessage(
+                        placeholder.id,
+                        reply,
+                        info.sentimentScore,
+                        info.keyEmotions
+                    )
                 }
                 is Result.Error, null -> {
                     chatRepository.replaceMessage(
