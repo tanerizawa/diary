@@ -4,11 +4,10 @@
 package com.psy.deardiary.data.repository
 
 import com.psy.deardiary.data.datastore.UserPreferencesRepository
-import android.util.Base64
-import org.json.JSONObject
 import com.psy.deardiary.data.dto.LoginRequest
 import com.psy.deardiary.data.dto.RegisterRequest
 import com.psy.deardiary.data.network.AuthApiService
+import com.psy.deardiary.data.network.UserApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
@@ -19,6 +18,7 @@ import javax.inject.Singleton
 @Singleton
 class AuthRepository @Inject constructor(
     private val authApiService: AuthApiService,
+    private val userApiService: UserApiService,
     private val userPreferencesRepository: UserPreferencesRepository
 ) {
     suspend fun login(email: String, password: String): Result<Unit> {
@@ -28,10 +28,16 @@ class AuthRepository @Inject constructor(
                 if (response.isSuccessful && response.body() != null) {
                     val token = response.body()!!.accessToken
                     userPreferencesRepository.saveAuthToken(token)
-                    parseUserIdFromToken(token)?.let { userPreferencesRepository.saveUserId(it) }
-                    Result.Success(Unit)
+
+                    val profileResponse = userApiService.getProfile()
+                    if (profileResponse.isSuccessful && profileResponse.body() != null) {
+                        userPreferencesRepository.saveUserId(profileResponse.body()!!.id)
+                        Result.Success(Unit)
+                    } else {
+                        Result.Error("Login gagal: ${'$'}{profileResponse.message()}")
+                    }
                 } else {
-                    Result.Error("Login gagal: ${response.message()}")
+                    Result.Error("Login gagal: ${'$'}{response.message()}")
                 }
             } catch (e: HttpException) {
                 Result.Error("Terjadi kesalahan pada server. Kode: ${e.code()}")
@@ -83,14 +89,4 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    private fun parseUserIdFromToken(token: String): Int? {
-        return try {
-            val payload = token.split(".")[1]
-            val decoded = Base64.decode(payload, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
-            val json = JSONObject(String(decoded, Charsets.UTF_8))
-            json.getString("sub").toIntOrNull()
-        } catch (e: Exception) {
-            null
-        }
-    }
 }

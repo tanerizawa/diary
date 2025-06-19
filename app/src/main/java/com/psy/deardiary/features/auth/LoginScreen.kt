@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.psy.deardiary.data.network.AuthApiService
+import com.psy.deardiary.data.network.UserApiService
 
 @Composable
 fun LoginScreen(
@@ -147,8 +148,14 @@ private fun LoginScreenPreview() {
             .build()
             .create(AuthApiService::class.java)
 
+        val fakeUserApiService = Retrofit.Builder()
+            .baseUrl("http://localhost/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(UserApiService::class.java)
+
         val fakeUserPrefsRepo = UserPreferencesRepository(context)
-        val fakeAuthRepo = AuthRepository(fakeAuthApiService, fakeUserPrefsRepo)
+        val fakeAuthRepo = AuthRepository(fakeAuthApiService, fakeUserApiService, fakeUserPrefsRepo)
         val fakeViewModel = AuthViewModel(fakeAuthRepo)
 
         LoginScreen(onNavigateToRegister = {}, authViewModel = fakeViewModel)
