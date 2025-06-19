@@ -122,6 +122,7 @@ def test_chat_sentiment_response(client, monkeypatch):
     resp = client.post("/api/v1/chat/", json={"message": "hello"}, headers=headers)
     assert resp.status_code == 200
     data = resp.json()
-    assert data["reply"] == "hi"
+    assert data["reply_text"] == "hi"
     assert data["sentiment_score"] == 0.5
     assert data["key_emotions"] == "happy"
+    assert data["detected_mood"] == "positive"
