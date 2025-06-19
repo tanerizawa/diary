@@ -38,10 +38,9 @@ def client():
 
     app.dependency_overrides[deps.get_db] = override_get_db
 
-    async def noop(*args, **kwargs):
-        return None
-
-    crud.journal.process_and_update_sentiment = noop
+    from app.tasks import process_journal_sentiment, process_chat_sentiment
+    process_journal_sentiment.delay = lambda *a, **k: None
+    process_chat_sentiment.delay = lambda *a, **k: None
 
     with TestClient(app) as c:
         yield c
@@ -69,14 +68,9 @@ def test_chat_context_assembly(client, monkeypatch):
     async def fake_analyze(*args, **kwargs):
         return None
     monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_analyze)
-    monkeypatch.setattr(
-        "app.api.v1.endpoints.chat.crud.chat_message.process_and_update_sentiment",
-        lambda *a, **k: None,
-    )
-    monkeypatch.setattr(
-        "app.api.v1.endpoints.journal.crud.journal.process_and_update_sentiment",
-        lambda *a, **k: None,
-    )
+    from app.tasks import process_chat_sentiment, process_journal_sentiment
+    monkeypatch.setattr(process_chat_sentiment, "delay", lambda *a, **k: None)
+    monkeypatch.setattr(process_journal_sentiment, "delay", lambda *a, **k: None)
     monkeypatch.setattr("app.services.chat_context._time_of_day", lambda: "morning")
 
     headers = register_and_login(client)
@@ -130,14 +124,9 @@ def test_prompt_context_assembly(client, monkeypatch):
     async def fake_analyze(*args, **kwargs):
         return None
     monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_analyze)
-    monkeypatch.setattr(
-        "app.api.v1.endpoints.chat.crud.chat_message.process_and_update_sentiment",
-        lambda *a, **k: None,
-    )
-    monkeypatch.setattr(
-        "app.api.v1.endpoints.journal.crud.journal.process_and_update_sentiment",
-        lambda *a, **k: None,
-    )
+    from app.tasks import process_chat_sentiment, process_journal_sentiment
+    monkeypatch.setattr(process_chat_sentiment, "delay", lambda *a, **k: None)
+    monkeypatch.setattr(process_journal_sentiment, "delay", lambda *a, **k: None)
     monkeypatch.setattr("app.services.chat_context._time_of_day", lambda: "morning")
 
     headers = register_and_login(client, email="prompt@example.com")

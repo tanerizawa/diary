@@ -11,6 +11,10 @@ python-multipart
 httpx # PENAMBAHAN BARU
 transformers
 
+# Task queue
+celery
+redis
+
 # Untuk migrasi database
 alembic
 
