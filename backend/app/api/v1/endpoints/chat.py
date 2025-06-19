@@ -75,11 +75,18 @@ async def chat_with_ai(
     )
     crud.chat_message.create_with_owner(db, obj_in=ai_msg, owner_id=current_user.id)
 
+    # Determine a simple mood classification from sentiment score
+    detected_mood = None
+    if analysis_result and analysis_result.get("sentiment_score") is not None:
+        score = analysis_result.get("sentiment_score")
+        detected_mood = "positive" if score > 0.2 else "negative" if score < -0.2 else "neutral"
+
     # Removed artificial delay to improve responsiveness.
     return schemas.ChatResponse(
-        reply=reply,
+        reply_text=reply,
         sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
         key_emotions=analysis_result.get("key_emotions") if analysis_result else None,
+        detected_mood=detected_mood,
     )
 
 
