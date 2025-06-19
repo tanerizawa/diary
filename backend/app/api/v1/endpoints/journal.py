@@ -10,7 +10,13 @@ from app.api import deps
 router = APIRouter()
 
 
-@router.post("/", response_model=schemas.Journal, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    response_model=schemas.Journal,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create journal entry",
+    description="Write a new journal entry and trigger background sentiment analysis.",
+)
 def create_journal(
     *,
     db: Session = Depends(deps.get_db),
@@ -27,7 +33,12 @@ def create_journal(
     return journal
 
 
-@router.get("/", response_model=List[schemas.Journal])
+@router.get(
+    "/",
+    response_model=List[schemas.Journal],
+    summary="Read journals",
+    description="List all journal entries belonging to the current user.",
+)
 def read_journals(
     # --- PERBAIKAN: Memastikan semua parameter ada di sini ---
     db: Session = Depends(deps.get_db),
@@ -43,7 +54,12 @@ def read_journals(
     return journals
 
 
-@router.put("/{id}", response_model=schemas.Journal)
+@router.put(
+    "/{id}",
+    response_model=schemas.Journal,
+    summary="Update journal entry",
+    description="Edit an existing journal entry and re-run sentiment analysis.",
+)
 def update_journal(
     *,
     db: Session = Depends(deps.get_db),
@@ -69,7 +85,12 @@ def update_journal(
     return updated_journal
 
 
-@router.delete("/{id}", response_model=schemas.Journal)
+@router.delete(
+    "/{id}",
+    response_model=schemas.Journal,
+    summary="Delete journal entry",
+    description="Remove a journal entry permanently.",
+)
 def delete_journal(
     *,
     db: Session = Depends(deps.get_db),

@@ -9,7 +9,12 @@ from app.api import deps
 
 router = APIRouter()
 
-@router.get("/", response_model=List[schemas.FeedItem])
+@router.get(
+    "/",
+    response_model=List[schemas.FeedItem],
+    summary="Get personalized feed",
+    description="Return journal highlights, suggested articles or chat prompts based on recent activity.",
+)
 def read_feed(
     *,
     db: Session = Depends(deps.get_db),

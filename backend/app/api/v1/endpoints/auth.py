@@ -10,7 +10,12 @@ from app.core.security import create_access_token, verify_password
 
 router = APIRouter()
 
-@router.post("/register", response_model=schemas.User)
+@router.post(
+    "/register",
+    response_model=schemas.User,
+    summary="Register user",
+    description="Create a new account using email and password.",
+)
 def register_user(
         *,
         db: Session = Depends(deps.get_db),
@@ -26,7 +31,12 @@ def register_user(
     user = crud.user.create(db, obj_in=user_in)
     return user
 
-@router.post("/login", response_model=schemas.Token)
+@router.post(
+    "/login",
+    response_model=schemas.Token,
+    summary="Login",
+    description="Authenticate and receive an access token.",
+)
 def login_for_access_token(
         *,
         db: Session = Depends(deps.get_db),
@@ -47,7 +57,12 @@ def login_for_access_token(
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.get("/me", response_model=schemas.User)
+@router.get(
+    "/me",
+    response_model=schemas.User,
+    summary="Get current user",
+    description="Retrieve the profile of the logged in account.",
+)
 def read_current_user(
         *,
         current_user: models.User = Depends(deps.get_current_user),
@@ -55,7 +70,12 @@ def read_current_user(
     """Mendapatkan profil pengguna yang sedang login."""
     return current_user
 
-@router.put("/me", response_model=schemas.User)
+@router.put(
+    "/me",
+    response_model=schemas.User,
+    summary="Update profile",
+    description="Edit email, display name or other account details.",
+)
 def update_current_user(
         *,
         db: Session = Depends(deps.get_db),
@@ -66,7 +86,12 @@ def update_current_user(
     user = crud.user.update(db=db, db_obj=current_user, obj_in=user_in)
     return user
 
-@router.put("/me/mbti", response_model=schemas.User)
+@router.put(
+    "/me/mbti",
+    response_model=schemas.User,
+    summary="Save MBTI result",
+    description="Store the MBTI personality type for the current user.",
+)
 def update_mbti_type(
         *,
         db: Session = Depends(deps.get_db),
@@ -78,7 +103,12 @@ def update_mbti_type(
     return user
 
 # PERBAIKAN: Menambahkan endpoint baru untuk menghapus akun
-@router.delete("/me", response_model=schemas.User)
+@router.delete(
+    "/me",
+    response_model=schemas.User,
+    summary="Delete account",
+    description="Permanently remove the logged in user.",
+)
 def delete_current_user(
         *,
         db: Session = Depends(deps.get_db),

@@ -14,7 +14,12 @@ from app.tasks import process_chat_sentiment
 
 router = APIRouter()
 
-@router.post("/", response_model=schemas.ChatResponse)
+@router.post(
+    "/",
+    response_model=schemas.ChatResponse,
+    summary="Chat with AI",
+    description="Send a message and get a short AI-generated reply with sentiment analysis.",
+)
 async def chat_with_ai(
     *,
     db: Session = Depends(deps.get_db),
@@ -92,7 +97,12 @@ async def chat_with_ai(
     )
 
 
-@router.post("/messages", response_model=schemas.ChatResponse)
+@router.post(
+    "/messages",
+    response_model=schemas.ChatResponse,
+    summary="Create message",
+    description="Store a chat message and receive an AI response plus sentiment data.",
+)
 async def create_message(
     *,
     db: Session = Depends(deps.get_db),
@@ -148,7 +158,12 @@ async def create_message(
     )
 
 
-@router.post("/prompt", response_model=schemas.ChatResponse)
+@router.post(
+    "/prompt",
+    response_model=schemas.ChatResponse,
+    summary="Generate prompt",
+    description="Let the AI start the conversation when you're inactive.",
+)
 async def prompt_chat(
     *,
     db: Session = Depends(deps.get_db),
@@ -188,7 +203,12 @@ async def prompt_chat(
     return schemas.ChatResponse(reply_text=reply)
 
 
-@router.get("/messages", response_model=List[schemas.ChatMessage])
+@router.get(
+    "/messages",
+    response_model=List[schemas.ChatMessage],
+    summary="Read messages",
+    description="Fetch chat history for the current user.",
+)
 def read_messages(
     *,
     db: Session = Depends(deps.get_db),
@@ -202,7 +222,12 @@ def read_messages(
     )
 
 
-@router.delete("/messages", response_model=int)
+@router.delete(
+    "/messages",
+    response_model=int,
+    summary="Delete messages",
+    description="Remove one or more chat messages by ID.",
+)
 def delete_messages(
     *,
     db: Session = Depends(deps.get_db),
