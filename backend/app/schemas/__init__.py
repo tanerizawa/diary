@@ -11,3 +11,8 @@ from .chat_message import (
 )
 from .token import Token, TokenData
 from .feed import FeedItem, Article
+from .emotion_log import (
+    EmotionLog,
+    EmotionLogCreate,
+    EmotionLogUpdate,
+)
