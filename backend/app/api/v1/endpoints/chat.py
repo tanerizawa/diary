@@ -6,6 +6,7 @@ import asyncio
 from app import crud, models, schemas
 from app.api import deps
 from app.services.chat_responder import get_ai_reply
+from app.services.sentiment_analyzer import analyze_sentiment_with_ai
 
 router = APIRouter()
 
@@ -49,10 +50,24 @@ async def chat_with_ai(
         is_user=True,
         timestamp=int(asyncio.get_event_loop().time() * 1000),
     )
-    created_user_msg = crud.chat_message.create_with_owner(db, obj_in=user_msg, owner_id=current_user.id)
+    created_user_msg = crud.chat_message.create_with_owner(
+        db, obj_in=user_msg, owner_id=current_user.id
+    )
+
+    analysis_result = await analyze_sentiment_with_ai(chat_in.message)
+    if analysis_result:
+        crud.chat_message.update(
+            db,
+            db_obj=created_user_msg,
+            obj_in={
+                "sentiment_score": analysis_result.get("sentiment_score"),
+                "key_emotions": analysis_result.get("key_emotions"),
+            },
+        )
     background_tasks.add_task(
         crud.chat_message.process_and_update_sentiment, chat_id=created_user_msg.id
     )
+
     ai_msg = schemas.ChatMessageCreate(
         text=reply,
         is_user=False,
@@ -61,7 +76,11 @@ async def chat_with_ai(
     crud.chat_message.create_with_owner(db, obj_in=ai_msg, owner_id=current_user.id)
 
     # Removed artificial delay to improve responsiveness.
-    return schemas.ChatResponse(reply=reply)
+    return schemas.ChatResponse(
+        reply=reply,
+        sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
+        key_emotions=analysis_result.get("key_emotions") if analysis_result else None,
+    )
 
 
 @router.post("/messages", response_model=schemas.ChatMessage)
