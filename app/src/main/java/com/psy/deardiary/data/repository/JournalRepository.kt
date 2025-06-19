@@ -160,8 +160,13 @@ class JournalRepository @Inject constructor(
 
 
                     if (response.isSuccessful && response.body() != null) {
-                        val remoteId = response.body()!!.id
-                        journalDao.markAsSynced(localId = entry.id, newRemoteId = remoteId)
+                        val body = response.body()!!
+                        journalDao.markAsSynced(
+                            localId = entry.id,
+                            newRemoteId = body.id,
+                            sentimentScore = body.sentimentScore?.toFloat(),
+                            keyEmotions = body.keyEmotions
+                        )
                     } else {
                         return@withContext Result.Error("Gagal menyinkronkan entri: ${entry.title}")
                     }

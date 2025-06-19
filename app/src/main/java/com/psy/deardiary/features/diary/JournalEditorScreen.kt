@@ -282,10 +282,26 @@ private fun JournalEditorScreenPreview() {
             override suspend fun insertEntry(entry: com.psy.deardiary.data.model.JournalEntry) = 1L
             override fun getAllEntries(userId: Int) = kotlinx.coroutines.flow.flowOf(emptyList<com.psy.deardiary.data.model.JournalEntry>())
             override suspend fun getUnsyncedEntries(userId: Int) = emptyList<com.psy.deardiary.data.model.JournalEntry>()
-            override suspend fun markAsSynced(localId: Int, newRemoteId: Int) {}
+            override suspend fun markAsSynced(
+                localId: Int,
+                newRemoteId: Int,
+                sentimentScore: Float?,
+                keyEmotions: String?
+            ) {}
             override suspend fun getEntryByRemoteId(remoteId: Int?, userId: Int) = null
             override suspend fun getEntryById(id: Int) = null
-            override suspend fun updateEntry(id: Int, remoteId: Int?, title: String, content: String, mood: String, timestamp: Long, tags: List<String>, isSynced: Boolean) {}
+            override suspend fun updateEntry(
+                id: Int,
+                remoteId: Int?,
+                title: String,
+                content: String,
+                mood: String,
+                timestamp: Long,
+                tags: List<String>,
+                sentimentScore: Float?,
+                keyEmotions: String?,
+                isSynced: Boolean
+            ) {}
             override suspend fun updateLocalEntry(entry: com.psy.deardiary.data.model.JournalEntry) {}
             override suspend fun deleteAllEntries(userId: Int) {}
             override suspend fun getAllEntriesOnce(userId: Int) = emptyList<com.psy.deardiary.data.model.JournalEntry>()
