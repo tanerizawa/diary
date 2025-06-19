@@ -97,6 +97,7 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
    - `AI_API_KEY` – kunci API layanan AI
    - `AI_API_URL` – endpoint layanan AI
    - `AI_MODEL` – model AI yang digunakan
+   - `LOG_LEVEL` – level log aplikasi (opsional)
 
    Contoh nilai default dapat dilihat pada berkas `.env.example`.
 
@@ -136,6 +137,12 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
    ```bash
    celery -A backend.app.celery_app.celery_app worker --loglevel=info
    ```
+
+### Logging Terstruktur
+
+Backend memakai `structlog` sehingga setiap baris log ditulis dalam format JSON
+lengkap dengan stempel waktu. Level log dapat diatur melalui variabel
+lingkungan `LOG_LEVEL` (mis. `DEBUG`, `INFO`). Nilai defaultnya adalah `INFO`.
 
 ### Troubleshooting
 
