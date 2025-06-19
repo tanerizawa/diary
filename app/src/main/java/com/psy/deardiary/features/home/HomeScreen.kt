@@ -24,6 +24,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.psy.deardiary.data.model.ChatMessage
 import com.psy.deardiary.features.home.components.TypingIndicator
 import com.psy.deardiary.features.home.emojiOptions
+import com.psy.deardiary.features.home.components.JournalItemCard
+import com.psy.deardiary.features.home.components.ArticleSuggestionCard
+import com.psy.deardiary.features.home.components.ChatPromptCard
+import com.psy.deardiary.features.home.FeedItem
 import com.psy.deardiary.ui.components.InfoDialog
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class) // ANOTASI BARU
@@ -38,6 +42,7 @@ fun HomeScreen(
     val sentimentScore by chatViewModel.latestSentiment.collectAsState(initial = null)
     val chatUiState by chatViewModel.uiState.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
+    val feedItems by viewModel.feedItems.collectAsState()
     val listState = rememberLazyListState()
 
     var showErrorDialog by remember { mutableStateOf(false) }
@@ -46,8 +51,11 @@ fun HomeScreen(
         showErrorDialog = chatUiState.errorMessage != null
     }
 
-    LaunchedEffect(messages) {
-        if (messages.isNotEmpty()) listState.animateScrollToItem(messages.lastIndex)
+    LaunchedEffect(messages, feedItems) {
+        if (messages.isNotEmpty()) {
+            val offset = feedItems.size + 1 // +1 for quick note bar
+            listState.animateScrollToItem(offset + messages.lastIndex)
+        }
     }
 
     Scaffold(
@@ -79,6 +87,18 @@ fun HomeScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     state = listState,
                 ) {
+                    item {
+                        QuickNoteBar(onSave = { viewModel.saveQuickNote(it) })
+                    }
+
+                    items(feedItems) { item ->
+                        when (item) {
+                            is FeedItem.JournalItem -> JournalItemCard(item.journalEntry)
+                            is FeedItem.ArticleSuggestionItem -> ArticleSuggestionCard(item.article)
+                            is FeedItem.ChatPromptItem -> ChatPromptCard(item.message)
+                        }
+                    }
+
                     items(messages, key = { it.id }) { msg ->
                         AnimatedVisibility(
                             visible = true,
@@ -176,6 +196,40 @@ private fun ChatInputBar(onSend: (String) -> Unit) {
             enabled = text.isNotBlank()
         ) {
             Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Kirim")
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun QuickNoteBar(onSave: (String) -> Unit) {
+    var text by remember { mutableStateOf("") }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TextField(
+            value = text,
+            onValueChange = { text = it },
+            modifier = Modifier.weight(1f),
+            placeholder = { Text("Tulis catatan singkat...") },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+            )
+        )
+        IconButton(
+            onClick = {
+                onSave(text)
+                text = ""
+            },
+            enabled = text.isNotBlank()
+        ) {
+            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Simpan")
         }
     }
 }

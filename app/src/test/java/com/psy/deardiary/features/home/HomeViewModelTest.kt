@@ -2,6 +2,7 @@ import com.psy.deardiary.features.home.HomeViewModel
 import com.psy.deardiary.data.repository.JournalRepository
 import com.psy.deardiary.data.repository.UserRepository
 import com.psy.deardiary.data.repository.Result
+import com.psy.deardiary.data.repository.FeedRepository
 import com.psy.deardiary.data.model.UserProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -23,6 +24,7 @@ class HomeViewModelTest {
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var journalRepo: JournalRepository
     private lateinit var userRepo: UserRepository
+    private lateinit var feedRepo: FeedRepository
     private lateinit var viewModel: HomeViewModel
 
     @Before
@@ -30,9 +32,11 @@ class HomeViewModelTest {
         Dispatchers.setMain(dispatcher)
         journalRepo = mock()
         userRepo = mock()
+        feedRepo = mock()
         whenever(userRepo.getProfile()).thenReturn(Result.Success(UserProfile(1, "e", "Budi", null)))
         whenever(journalRepo.getLatestMood()).thenReturn("\uD83D\uDE22")
-        viewModel = HomeViewModel(journalRepo, userRepo)
+        whenever(feedRepo.getFeed()).thenReturn(Result.Success(emptyList()))
+        viewModel = HomeViewModel(journalRepo, userRepo, feedRepo)
     }
 
     @After

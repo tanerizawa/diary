@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.psy.deardiary.data.repository.JournalRepository
 import com.psy.deardiary.data.repository.UserRepository
+import com.psy.deardiary.data.repository.FeedRepository
 import com.psy.deardiary.data.repository.Result
+import com.psy.deardiary.features.home.FeedItem
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,11 +26,15 @@ data class HomeUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val journalRepository: JournalRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val feedRepository: FeedRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState = _uiState.asStateFlow()
+
+    private val _feedItems = MutableStateFlow<List<FeedItem>>(emptyList())
+    val feedItems = _feedItems.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -44,6 +50,11 @@ class HomeViewModel @Inject constructor(
                     userName = name,
                     lastMood = mood
                 )
+            }
+
+            when (val feedResult = feedRepository.getFeed()) {
+                is Result.Success -> _feedItems.value = feedResult.data
+                else -> Unit
             }
         }
     }
