@@ -1,17 +1,21 @@
 import httpx
 import json
 from app.core.config import settings
+from app.schemas.action import Action
 
 MAX_REPLY_LENGTH = 280
 
-async def get_ai_reply(message: str, context: str = "", relationship_level: int = 0) -> str | None:
+async def get_ai_reply(message: str, context: str = "", relationship_level: int = 0) -> dict | None:
     """
     Mengirim pesan ke OpenRouter API dan mengembalikan balasan.
     Balasan dibatasi maksimal 280 karakter dan bersifat personal-supportif.
     """
     instructions = (
-        "Jawablah dengan kalimat personal dan hangat dalam Bahasa Indonesia. "
-        "Panjang jawaban maksimum 280 karakter."
+        "Jawablah dengan kalimat personal dan hangat dalam Bahasa Indonesia "
+        "dengan format JSON berikut: "
+        '{"action": "<balas_teks|suggest_breathing_exercise|open_journal_editor|show_crisis_contact>",'
+        ' "text_response": "<pesan singkat>"}'. '
+        f" Panjang text_response maksimum {MAX_REPLY_LENGTH} karakter."
     )
 
     if relationship_level > 30:
@@ -62,11 +66,18 @@ async def get_ai_reply(message: str, context: str = "", relationship_level: int 
             data = response.json()
             reply = data["choices"][0]["message"]["content"].strip()
 
-        # Potong jika melebihi batas karakter
-        if len(reply) > MAX_REPLY_LENGTH:
-            reply = reply[:MAX_REPLY_LENGTH]
+        try:
+            parsed = json.loads(reply)
+            action = parsed.get("action", Action.balas_teks.value)
+            text = parsed.get("text_response", "")
+        except json.JSONDecodeError:
+            action = Action.balas_teks.value
+            text = reply
 
-        return reply
+        if len(text) > MAX_REPLY_LENGTH:
+            text = text[:MAX_REPLY_LENGTH]
+
+        return {"action": action, "text_response": text}
 
     # --- BLOK EXCEPT YANG DISEMPURNAKAN ---
 

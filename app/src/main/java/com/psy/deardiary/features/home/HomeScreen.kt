@@ -36,6 +36,7 @@ import com.psy.deardiary.features.home.components.ArticleSuggestionCard
 import com.psy.deardiary.features.home.components.ChatPromptCard
 import com.psy.deardiary.features.home.FeedItem
 import com.psy.deardiary.ui.components.ConfirmationDialog
+import com.psy.deardiary.ui.components.BreathingDialog
 import com.psy.deardiary.utils.playNotificationFeedback
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class) // ANOTASI BARU
@@ -43,6 +44,7 @@ import com.psy.deardiary.utils.playNotificationFeedback
 fun HomeScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToCrisisSupport: () -> Unit,
+    onNavigateToEditor: () -> Unit,
     mainViewModel: com.psy.deardiary.features.main.MainViewModel,
     viewModel: HomeViewModel = hiltViewModel(),
     chatViewModel: HomeChatViewModel = hiltViewModel()
@@ -57,6 +59,18 @@ fun HomeScreen(
     val context = LocalContext.current
     var previousAiCount by remember { mutableStateOf<Int?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showBreathing by remember { mutableStateOf(false) }
+
+    val pendingAction by chatViewModel.pendingAction.collectAsState()
+
+    LaunchedEffect(pendingAction) {
+        when (pendingAction) {
+            "suggest_breathing_exercise" -> showBreathing = true
+            "open_journal_editor" -> onNavigateToEditor()
+            "show_crisis_contact" -> onNavigateToCrisisSupport()
+        }
+        if (pendingAction != null) chatViewModel.consumeAction()
+    }
 
     LaunchedEffect(chatUiState.errorMessage) {
         chatUiState.errorMessage?.let {
@@ -165,6 +179,9 @@ fun HomeScreen(
                     title = "Hapus Pesan",
                     text = "Hapus pesan yang dipilih?"
                 )
+            }
+            if (showBreathing) {
+                BreathingDialog { showBreathing = false }
             }
         }
     }

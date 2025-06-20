@@ -39,6 +39,8 @@ async def chat_with_ai(
     )
     if reply is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+    action = reply["action"]
+    reply_text = reply["text_response"]
     # Persist conversation
     user_msg = schemas.ChatMessageCreate(
         text=chat_in.message,
@@ -53,7 +55,7 @@ async def chat_with_ai(
     process_chat_sentiment.delay(created_user_msg.id)
 
     ai_msg = schemas.ChatMessageCreate(
-        text=reply,
+        text=reply_text,
         is_user=False,
         timestamp=int(asyncio.get_event_loop().time() * 1000),
     )
@@ -83,7 +85,8 @@ async def chat_with_ai(
     return schemas.ChatResponse(
         message_id=created_user_msg.id,
         ai_message_id=created_ai_msg.id,
-        reply_text=reply,
+        action=action,
+        text_response=reply_text,
         sentiment_score=None,
         key_emotions=None,
         detected_mood=detected_mood,
@@ -140,13 +143,16 @@ async def create_message(
     )
     if reply is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+    action = reply["action"]
+    reply_text = reply["text_response"]
 
     # The simple message endpoint does not store AI responses
 
     return schemas.ChatResponse(
         message_id=created_msg.id,
         ai_message_id=None,
-        reply_text=reply,
+        action=action,
+        text_response=reply_text,
         sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
         key_emotions=analysis_result.get("key_emotions") if analysis_result else None,
         detected_mood=detected_mood,
@@ -187,9 +193,11 @@ async def prompt_chat(
     )
     if reply is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+    action = reply["action"]
+    reply_text = reply["text_response"]
 
     ai_msg = schemas.ChatMessageCreate(
-        text=reply,
+        text=reply_text,
         is_user=False,
         timestamp=now_ts,
     )
@@ -200,7 +208,8 @@ async def prompt_chat(
     return schemas.ChatResponse(
         message_id=created_ai_msg.id,
         ai_message_id=created_ai_msg.id,
-        reply_text=reply,
+        action=action,
+        text_response=reply_text,
     )
 
 

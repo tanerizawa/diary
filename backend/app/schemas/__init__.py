@@ -4,6 +4,7 @@
 from .user import User, UserCreate, UserUpdate, LoginRequest, UserMBTIUpdate
 from .journal import Journal, JournalCreate, JournalUpdate
 from .chat import ChatRequest, ChatResponse
+from .action import Action, ActionResponse
 from .chat_message import (
     ChatMessage,
     ChatMessageCreate,

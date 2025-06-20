@@ -62,7 +62,7 @@ def test_chat_context_assembly(client, monkeypatch):
 
     async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
         captured["context"] = context
-        return "ok"
+        return {"action": "balas_teks", "text_response": "ok"}
 
     monkeypatch.setattr("app.api.v1.endpoints.chat.get_ai_reply", fake_reply)
     async def fake_analyze(*args, **kwargs):
@@ -116,7 +116,7 @@ def test_prompt_context_assembly(client, monkeypatch):
 
     async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
         captured["context"] = context
-        return "ok"
+        return {"action": "balas_teks", "text_response": "ok"}
 
     monkeypatch.setattr("app.api.v1.endpoints.chat.get_ai_reply", fake_reply)
     async def fake_analyze(*args, **kwargs):

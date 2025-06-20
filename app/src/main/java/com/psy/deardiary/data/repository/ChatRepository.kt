@@ -153,7 +153,7 @@ class ChatRepository @Inject constructor(
                     val uid = userPreferencesRepository.userId.first() ?: 0
                     chatMessageDao.insertMessage(
                         ChatMessage(
-                            text = body.replyText,
+                            text = body.textResponse,
                             isUser = false,
                             isSynced = true,
                             userId = uid,
