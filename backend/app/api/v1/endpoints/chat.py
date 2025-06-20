@@ -45,6 +45,7 @@ async def chat_with_ai(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
     action = reply["action"]
     reply_text = reply["text_response"]
+    journal_template = reply.get("journal_template")
     # Persist conversation
     user_msg = schemas.ChatMessageCreate(
         text=chat_in.message,
@@ -97,6 +98,7 @@ async def chat_with_ai(
         issue_type=analysis.get("issue_type") if analysis else None,
         recommended_technique=analysis.get("technique") if analysis else None,
         tone=analysis.get("tone") if analysis else None,
+        journal_template=journal_template,
     )
 
 
@@ -152,6 +154,7 @@ async def create_message(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
     action = reply["action"]
     reply_text = reply["text_response"]
+    journal_template = reply.get("journal_template")
 
     # The simple message endpoint does not store AI responses
 
@@ -166,6 +169,7 @@ async def create_message(
         issue_type=None,
         recommended_technique=None,
         tone=None,
+        journal_template=journal_template,
     )
 
 
@@ -205,6 +209,7 @@ async def prompt_chat(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
     action = reply["action"]
     reply_text = reply["text_response"]
+    journal_template = reply.get("journal_template")
 
     ai_msg = schemas.ChatMessageCreate(
         text=reply_text,
@@ -220,6 +225,7 @@ async def prompt_chat(
         ai_message_id=created_ai_msg.id,
         action=action,
         text_response=reply_text,
+        journal_template=journal_template,
     )
 
 
