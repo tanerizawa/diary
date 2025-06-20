@@ -43,9 +43,9 @@ async def get_ai_reply(
     try:
         headers = {
             "Authorization": f"Bearer {settings.AI_API_KEY}",
-            "HTTP-Referer": "https://github.com/tanerizawa/diary",  # Ganti jika perlu
-            "X-Title": "Dear Diary App",
-            "Content-Type": "application/json"
+            "HTTP-Referer": settings.AI_HTTP_REFERER,
+            "X-Title": settings.AI_TITLE,
+            "Content-Type": "application/json",
         }
         # Model diganti sesuai dengan yang ada di .env Anda
         body = {

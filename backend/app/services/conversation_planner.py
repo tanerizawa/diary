@@ -19,6 +19,8 @@ User message:\n{user_message}
 
     headers = {
         "Authorization": f"Bearer {settings.AI_API_KEY}",
+        "HTTP-Referer": settings.AI_HTTP_REFERER,
+        "X-Title": settings.AI_TITLE,
         "Content-Type": "application/json",
     }
     body = {

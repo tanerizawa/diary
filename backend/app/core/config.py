@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     # Model khusus untuk perencana percakapan dan generator respons
     AI_PLANNER_MODEL: str
     AI_GENERATOR_MODEL: str
+    AI_HTTP_REFERER: str = "https://github.com/tanerizawa/diary"
+    AI_TITLE: str = "Dear Diary App"
 
     @field_validator("AI_API_KEY")
     @classmethod
