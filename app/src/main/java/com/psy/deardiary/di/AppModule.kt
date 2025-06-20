@@ -9,11 +9,13 @@ import com.psy.deardiary.data.local.ChatMessageDao
 import com.psy.deardiary.data.network.AuthApiService
 import com.psy.deardiary.data.network.AuthInterceptor
 import com.psy.deardiary.data.network.ChatApiService
+import com.psy.deardiary.data.network.EmotionLogApiService
 import com.psy.deardiary.data.network.JournalApiService
 import com.psy.deardiary.data.network.FeedApiService
 import com.psy.deardiary.data.network.UserApiService
 import com.psy.deardiary.data.repository.AuthRepository
 import com.psy.deardiary.data.repository.ChatRepository
+import com.psy.deardiary.data.repository.EmotionLogRepository
 import com.psy.deardiary.data.repository.JournalRepository
 import com.psy.deardiary.data.repository.FeedRepository
 import com.psy.deardiary.data.repository.UserRepository
@@ -116,6 +118,12 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideEmotionLogApiService(retrofit: Retrofit): EmotionLogApiService {
+        return retrofit.create(EmotionLogApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideFeedApiService(retrofit: Retrofit): FeedApiService {
         return retrofit.create(FeedApiService::class.java)
     }
@@ -153,6 +161,14 @@ object AppModule {
         userPreferencesRepository: UserPreferencesRepository
     ): ChatRepository {
         return ChatRepository(chatApiService, chatMessageDao, userPreferencesRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideEmotionLogRepository(
+        emotionLogApiService: EmotionLogApiService
+    ): EmotionLogRepository {
+        return EmotionLogRepository(emotionLogApiService)
     }
 
     @Provides

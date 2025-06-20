@@ -278,4 +278,9 @@ class ChatRepository @Inject constructor(
     fun clearJournalTemplate() {
         _journalTemplate.value = null
     }
+
+    suspend fun getAllMessagesOnce(): List<ChatMessage> {
+        val uid = userPreferencesRepository.userId.first() ?: 0
+        return withContext(Dispatchers.IO) { chatMessageDao.getAllMessagesOnce(uid) }
+    }
 }

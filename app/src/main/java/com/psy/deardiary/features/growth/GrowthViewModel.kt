@@ -7,12 +7,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.psy.deardiary.data.model.JournalEntry
 import com.psy.deardiary.data.repository.JournalRepository
+import com.psy.deardiary.data.repository.ChatRepository
+import com.psy.deardiary.data.repository.EmotionLogRepository
+import com.psy.deardiary.data.model.ChatMessage
+import com.psy.deardiary.data.model.EmotionLog
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
+import kotlin.collections.buildList
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
@@ -22,6 +28,7 @@ import javax.inject.Inject
 
 // Data class baru untuk titik data pada grafik
 data class MoodDataPoint(val label: String, val averageMood: Float)
+data class MoodRecord(val timestamp: Long, val mood: String)
 
 data class GrowthUiState(
     val isLoading: Boolean = true,
@@ -36,41 +43,69 @@ data class GrowthUiState(
 
 @HiltViewModel
 class GrowthViewModel @Inject constructor(
-    private val journalRepository: JournalRepository
+    private val journalRepository: JournalRepository,
+    private val chatRepository: ChatRepository,
+    private val emotionLogRepository: EmotionLogRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(GrowthUiState())
     val uiState = _uiState.asStateFlow()
 
     private var cachedEntries: List<JournalEntry> = emptyList()
+    private var cachedMessages: List<ChatMessage> = emptyList()
+    private var cachedEmotionLogs: List<EmotionLog> = emptyList()
 
     init {
         observeJournalData()
+        viewModelScope.launch {
+            emotionLogRepository.refreshEmotionLogs()
+        }
     }
 
     private fun observeJournalData() {
-        journalRepository.journals
-            .onEach { entries ->
-                cachedEntries = entries
-                processJournalData(entries)
-            }
-            .launchIn(viewModelScope)
+        combine(
+            journalRepository.journals,
+            chatRepository.messages,
+            emotionLogRepository.logs
+        ) { entries, messages, logs ->
+            cachedEntries = entries
+            cachedMessages = messages
+            cachedEmotionLogs = logs
+            processJournalData(entries, messages, logs)
+        }.launchIn(viewModelScope)
     }
 
-    private fun processJournalData(entries: List<JournalEntry>) {
-        if (entries.isEmpty()) {
+    private fun processJournalData(
+        journalEntries: List<JournalEntry>,
+        messages: List<ChatMessage>,
+        emotionLogs: List<EmotionLog>
+    ) {
+        val moodRecords = buildList {
+            journalEntries.forEach { add(MoodRecord(it.timestamp, it.mood)) }
+            messages.forEach { msg -> msg.detectedMood?.let { add(MoodRecord(msg.timestamp, it)) } }
+            emotionLogs.forEach { log -> log.detectedMood?.let { add(MoodRecord(log.timestamp, it)) } }
+        }
+
+        if (moodRecords.isEmpty()) {
             _uiState.update {
-                it.copy(isLoading = false, totalJournals = 0, writingStreak = 0, mostFrequentMood = "-", moodCalendarData = emptyMap(), moodTrendData = emptyList())
+                it.copy(
+                    isLoading = false,
+                    totalJournals = journalEntries.size,
+                    writingStreak = 0,
+                    mostFrequentMood = "-",
+                    moodCalendarData = emptyMap(),
+                    moodTrendData = emptyList()
+                )
             }
             return
         }
 
-        val totalJournals = entries.size
-        val mostFrequentMood = calculateMostFrequentMood(entries)
-        val writingStreak = calculateWritingStreak(entries)
+        val totalJournals = journalEntries.size
+        val mostFrequentMood = calculateMostFrequentMood(journalEntries)
+        val writingStreak = calculateWritingStreak(journalEntries)
         val currentMonth = _uiState.value.currentDisplayMonth
-        val moodCalendarData = generateMoodCalendarData(entries, currentMonth)
-        val moodTrendData = calculateMoodTrend(entries)
+        val moodCalendarData = generateMoodCalendarData(moodRecords, currentMonth)
+        val moodTrendData = calculateMoodTrend(moodRecords)
 
         _uiState.update {
             it.copy(
@@ -84,10 +119,10 @@ class GrowthViewModel @Inject constructor(
         }
     }
 
-    private fun calculateMoodTrend(entries: List<JournalEntry>): List<MoodDataPoint> {
+    private fun calculateMoodTrend(records: List<MoodRecord>): List<MoodDataPoint> {
         val moodScores = mapOf("😊" to 5f, "😐" to 3f, "😟" to 2f, "😠" to 1f, "😢" to 1f)
         val today = LocalDate.now()
-        val last7DaysEntries = entries.filter {
+        val last7DaysEntries = records.filter {
             val entryDate = Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
             !entryDate.isBefore(today.minusDays(6)) && !entryDate.isAfter(today)
         }
@@ -141,8 +176,8 @@ class GrowthViewModel @Inject constructor(
         return streak
     }
 
-    private fun generateMoodCalendarData(entries: List<JournalEntry>, yearMonth: YearMonth): Map<Int, String> {
-        return entries
+    private fun generateMoodCalendarData(records: List<MoodRecord>, yearMonth: YearMonth): Map<Int, String> {
+        return records
             .filter {
                 val entryDate = Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
                 entryDate.year == yearMonth.year && entryDate.month == yearMonth.month
@@ -155,7 +190,12 @@ class GrowthViewModel @Inject constructor(
 
     fun changeDisplayMonth(offset: Long) {
         val newMonth = _uiState.value.currentDisplayMonth.plusMonths(offset)
-        val newMoodCalendarData = generateMoodCalendarData(cachedEntries, newMonth)
+        val moodRecords = buildList {
+            cachedEntries.forEach { add(MoodRecord(it.timestamp, it.mood)) }
+            cachedMessages.forEach { msg -> msg.detectedMood?.let { add(MoodRecord(msg.timestamp, it)) } }
+            cachedEmotionLogs.forEach { log -> log.detectedMood?.let { add(MoodRecord(log.timestamp, it)) } }
+        }
+        val newMoodCalendarData = generateMoodCalendarData(moodRecords, newMonth)
         _uiState.update {
             it.copy(
                 currentDisplayMonth = newMonth,
