@@ -1,7 +1,7 @@
 # Lokasi: ./app/schemas/user.py
 # Deskripsi: Skema Pydantic untuk validasi data request/response pengguna.
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 # PERBAIKAN: Menambahkan skema untuk body request login
 class LoginRequest(BaseModel):
@@ -36,5 +36,4 @@ class User(UserBase):
     )
 
     # Config untuk kompatibilitas dengan ORM
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

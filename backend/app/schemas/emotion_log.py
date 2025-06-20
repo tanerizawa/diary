@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class EmotionLogBase(BaseModel):
     timestamp: int = Field(..., description="Unix timestamp for the log")
@@ -24,5 +24,4 @@ class EmotionLog(EmotionLogBase):
     id: int = Field(..., description="Unique emotion log identifier")
     user_id: int = Field(..., description="Identifier of the related user")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

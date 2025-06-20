@@ -1,6 +1,6 @@
 # Lokasi: ./app/schemas/journal.py
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class JournalBase(BaseModel):
     title: str | None = Field(None, description="Title of the journal entry")
@@ -29,5 +29,4 @@ class Journal(JournalBase):
     # --- AKHIR PENAMBAHAN ---
 
     # Config untuk kompatibilitas dengan ORM
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class ChatMessageBase(BaseModel):
     text: str = Field(..., description="Chat message text")
@@ -24,8 +24,7 @@ class ChatMessage(ChatMessageBase):
     id: int = Field(..., description="Unique message identifier")
     owner_id: int = Field(..., description="Identifier of the message owner")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ChatMessageDeleteRequest(BaseModel):
