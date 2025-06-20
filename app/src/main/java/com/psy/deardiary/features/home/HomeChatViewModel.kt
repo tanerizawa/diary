@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.tryLock
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,6 +39,8 @@ class HomeChatViewModel @Inject constructor(
     private val _pendingAction = MutableStateFlow<String?>(null)
     val pendingAction = _pendingAction.asStateFlow()
     val journalTemplate = chatRepository.journalTemplate
+
+    private val sendMutex = Mutex()
 
     private val _selectedIds = MutableStateFlow<Set<Int>>(emptySet())
     val selectedIds = _selectedIds.asStateFlow()
@@ -97,53 +101,58 @@ class HomeChatViewModel @Inject constructor(
 
     fun sendMessage(text: String) {
         viewModelScope.launch {
-            // 1. Tambahkan pesan pengguna ke history
-            val userMsg = chatRepository.addMessage(text, isUser = true)
+            if (!sendMutex.tryLock()) return@launch
+            try {
+                // 1. Tambahkan pesan pengguna ke history
+                val userMsg = chatRepository.addMessage(text, isUser = true)
 
-            // 2. Sisipkan pesan sementara sebagai indikator mengetik
-            val placeholder = chatRepository.addMessage(
-                "Sedang mengetik jawaban...",
-                isUser = false,
-                isPlaceholder = true
-            )
+                // 2. Sisipkan pesan sementara sebagai indikator mengetik
+                val placeholder = chatRepository.addMessage(
+                    "Sedang mengetik jawaban...",
+                    isUser = false,
+                    isPlaceholder = true
+                )
 
-            // 3. Tunda pengiriman pesan sekitar 5 detik untuk meniru jeda ketika
-            //    manusia mengetik. Setelah itu baru teruskan ke server.
-            delay(5_000)
+                // 3. Tunda pengiriman pesan sekitar 5 detik untuk meniru jeda ketik
+                //    manusia mengetik. Setelah itu baru teruskan ke server.
+                delay(5_000)
 
-            // 4. Panggil API dengan batas waktu lebih lama agar server punya waktu
-            //    yang cukup untuk merespons. Batas lama sebelumnya kadang terlalu
-            //    singkat sehingga balasan AI tidak sempat diterima sepenuhnya.
-            val result = withTimeoutOrNull(30_000) {
-                chatRepository.sendMessage(text, userMsg.id)
-            }
+                // 4. Panggil API dengan batas waktu lebih lama agar server punya waktu
+                //    yang cukup untuk merespons. Batas lama sebelumnya kadang terlalu
+                //    singkat sehingga balasan AI tidak sempat diterima sepenuhnya.
+                val result = withTimeoutOrNull(30_000) {
+                    chatRepository.sendMessage(text, userMsg.id)
+                }
 
-            // 5. Ganti pesan placeholder dengan hasil atau pesan kesalahan
-            when (result) {
-                is Result.Success -> {
-                    val response = result.data
-                    chatRepository.updateMessageWithReply(
-                        id = placeholder.id,
-                        replyText = response.textResponse,
-                        detectedMood = response.detectedMood,
-                        remoteId = response.replyId
-                    )
-                    if (response.action != "balas_teks") {
-                        _pendingAction.value = response.action
+                // 5. Ganti pesan placeholder dengan hasil atau pesan kesalahan
+                when (result) {
+                    is Result.Success -> {
+                        val response = result.data
+                        chatRepository.updateMessageWithReply(
+                            id = placeholder.id,
+                            replyText = response.textResponse,
+                            detectedMood = response.detectedMood,
+                            remoteId = response.replyId
+                        )
+                        if (response.action != "balas_teks") {
+                            _pendingAction.value = response.action
+                        }
+                    }
+                    is Result.Error, null -> {
+                        chatRepository.replaceMessage(
+                            placeholder.id,
+                            "Terjadi kesalahan."
+                        )
                     }
                 }
-                is Result.Error, null -> {
-                    chatRepository.replaceMessage(
-                        placeholder.id,
-                        "Terjadi kesalahan."
-                    )
-                }
-            }
 
-            // 6. Sinkronkan pesan yang belum terkirim dan tangani error
-            when (val syncResult = chatRepository.syncPendingMessages()) {
-                is Result.Error -> _uiState.update { it.copy(errorMessage = syncResult.message) }
-                else -> Unit
+                // 6. Sinkronkan pesan yang belum terkirim dan tangani error
+                when (val syncResult = chatRepository.syncPendingMessages()) {
+                    is Result.Error -> _uiState.update { it.copy(errorMessage = syncResult.message) }
+                    else -> Unit
+                }
+            } finally {
+                sendMutex.unlock()
             }
         }
     }
