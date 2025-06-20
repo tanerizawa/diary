@@ -179,13 +179,20 @@ alembic -c backend/alembic.ini upgrade head
 
 ## Running Tests
 
-1. Install dependensi Python beserta `pytest`:
+1. *(Opsional)* Buat terlebih dahulu **virtual environment** agar dependensi terpisah dari sistem:
+
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   ```
+
+2. Install seluruh dependensi dari `backend/requirements.txt` beserta `pytest`:
 
    ```bash
    pip install -r backend/requirements.txt pytest
    ```
 
-2. Jalankan seluruh tes unit dari direktori root:
+3. Jalankan seluruh tes unit dari direktori root:
 
    ```bash
    pytest
