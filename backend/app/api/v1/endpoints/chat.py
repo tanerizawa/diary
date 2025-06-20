@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Body, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 import asyncio
 import json
@@ -268,3 +268,90 @@ def delete_messages(
     if deleted == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Messages not found")
     return deleted
+
+
+@router.websocket("/ws")
+async def websocket_chat(websocket: WebSocket, token: str):
+    """Realtime chat endpoint using WebSocket."""
+    await websocket.accept()
+    db = deps.SessionLocal()
+    try:
+        user = deps.authenticate_token(db, token)
+        if user is None:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
+        while True:
+            try:
+                text = await websocket.receive_text()
+            except WebSocketDisconnect:
+                break
+
+            analysis = await analyze_message(text)
+            context = build_chat_context(db, user, text)
+            reply = await get_ai_reply(
+                text,
+                context=context,
+                relationship_level=user.relationship_level,
+                analysis=analysis,
+            )
+            if reply is None:
+                await websocket.send_json({"error": "AI service error"})
+                continue
+
+            action = reply["action"]
+            reply_text = reply["text_response"]
+            journal_template = reply.get("journal_template")
+
+            user_msg = schemas.ChatMessageCreate(
+                text=text,
+                is_user=True,
+                timestamp=int(asyncio.get_event_loop().time() * 1000),
+            )
+            created_user_msg = crud.chat_message.create_with_owner(
+                db, obj_in=user_msg, owner_id=user.id
+            )
+
+            process_chat_sentiment.delay(created_user_msg.id)
+
+            ai_msg = schemas.ChatMessageCreate(
+                text=reply_text,
+                is_user=False,
+                timestamp=int(asyncio.get_event_loop().time() * 1000),
+            )
+            created_ai_msg = crud.chat_message.create_with_owner(
+                db, obj_in=ai_msg, owner_id=user.id
+            )
+
+            detected_mood = detect_mood(text)
+            crud.chat_message.update(
+                db,
+                db_obj=created_user_msg,
+                obj_in={"detected_mood": detected_mood},
+            )
+            crud.emotion_log.create_with_owner(
+                db,
+                obj_in=schemas.EmotionLogCreate(
+                    timestamp=int(asyncio.get_event_loop().time() * 1000),
+                    detected_mood=detected_mood,
+                    source_text=text,
+                    source_feature="chat_home",
+                ),
+                owner_id=user.id,
+            )
+
+            resp = schemas.ChatResponse(
+                message_id=created_user_msg.id,
+                ai_message_id=created_ai_msg.id,
+                action=action,
+                text_response=reply_text,
+                sentiment_score=None,
+                key_emotions=None,
+                detected_mood=detected_mood,
+                issue_type=analysis.get("issue_type") if analysis else None,
+                recommended_technique=analysis.get("technique") if analysis else None,
+                tone=analysis.get("tone") if analysis else None,
+                journal_template=journal_template,
+            )
+            await websocket.send_text(resp.model_dump_json())
+    finally:
+        db.close()
