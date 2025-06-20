@@ -17,3 +17,4 @@ from .emotion_log import (
     EmotionLogCreate,
     EmotionLogUpdate,
 )
+from .conversation import ConversationPlan
