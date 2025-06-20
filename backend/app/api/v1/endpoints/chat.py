@@ -7,10 +7,14 @@ import json
 from app import crud, models, schemas
 from app.schemas.chat_message import ChatMessageDeleteRequest
 from app.api import deps
-from app.services.chat_responder import get_ai_reply
 from app.services.sentiment_analyzer import analyze_sentiment_with_ai
 from app.services.emotion_classifier import detect_mood
-from app.services import build_chat_context, analyze_message
+from app.services import (
+    build_chat_context,
+    analyze_message,
+    plan_conversation_strategy,
+    generate_pure_response,
+)
 from app.tasks import process_chat_sentiment
 
 router = APIRouter()
@@ -34,17 +38,15 @@ async def chat_with_ai(
     analysis = await analyze_message(chat_in.message)
     context = build_chat_context(db, current_user, chat_in.message)
 
-    reply = await get_ai_reply(
-        chat_in.message,
-        context=context,
-        relationship_level=current_user.relationship_level,
-        analysis=analysis,
-    )
-    if reply is None:
+    plan = await plan_conversation_strategy(context, chat_in.message)
+    if plan is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
-    action = reply["action"]
-    reply_text = reply["text_response"]
-    journal_template = reply.get("journal_template")
+
+    reply_text = await generate_pure_response(plan, chat_in.message)
+    if not reply_text:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+    action = schemas.Action.balas_teks
+    journal_template = None
     # Persist conversation
     user_msg = schemas.ChatMessageCreate(
         text=chat_in.message,
@@ -145,15 +147,15 @@ async def create_message(
         owner_id=current_user.id,
     )
 
-    reply = await get_ai_reply(
-        message_in.text,
-        relationship_level=current_user.relationship_level,
-    )
-    if reply is None:
+    plan = await plan_conversation_strategy("", message_in.text)
+    if plan is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
-    action = reply["action"]
-    reply_text = reply["text_response"]
-    journal_template = reply.get("journal_template")
+
+    reply_text = await generate_pure_response(plan, message_in.text)
+    if not reply_text:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+    action = schemas.Action.balas_teks
+    journal_template = None
 
     # The simple message endpoint does not store AI responses
 
@@ -201,14 +203,14 @@ async def prompt_chat(
     context = build_chat_context(db, current_user)
     context += "\nAkhiri jawaban dengan pertanyaan singkat yang bersifat probing."
 
-    reply = await get_ai_reply(
-        "", context=context, relationship_level=current_user.relationship_level
-    )
-    if reply is None:
+    plan = await plan_conversation_strategy(context, "")
+    if plan is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
-    action = reply["action"]
-    reply_text = reply["text_response"]
-    journal_template = reply.get("journal_template")
+    reply_text = await generate_pure_response(plan, "")
+    if not reply_text:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+    action = schemas.Action.balas_teks
+    journal_template = None
 
     ai_msg = schemas.ChatMessageCreate(
         text=reply_text,
@@ -288,19 +290,18 @@ async def websocket_chat(websocket: WebSocket, token: str):
 
             analysis = await analyze_message(text)
             context = build_chat_context(db, user, text)
-            reply = await get_ai_reply(
-                text,
-                context=context,
-                relationship_level=user.relationship_level,
-                analysis=analysis,
-            )
-            if reply is None:
+
+            plan = await plan_conversation_strategy(context, text)
+            if plan is None:
+                await websocket.send_json({"error": "AI service error"})
+                continue
+            reply_text = await generate_pure_response(plan, text)
+            if not reply_text:
                 await websocket.send_json({"error": "AI service error"})
                 continue
 
-            action = reply["action"]
-            reply_text = reply["text_response"]
-            journal_template = reply.get("journal_template")
+            action = schemas.Action.balas_teks
+            journal_template = None
 
             user_msg = schemas.ChatMessageCreate(
                 text=text,

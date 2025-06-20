@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from app.db import Base
 from app.api import deps
 from backend.main import app
+from app.schemas.conversation import ConversationPlan
 
 
 @pytest.fixture
@@ -36,6 +37,8 @@ def client():
             db.close()
 
     app.dependency_overrides[deps.get_db] = override_get_db
+    original_session_local = deps.SessionLocal
+    deps.SessionLocal = TestingSessionLocal
 
     from app.tasks import process_chat_sentiment
     process_chat_sentiment.delay = lambda *a, **k: None
@@ -44,6 +47,7 @@ def client():
         yield c
 
     app.dependency_overrides.clear()
+    deps.SessionLocal = original_session_local
 
 
 def register_and_login(client, email="ws@example.com", password="pass"):
@@ -58,13 +62,17 @@ def register_and_login(client, email="ws@example.com", password="pass"):
 def test_websocket_chat(client, monkeypatch):
     token = register_and_login(client)
 
-    async def fake_reply(message: str, context: str = "", relationship_level: int = 0, analysis=None):
-        return {"action": "balas_teks", "text_response": "pong"}
+    async def fake_plan(context: str, user_message: str):
+        return ConversationPlan(technique="mirror")
+
+    async def fake_generate(plan: ConversationPlan, user_message: str):
+        return "pong"
 
     async def fake_analysis(text: str):
         return {"issue_type": "stress", "technique": "breathing", "tone": "tense"}
 
-    monkeypatch.setattr("app.api.v1.endpoints.chat.get_ai_reply", fake_reply)
+    monkeypatch.setattr("app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan)
+    monkeypatch.setattr("app.api.v1.endpoints.chat.generate_pure_response", fake_generate)
     monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_message", fake_analysis)
     monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_sentiment_with_ai", lambda *a, **k: None)
 

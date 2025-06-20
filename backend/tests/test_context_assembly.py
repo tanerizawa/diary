@@ -57,14 +57,21 @@ def register_and_login(client, email="user@example.com", password="pass"):
     return {"Authorization": f"Bearer {token}"}
 
 
+from app.schemas.conversation import ConversationPlan
+
+
 def test_chat_context_assembly(client, monkeypatch):
     captured = {}
 
-    async def fake_reply(message: str, context: str = "", relationship_level: int = 0, analysis=None):
+    async def fake_plan(context: str, user_message: str):
         captured["context"] = context
-        return {"action": "balas_teks", "text_response": "ok"}
+        return ConversationPlan(technique="mirror")
 
-    monkeypatch.setattr("app.api.v1.endpoints.chat.get_ai_reply", fake_reply)
+    async def fake_generate(plan: ConversationPlan, user_message: str):
+        return "ok"
+
+    monkeypatch.setattr("app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan)
+    monkeypatch.setattr("app.api.v1.endpoints.chat.generate_pure_response", fake_generate)
     async def fake_analyze(*args, **kwargs):
         return None
     monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_analyze)
@@ -114,11 +121,15 @@ def test_chat_context_assembly(client, monkeypatch):
 def test_prompt_context_assembly(client, monkeypatch):
     captured = {}
 
-    async def fake_reply(message: str, context: str = "", relationship_level: int = 0, analysis=None):
+    async def fake_plan(context: str, user_message: str):
         captured["context"] = context
-        return {"action": "balas_teks", "text_response": "ok"}
+        return ConversationPlan(technique="mirror")
 
-    monkeypatch.setattr("app.api.v1.endpoints.chat.get_ai_reply", fake_reply)
+    async def fake_generate(plan: ConversationPlan, user_message: str):
+        return "ok"
+
+    monkeypatch.setattr("app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan)
+    monkeypatch.setattr("app.api.v1.endpoints.chat.generate_pure_response", fake_generate)
     async def fake_analyze(*args, **kwargs):
         return None
     monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_analyze)
