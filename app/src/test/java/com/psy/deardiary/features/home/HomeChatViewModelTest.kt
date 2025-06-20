@@ -1,7 +1,7 @@
 import com.psy.deardiary.data.model.ChatMessage
 import com.psy.deardiary.data.repository.ChatRepository
 import com.psy.deardiary.data.repository.Result
-import com.psy.deardiary.data.dto.AiChatResponse
+import com.psy.deardiary.data.dto.FinalChatResponse
 import com.psy.deardiary.features.home.HomeChatViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,7 +47,7 @@ class HomeChatViewModelTest {
         whenever(repository.messages).thenReturn(messagesFlow)
         whenever(prefRepo.lastAiPrompt).thenReturn(lastPromptFlow)
         whenever(repository.userPreferencesRepository).thenReturn(prefRepo)
-        whenever(repository.promptChat()).thenReturn(Result.Success(AiChatResponse("balas_teks", "p", null)))
+        whenever(repository.promptChat()).thenReturn(Result.Success(FinalChatResponse(messageId = 1, replyId = 1, textResponse = "p")))
         whenever(repository.refreshMessages()).thenReturn(Result.Success(Unit))
         viewModel = HomeChatViewModel(repository)
     }
@@ -63,14 +63,14 @@ class HomeChatViewModelTest {
         whenever(repository.addMessage(any(), eq(true), eq(false))).thenReturn(userMsg)
         whenever(repository.addMessage(any(), eq(false), eq(true))).thenReturn(ChatMessage(id=2, text="placeholder", isUser=false, isPlaceholder=true, userId = 1))
         whenever(repository.sendMessage("hi", userMsg.id)).thenReturn(
-            Result.Success(AiChatResponse("balas_teks", "hello", "happy", replyId = 3))
+            Result.Success(FinalChatResponse(messageId = 3, replyId = 3, textResponse = "hello"))
         )
         viewModel.sendMessage("hi")
         advanceUntilIdle()
         verify(repository).addMessage("hi", true, false)
         verify(repository).addMessage("Sedang mengetik jawaban...", false, true)
         verify(repository).sendMessage("hi", userMsg.id)
-        verify(repository).updateMessageWithReply(2, "hello", "happy", 3)
+        verify(repository).updateMessageWithReply(2, "hello", null, 3)
     }
 
     @Test
@@ -95,7 +95,7 @@ class HomeChatViewModelTest {
             ChatMessage(id = 2, text = "placeholder", isUser = false, isPlaceholder = true, userId = 1)
         )
         whenever(repository.sendMessage("hi", userMsg.id)).thenReturn(
-            Result.Success(AiChatResponse("balas_teks", "hello", "happy", replyId = 3))
+            Result.Success(FinalChatResponse(messageId = 3, replyId = 3, textResponse = "hello"))
         )
         whenever(repository.syncPendingMessages()).thenReturn(Result.Success(Unit))
 
