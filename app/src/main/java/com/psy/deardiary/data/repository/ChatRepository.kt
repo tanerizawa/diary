@@ -170,13 +170,19 @@ class ChatRepository @Inject constructor(
                     val response = chatApiService.postMessage(msg.toCreateRequest())
                     if (response.isSuccessful && response.body() != null) {
                         val body = response.body()!!
-                        chatMessageDao.markAsSynced(
-                            msg.id,
-                            body.id,
-                            body.sentimentScore,
-                            body.keyEmotions,
-                            body.detectedMood
-                        )
+                        val existing = chatMessageDao.getMessageByRemoteId(body.id, uid)
+                        if (existing != null && existing.id != msg.id) {
+                            // Duplicate already synced, remove local copy
+                            chatMessageDao.deleteMessages(listOf(msg.id), uid)
+                        } else {
+                            chatMessageDao.markAsSynced(
+                                msg.id,
+                                body.id,
+                                body.sentimentScore,
+                                body.keyEmotions,
+                                body.detectedMood
+                            )
+                        }
                     } else {
                         return@withContext Result.Error("Gagal menyinkronkan pesan")
                     }
