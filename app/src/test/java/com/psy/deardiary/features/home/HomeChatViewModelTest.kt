@@ -86,4 +86,27 @@ class HomeChatViewModelTest {
         advanceUntilIdle()
         verify(repository).refreshMessages()
     }
+
+    @Test
+    fun sendMessage_ignoresWhenAlreadySending() = runTest {
+        val userMsg = ChatMessage(id = 1, text = "hi", isUser = true, userId = 1)
+        whenever(repository.addMessage(any(), eq(true), eq(false))).thenReturn(userMsg)
+        whenever(repository.addMessage(any(), eq(false), eq(true))).thenReturn(
+            ChatMessage(id = 2, text = "placeholder", isUser = false, isPlaceholder = true, userId = 1)
+        )
+        whenever(repository.sendMessage("hi", userMsg.id)).thenReturn(
+            Result.Success(AiChatResponse("balas_teks", "hello", "happy", replyId = 3))
+        )
+        whenever(repository.syncPendingMessages()).thenReturn(Result.Success(Unit))
+
+        viewModel.sendMessage("hi")
+        viewModel.sendMessage("ignored")
+
+        advanceUntilIdle()
+
+        verify(repository).addMessage("hi", true, false)
+        verify(repository, never()).addMessage("ignored", true, false)
+        verify(repository).sendMessage("hi", userMsg.id)
+        verify(repository, never()).sendMessage(eq("ignored"), any())
+    }
 }
