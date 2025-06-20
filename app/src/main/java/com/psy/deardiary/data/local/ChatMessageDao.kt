@@ -12,6 +12,9 @@ interface ChatMessageDao {
     @Query("SELECT * FROM chat_messages WHERE userId = :userId ORDER BY timestamp ASC")
     fun getAllMessages(userId: Int): Flow<List<ChatMessage>>
 
+    @Query("SELECT * FROM chat_messages WHERE userId = :userId")
+    suspend fun getAllMessagesOnce(userId: Int): List<ChatMessage>
+
     @Query("SELECT * FROM chat_messages WHERE isSynced = 0 AND userId = :userId")
     suspend fun getUnsyncedMessages(userId: Int): List<ChatMessage>
 
