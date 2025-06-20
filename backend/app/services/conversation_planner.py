@@ -41,10 +41,12 @@ User message:\n{user_message}
             data = resp.json()
             content = data["choices"][0]["message"]["content"]
             parsed = json.loads(content)
+            if not isinstance(parsed, dict):
+                raise ValueError("Invalid JSON structure")
             technique = parsed.get("technique")
             if not isinstance(technique, str):
                 raise ValueError("Invalid technique")
             return ConversationPlan(technique=technique)
-    except (httpx.RequestError, httpx.HTTPStatusError, json.JSONDecodeError, KeyError, ValueError) as e:
+    except (httpx.RequestError, httpx.HTTPStatusError, json.JSONDecodeError, KeyError, ValueError, AttributeError) as e:
         print(f"Error calling conversation planner: {e}")
         return None
