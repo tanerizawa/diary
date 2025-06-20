@@ -261,7 +261,7 @@ private fun ChatInputBar(onSend: (String) -> Unit) {
 
 
 @Composable
-private fun ChatBubble(
+internal fun ChatBubble(
     message: ChatMessage,
     isSelected: Boolean = false,
     modifier: Modifier = Modifier
@@ -304,6 +304,38 @@ private fun ChatBubble(
             } else {
                 Column(modifier = Modifier.padding(8.dp)) {
                     Text(text = message.text)
+                    if (message.sentimentScore != null || message.keyEmotions != null) {
+                        Spacer(Modifier.height(4.dp))
+                        val score = message.sentimentScore
+                        val (icon, color) = when {
+                            score == null -> Pair(Icons.Outlined.SentimentNeutral, MaterialTheme.colorScheme.onSurfaceVariant)
+                            score >= 0f -> Pair(Icons.Outlined.Mood, Color(0xFF2E7D32))
+                            else -> Pair(Icons.Outlined.MoodBad, Color(0xFFC62828))
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = color,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            score?.let {
+                                Text(
+                                    text = String.format("%.1f", it),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = color,
+                                    modifier = Modifier.padding(start = 4.dp)
+                                )
+                            }
+                            message.keyEmotions?.let {
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -39,6 +39,11 @@ class ChatRepository @Inject constructor(
             history.lastOrNull { it.sentimentScore != null }?.sentimentScore
         }
 
+    val latestEmotions: Flow<String?> =
+        messages.map { history ->
+            history.lastOrNull { it.keyEmotions != null }?.keyEmotions
+        }
+
     val lastPromptTime: Flow<Long?> = userPreferencesRepository.lastAiPrompt
 
     fun getConversation(): Flow<List<ChatMessage>> =
@@ -211,7 +216,12 @@ class ChatRepository @Inject constructor(
                         return@withContext Result.Error("Gagal menyinkronkan pesan")
                     }
                 }
-                Result.Success(Unit)
+                val refresh = refreshMessages()
+                return@withContext if (refresh is Result.Error) {
+                    refresh
+                } else {
+                    Result.Success(Unit)
+                }
             } catch (e: Exception) {
                 // Interpolasi string sebelumnya menampilkan "$\{e.message}"
                 // alih-alih isi pesan kesalahan sebenarnya karena karakter
