@@ -128,6 +128,8 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
    ```
    Setelah itu jalankan perintah `upgrade` di atas.
 
+   Setelah menarik revisi 0007, jalankan kembali perintah di atas agar tabel `semantic_embeddings` dibuat.
+
 4. Mulai server pengembangan:
 
    ```bash
