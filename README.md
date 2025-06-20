@@ -130,13 +130,32 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
 
    Setelah menarik revisi 0007, jalankan kembali perintah di atas agar tabel `semantic_embeddings` dibuat.
 
-4. Mulai server pengembangan:
+4. Install dan jalankan Redis:
+
+   - **macOS** (menggunakan Homebrew)
+
+     ```bash
+     brew install redis
+     brew services start redis
+     ```
+
+   - **Linux/Windows**
+
+     Pastikan Redis terpasang dan jalankan perintah:
+
+     ```bash
+     redis-server
+     ```
+
+   Setelah Redis berjalan, pastikan variabel `CELERY_BROKER_URL` dan `CELERY_RESULT_BACKEND` pada `.env` menunjuk ke instance Redis tersebut.
+
+5. Mulai server pengembangan:
 
    ```bash
    uvicorn backend.main:app --reload
    ```
 
-5. Jalankan worker Celery (pastikan layanan Redis sudah berjalan):
+6. Jalankan worker Celery (pastikan layanan Redis sudah berjalan):
 
    ```bash
    celery -A backend.app.celery_app.celery_app worker --loglevel=info
