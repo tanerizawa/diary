@@ -30,15 +30,10 @@ data class ChatMessageCreateRequest(
     @SerializedName("detected_mood") val detectedMood: String? = null
 )
 
-data class AiChatResponse(
-    @SerializedName("action") val action: String,
-    @SerializedName("text_response") val textResponse: String,
-    @SerializedName("journal_template") val journalTemplate: String? = null,
-    @SerializedName("detected_mood") val detectedMood: String? = null,
-    @SerializedName("sentiment_score") val sentimentScore: Float? = null,
-    @SerializedName("key_emotions") val keyEmotions: String? = null,
-    @SerializedName("message_id") val messageId: Int? = null,
-    @SerializedName("ai_message_id") val replyId: Int? = null
+data class FinalChatResponse(
+    @SerializedName("message_id") val messageId: Int,
+    @SerializedName("ai_message_id") val replyId: Int?,
+    @SerializedName("text_response") val textResponse: String
 )
 
 data class DeleteMessagesRequest(

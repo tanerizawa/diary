@@ -1,7 +1,7 @@
 package com.psy.deardiary.data.network
 
 import com.psy.deardiary.data.dto.ChatRequest
-import com.psy.deardiary.data.dto.AiChatResponse
+import com.psy.deardiary.data.dto.FinalChatResponse
 import com.psy.deardiary.data.dto.ChatMessageCreateRequest
 import com.psy.deardiary.data.dto.ChatMessageResponse
 import com.psy.deardiary.data.dto.DeleteMessagesRequest
@@ -13,7 +13,7 @@ import retrofit2.http.HTTP
 
 interface ChatApiService {
     @POST("api/v1/chat/")
-    suspend fun sendMessage(@Body request: ChatRequest): Response<AiChatResponse>
+    suspend fun sendMessage(@Body request: ChatRequest): Response<FinalChatResponse>
 
     @GET("api/v1/chat/messages")
     suspend fun getMessages(): Response<List<ChatMessageResponse>>
@@ -25,5 +25,5 @@ interface ChatApiService {
     suspend fun deleteMessages(@Body request: DeleteMessagesRequest): Response<Unit>
 
     @POST("api/v1/chat/prompt")
-    suspend fun requestPrompt(): Response<AiChatResponse>
+    suspend fun requestPrompt(): Response<FinalChatResponse>
 }

@@ -5,7 +5,7 @@ import com.psy.deardiary.data.local.ChatMessageDao
 import com.psy.deardiary.data.dto.ChatMessageResponse
 import com.psy.deardiary.data.model.ChatMessage
 import com.psy.deardiary.data.network.ChatApiService
-import com.psy.deardiary.data.dto.AiChatResponse
+import com.psy.deardiary.data.dto.FinalChatResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -50,7 +50,7 @@ class ChatRepositoryTest {
     @Test
     fun fetchReplySuccess_returnsSuccess() = runTest {
         whenever(api.sendMessage(any())).thenReturn(
-            Response.success(AiChatResponse("balas_teks", "hi", replyId = 1))
+            Response.success(FinalChatResponse(messageId = 1, replyId = 1, textResponse = "hi"))
         )
 
         val result = repository.fetchReply("hello")

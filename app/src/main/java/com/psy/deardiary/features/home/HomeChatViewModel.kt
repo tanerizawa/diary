@@ -131,12 +131,8 @@ class HomeChatViewModel @Inject constructor(
                         chatRepository.updateMessageWithReply(
                             id = placeholder.id,
                             replyText = response.textResponse,
-                            detectedMood = response.detectedMood,
                             remoteId = response.replyId
                         )
-                        if (response.action != "balas_teks") {
-                            _pendingAction.value = response.action
-                        }
                     }
                     is Result.Error, null -> {
                         chatRepository.replaceMessage(

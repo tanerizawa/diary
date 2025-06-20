@@ -23,7 +23,7 @@ import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.psy.deardiary.data.repository.Result
-import com.psy.deardiary.data.dto.AiChatResponse
+import com.psy.deardiary.data.dto.FinalChatResponse
 
 @Singleton
 class ChatRepository @Inject constructor(
@@ -117,7 +117,7 @@ class ChatRepository @Inject constructor(
         chatMessageDao.updateMessage(updated)
     }
 
-    suspend fun fetchReply(text: String): Result<AiChatResponse> {
+    suspend fun fetchReply(text: String): Result<FinalChatResponse> {
         return withContext(Dispatchers.IO) {
             try {
                 val response = chatApiService.sendMessage(ChatRequest(text))
@@ -134,45 +134,36 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    suspend fun sendMessage(text: String, localId: Int): Result<AiChatResponse> {
+    suspend fun sendMessage(text: String, localId: Int): Result<FinalChatResponse> {
         val result = fetchReply(text)
         if (result is Result.Success) {
             val body = result.data
-            if (body.action == "open_journal_editor") {
-                _journalTemplate.value = body.journalTemplate
-            }
-            body.messageId?.let { remoteId ->
-                withContext(Dispatchers.IO) {
-                    chatMessageDao.markAsSynced(
-                        localId,
-                        remoteId,
-                        body.sentimentScore,
-                        body.keyEmotions,
-                        body.detectedMood
-                    )
-                }
+            withContext(Dispatchers.IO) {
+                chatMessageDao.markAsSynced(
+                    localId,
+                    body.messageId,
+                    null,
+                    null,
+                    null
+                )
             }
         }
         return result
     }
 
-    suspend fun promptChat(): Result<AiChatResponse> {
+    suspend fun promptChat(): Result<FinalChatResponse> {
         return withContext(Dispatchers.IO) {
             try {
                 val response = chatApiService.requestPrompt()
                 if (response.isSuccessful && response.body() != null) {
                     val body = response.body()!!
-                    if (body.action == "open_journal_editor") {
-                        _journalTemplate.value = body.journalTemplate
-                    }
                     val uid = userPreferencesRepository.userId.first() ?: 0
                     chatMessageDao.insertMessage(
                         ChatMessage(
                             text = body.textResponse,
                             isUser = false,
                             isSynced = true,
-                            userId = uid,
-                            detectedMood = body.detectedMood
+                            userId = uid
                         )
                     )
                     userPreferencesRepository.setLastAiPrompt(System.currentTimeMillis())

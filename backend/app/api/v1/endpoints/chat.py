@@ -21,7 +21,7 @@ router = APIRouter()
 
 @router.post(
     "/",
-    response_model=schemas.ChatResponse,
+    response_model=schemas.FinalChatResponse,
     summary="Chat with AI",
     description="Send a message and get a short AI-generated reply with sentiment analysis.",
 )
@@ -88,24 +88,16 @@ async def chat_with_ai(
     )
 
     # Removed artificial delay to improve responsiveness.
-    return schemas.ChatResponse(
+    return schemas.FinalChatResponse(
         message_id=created_user_msg.id,
         ai_message_id=created_ai_msg.id,
-        action=action,
         text_response=reply_text,
-        sentiment_score=None,
-        key_emotions=None,
-        detected_mood=detected_mood,
-        issue_type=analysis.get("issue_type") if analysis else None,
-        recommended_technique=analysis.get("technique") if analysis else None,
-        tone=analysis.get("tone") if analysis else None,
-        journal_template=journal_template,
     )
 
 
 @router.post(
     "/messages",
-    response_model=schemas.ChatResponse,
+    response_model=schemas.FinalChatResponse,
     summary="Create message",
     description="Store a chat message and receive an AI response plus sentiment data.",
 )
@@ -159,24 +151,16 @@ async def create_message(
 
     # The simple message endpoint does not store AI responses
 
-    return schemas.ChatResponse(
+    return schemas.FinalChatResponse(
         message_id=created_msg.id,
         ai_message_id=None,
-        action=action,
         text_response=reply_text,
-        sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
-        key_emotions=analysis_result.get("key_emotions") if analysis_result else None,
-        detected_mood=detected_mood,
-        issue_type=None,
-        recommended_technique=None,
-        tone=None,
-        journal_template=journal_template,
     )
 
 
 @router.post(
     "/prompt",
-    response_model=schemas.ChatResponse,
+    response_model=schemas.FinalChatResponse,
     summary="Generate prompt",
     description="Let the AI start the conversation when you're inactive.",
 )
@@ -221,12 +205,10 @@ async def prompt_chat(
         db, obj_in=ai_msg, owner_id=current_user.id
     )
 
-    return schemas.ChatResponse(
+    return schemas.FinalChatResponse(
         message_id=created_ai_msg.id,
         ai_message_id=created_ai_msg.id,
-        action=action,
         text_response=reply_text,
-        journal_template=journal_template,
     )
 
 
@@ -340,18 +322,10 @@ async def websocket_chat(websocket: WebSocket, token: str):
                 owner_id=user.id,
             )
 
-            resp = schemas.ChatResponse(
+            resp = schemas.FinalChatResponse(
                 message_id=created_user_msg.id,
                 ai_message_id=created_ai_msg.id,
-                action=action,
                 text_response=reply_text,
-                sentiment_score=None,
-                key_emotions=None,
-                detected_mood=detected_mood,
-                issue_type=analysis.get("issue_type") if analysis else None,
-                recommended_technique=analysis.get("technique") if analysis else None,
-                tone=analysis.get("tone") if analysis else None,
-                journal_template=journal_template,
             )
             await websocket.send_text(resp.model_dump_json())
     finally:

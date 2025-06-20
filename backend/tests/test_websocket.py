@@ -80,6 +80,3 @@ def test_websocket_chat(client, monkeypatch):
         ws.send_text("hello")
         data = ws.receive_json()
         assert data["text_response"] == "pong"
-        assert data["issue_type"] == "stress"
-        assert data["recommended_technique"] == "breathing"
-        assert data["tone"] == "tense"

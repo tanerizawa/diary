@@ -152,15 +152,7 @@ def test_chat_sentiment_response(client, monkeypatch):
     data = resp.json()
     assert data["message_id"] > 0
     assert data["ai_message_id"] > 0
-    assert data["action"] == "balas_teks"
     assert data["text_response"] == "hi"
-    # Sentiment analysis now runs asynchronously so values are not returned immediately
-    assert data["sentiment_score"] is None
-    assert data["key_emotions"] is None
-    assert data["detected_mood"] == "\U0001F610"
-    assert data["issue_type"] == "stress"
-    assert data["recommended_technique"] == "breathing"
-    assert data["tone"] == "tense"
     assert captured["analysis"] == {
         "issue_type": "stress",
         "technique": "breathing",
@@ -200,9 +192,9 @@ def test_chat_analysis_failure(client, monkeypatch):
     resp = client.post("/api/v1/chat/", json={"message": "hi"}, headers=headers)
     assert resp.status_code == 200
     data = resp.json()
-    assert data["issue_type"] is None
-    assert data["recommended_technique"] is None
-    assert data["tone"] is None
+    assert "issue_type" not in data
+    assert "recommended_technique" not in data
+    assert "tone" not in data
 
 
 def test_message_post_handler(client, monkeypatch):
@@ -232,14 +224,7 @@ def test_message_post_handler(client, monkeypatch):
     data = resp.json()
     assert data["message_id"] > 0
     assert data["ai_message_id"] is None
-    assert data["action"] == "balas_teks"
     assert data["text_response"] == "reply"
-    assert data["sentiment_score"] == 0.2
-    assert data["key_emotions"] == "calm"
-    assert data["detected_mood"] == "\U0001F610"
-    assert data["issue_type"] is None
-    assert data["recommended_technique"] is None
-    assert data["tone"] is None
 
     logs_resp = client.get("/api/v1/emotion/", headers=headers)
     assert logs_resp.status_code == 200
@@ -298,13 +283,9 @@ def test_prompt_endpoint_rate_limit(client, monkeypatch):
     resp = client.post("/api/v1/chat/prompt", headers=headers)
     assert resp.status_code == 200
     data = resp.json()
-    assert data["action"] == "balas_teks"
     assert data["text_response"] == "hey?"
     assert data["message_id"] > 0
     assert data["ai_message_id"] == data["message_id"]
-    assert data["issue_type"] is None
-    assert data["recommended_technique"] is None
-    assert data["tone"] is None
 
     second = client.post("/api/v1/chat/prompt", headers=headers)
     assert second.status_code == 429
