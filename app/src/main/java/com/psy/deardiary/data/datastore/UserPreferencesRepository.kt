@@ -7,7 +7,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -29,7 +28,6 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext context:
         // PENAMBAHAN BARU: Key untuk menyimpan nomor kontak darurat
         val EMERGENCY_CONTACT = stringPreferencesKey("emergency_contact_number")
         val USER_ID = intPreferencesKey("user_id")
-        val CHAT_ONBOARD_SHOWN = booleanPreferencesKey("chat_onboard_shown")
         val LAST_AI_PROMPT = longPreferencesKey("last_ai_prompt")
     }
 
@@ -50,9 +48,6 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext context:
         prefs[PreferencesKeys.LAST_AI_PROMPT]
     }
 
-    val chatOnboardShown: Flow<Boolean> = dataStore.data.map { preferences ->
-        preferences[PreferencesKeys.CHAT_ONBOARD_SHOWN] ?: false
-    }
 
     suspend fun saveAuthToken(token: String) {
         dataStore.edit { preferences ->
@@ -66,11 +61,6 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext context:
         }
     }
 
-    suspend fun setChatOnboardShown(shown: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[PreferencesKeys.CHAT_ONBOARD_SHOWN] = shown
-        }
-    }
 
     suspend fun setLastAiPrompt(timestamp: Long) {
         dataStore.edit { prefs ->
