@@ -13,8 +13,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import com.psy.deardiary.data.network.ChatApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -47,8 +45,6 @@ class ChatRepository @Inject constructor(
         }
 
     val lastPromptTime: Flow<Long?> = userPreferencesRepository.lastAiPrompt
-    private val _journalTemplate = MutableStateFlow<String?>(null)
-    val journalTemplate = _journalTemplate.asStateFlow()
 
     fun getConversation(): Flow<List<ChatMessage>> =
         messages.onEach { history ->
@@ -264,10 +260,6 @@ class ChatRepository @Inject constructor(
                 Result.Error("Terjadi kesalahan: ${e.message}")
             }
         }
-    }
-
-    fun clearJournalTemplate() {
-        _journalTemplate.value = null
     }
 
     suspend fun getAllMessagesOnce(): List<ChatMessage> {

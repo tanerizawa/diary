@@ -4,11 +4,6 @@ import com.google.gson.annotations.SerializedName
 
 data class ChatRequest(val message: String)
 
-data class ChatResponse(
-    val reply: String,
-    @SerializedName("sentiment_score") val sentimentScore: Float? = null,
-    @SerializedName("key_emotions") val keyEmotions: String? = null
-)
 
 data class ChatMessageResponse(
     val id: Int,
@@ -35,6 +30,8 @@ data class FinalChatResponse(
     @SerializedName("ai_message_id") val replyId: Int?,
     @SerializedName("text_response") val textResponse: String
 )
+
+typealias AiChatResponse = FinalChatResponse
 
 data class DeleteMessagesRequest(
     val ids: List<Int>
