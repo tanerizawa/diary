@@ -5,3 +5,4 @@ from .base_class import Base
 from .models.user import User
 from .models.journal import JournalEntry
 from .models.chat import ChatMessage
+from .models.embedding import SemanticEmbedding

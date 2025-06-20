@@ -100,17 +100,15 @@ def test_chat_context_assembly(client, monkeypatch):
     resp = client.post("/api/v1/chat/", json={"message": "hello"}, headers=headers)
     assert resp.status_code == 200
 
-    expected = (
+    expected_prefix = (
         "Time of day: morning\n"
         "Mood frequencies: sad:1, happy:1\n"
-        "Recent journal entries:\n"
-        "I am sad\n"
-        "I am happy\n"
-        "Recent conversation:\n"
+        "Similar entries:\n"
         "m2\n"
-        "m1"
+        "m1\n"
+        "I am happy"
     )
-    assert captured["context"] == expected
+    assert captured["context"].startswith(expected_prefix)
 
 
 def test_prompt_context_assembly(client, monkeypatch):

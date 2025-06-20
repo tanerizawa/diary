@@ -4,6 +4,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app import crud, models
+from .embedding import find_similar_entries
 
 
 def _time_of_day() -> str:
@@ -17,7 +18,7 @@ def _time_of_day() -> str:
     return "night"
 
 
-def build_chat_context(db: Session, user: models.User) -> str:
+def build_chat_context(db: Session, user: models.User, text: str | None = None) -> str:
     """Assemble a string summarizing user info and recent activity."""
     journals = crud.journal.get_multi_by_owner(db, owner_id=user.id, limit=5)
     context_lines = [j.content for j in journals]
@@ -46,9 +47,14 @@ def build_chat_context(db: Session, user: models.User) -> str:
     sections.append(f"Time of day: {_time_of_day()}")
     if mood_summary:
         sections.append(f"Mood frequencies: {mood_summary}")
-    if context_lines:
-        sections.append("Recent journal entries:\n" + "\n".join(context_lines))
-    if message_lines:
-        sections.append("Recent conversation:\n" + "\n".join(message_lines))
+    if text:
+        similar = find_similar_entries(db, user, text, limit=3)
+        if similar:
+            sections.append("Similar entries:\n" + "\n".join(similar))
+    else:
+        if context_lines:
+            sections.append("Recent journal entries:\n" + "\n".join(context_lines))
+        if message_lines:
+            sections.append("Recent conversation:\n" + "\n".join(message_lines))
 
     return "\n".join(sections)
