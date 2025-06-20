@@ -25,7 +25,8 @@ class AudioRecorder @Inject constructor(
 
     private fun createRecorder(): MediaRecorder {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            MediaRecorder(context)
+            val attributedContext = context.createAttributionContext("record_audio")
+            MediaRecorder(attributedContext)
         } else {
             @Suppress("DEPRECATION")
             MediaRecorder()

@@ -3,4 +3,5 @@
     <string name="onboarding_welcome">Selamat Datang di Dear Diary</string>
     <string name="onboarding_reflect">Ruang aman untuk merefleksikan harimu.</string>
     <string name="onboarding_private">Pikiranmu aman dan pribadi di sini.</string>
+    <string name="record_audio_attribution">Audio recording</string>
 </resources>
