@@ -117,8 +117,9 @@ def test_chat_sentiment_response(client, monkeypatch):
     headers = register_and_login(client, email="chat@example.com")
 
     captured = {}
-    async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
+    async def fake_reply(message: str, context: str = "", relationship_level: int = 0, analysis=None):
         captured["ctx"] = context
+        captured["analysis"] = analysis
         return {"action": "balas_teks", "text_response": "hi"}
 
     async def fake_analysis(text: str):
@@ -151,7 +152,11 @@ def test_chat_sentiment_response(client, monkeypatch):
     assert data["issue_type"] == "stress"
     assert data["recommended_technique"] == "breathing"
     assert data["tone"] == "tense"
-    assert "issue_type" in captured["ctx"]
+    assert captured["analysis"] == {
+        "issue_type": "stress",
+        "technique": "breathing",
+        "tone": "tense",
+    }
 
     logs_resp = client.get("/api/v1/emotion/", headers=headers)
     assert logs_resp.status_code == 200
@@ -165,7 +170,7 @@ def test_chat_sentiment_response(client, monkeypatch):
 def test_chat_analysis_failure(client, monkeypatch):
     headers = register_and_login(client, email="fail@example.com")
 
-    async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
+    async def fake_reply(message: str, context: str = "", relationship_level: int = 0, analysis=None):
         return {"action": "balas_teks", "text_response": "ok"}
 
     async def fail_analysis(text: str):
@@ -190,7 +195,7 @@ def test_chat_analysis_failure(client, monkeypatch):
 def test_message_post_handler(client, monkeypatch):
     headers = register_and_login(client, email="msg@example.com")
 
-    async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
+    async def fake_reply(message: str, context: str = "", relationship_level: int = 0, analysis=None):
         return {"action": "balas_teks", "text_response": "reply"}
 
     async def fake_sentiment(text: str):
@@ -230,7 +235,7 @@ def test_message_post_handler(client, monkeypatch):
 def test_delete_messages_endpoint(client, monkeypatch):
     headers = register_and_login(client, email="delmsg@example.com")
 
-    async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
+    async def fake_reply(message: str, context: str = "", relationship_level: int = 0, analysis=None):
         return {"action": "balas_teks", "text_response": "ok"}
 
     async def fake_sentiment(text: str):
@@ -260,7 +265,7 @@ def test_delete_messages_endpoint(client, monkeypatch):
 def test_prompt_endpoint_rate_limit(client, monkeypatch):
     headers = register_and_login(client, email="prompt@example.com")
 
-    async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
+    async def fake_reply(message: str, context: str = "", relationship_level: int = 0, analysis=None):
         return {"action": "balas_teks", "text_response": "hey?"}
 
     monkeypatch.setattr("app.api.v1.endpoints.chat.get_ai_reply", fake_reply)

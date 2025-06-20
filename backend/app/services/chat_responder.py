@@ -5,11 +5,13 @@ from app.schemas.action import Action
 
 MAX_REPLY_LENGTH = 280
 
-async def get_ai_reply(message: str, context: str = "", relationship_level: int = 0) -> dict | None:
-    """
-    Mengirim pesan ke OpenRouter API dan mengembalikan balasan.
-    Balasan dibatasi maksimal 280 karakter dan bersifat personal-supportif.
-    """
+async def get_ai_reply(
+    message: str,
+    context: str = "",
+    relationship_level: int = 0,
+    analysis: dict | None = None,
+) -> dict | None:
+    """Send a chat message to the AI service and return the response."""
     instructions = (
         "Jawablah dengan kalimat personal dan hangat dalam Bahasa Indonesia "
         "dengan format JSON berikut: "
@@ -26,10 +28,13 @@ async def get_ai_reply(message: str, context: str = "", relationship_level: int 
         relation = "acquaintance"
 
     base = f"Anda adalah {relation} pengguna dan pendamping kesehatan mental yang suportif. "
-    system_prompt = (
-        f"{context}\n{base}{instructions}" if context
-        else base + instructions
-    )
+    system_prompt = f"{context}\n{base}{instructions}" if context else base + instructions
+
+    messages = []
+    if analysis:
+        messages.append({"role": "system", "content": json.dumps(analysis, ensure_ascii=False)})
+    messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": message})
 
     if not settings.AI_API_KEY or settings.AI_API_KEY == "CHANGE_ME":
         print("AI_API_KEY environment variable is not set or is a placeholder.")
@@ -45,10 +50,7 @@ async def get_ai_reply(message: str, context: str = "", relationship_level: int 
         # Model diganti sesuai dengan yang ada di .env Anda
         body = {
             "model": settings.AI_MODEL,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": message}
-            ]
+            "messages": messages,
         }
 
         # Inisialisasi response di luar blok async with agar bisa diakses di except block

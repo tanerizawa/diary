@@ -33,13 +33,12 @@ async def chat_with_ai(
     logic so responses remain snappy."""
     analysis = await analyze_message(chat_in.message)
     context = build_chat_context(db, current_user, chat_in.message)
-    if analysis:
-        context += "\nAnalysis: " + json.dumps(analysis, ensure_ascii=False)
 
     reply = await get_ai_reply(
         chat_in.message,
         context=context,
         relationship_level=current_user.relationship_level,
+        analysis=analysis,
     )
     if reply is None:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
