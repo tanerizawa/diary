@@ -14,3 +14,8 @@ celery_app.conf.task_serializer = "json"
 celery_app.conf.result_serializer = "json"
 celery_app.conf.accept_content = ["json"]
 celery_app.conf.timezone = "UTC"
+
+# Automatically discover task modules within the ``app`` package so that
+# running the worker with ``-A backend.app.celery_app.celery_app`` will
+# properly register tasks like ``app.tasks.process_chat_sentiment``.
+celery_app.autodiscover_tasks(["app"])
