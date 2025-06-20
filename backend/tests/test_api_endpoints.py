@@ -19,7 +19,7 @@ from app.db import Base
 from app.api import deps
 from app import crud
 from backend.main import app
-from app.schemas.conversation import ConversationPlan
+from app.schemas.conversation import ConversationPlan, CommunicationTechnique
 
 
 @pytest.fixture
@@ -122,7 +122,7 @@ def test_chat_sentiment_response(client, monkeypatch):
     captured = {}
     async def fake_plan(context: str, user_message: str):
         captured["ctx"] = context
-        return ConversationPlan(technique="mirror")
+        return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
         return "hi"
@@ -174,7 +174,7 @@ def test_chat_analysis_failure(client, monkeypatch):
     headers = register_and_login(client, email="fail@example.com")
 
     async def fake_plan(context: str, user_message: str):
-        return ConversationPlan(technique="mirror")
+        return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
         return "ok"
@@ -203,7 +203,7 @@ def test_message_post_handler(client, monkeypatch):
     headers = register_and_login(client, email="msg@example.com")
 
     async def fake_plan(context: str, user_message: str):
-        return ConversationPlan(technique="mirror")
+        return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
         return "reply"
@@ -240,7 +240,7 @@ def test_delete_messages_endpoint(client, monkeypatch):
     headers = register_and_login(client, email="delmsg@example.com")
 
     async def fake_plan(context: str, user_message: str):
-        return ConversationPlan(technique="mirror")
+        return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
         return "ok"
@@ -274,7 +274,7 @@ def test_prompt_endpoint_rate_limit(client, monkeypatch):
     headers = register_and_login(client, email="prompt@example.com")
 
     async def fake_plan(context: str, user_message: str):
-        return ConversationPlan(technique="mirror")
+        return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
         return "hey?"
@@ -299,7 +299,7 @@ def test_relationship_level_prompt_variation(client, monkeypatch):
 
     async def fake_plan(context: str, user_message: str):
         prompts.append(context)
-        return ConversationPlan(technique="mirror")
+        return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
         return "ok"

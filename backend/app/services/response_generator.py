@@ -4,14 +4,17 @@ import httpx
 
 from app.core.config import settings
 from app.schemas.conversation import ConversationPlan
+from app.services.conversation_planner import TOOLBOX
 
 
 async def generate_pure_response(plan: ConversationPlan, user_message: str) -> str:
     """Generate a plain text reply applying the given conversation technique."""
     technique = plan.technique_to_use
+    instruction = TOOLBOX.get(plan.technique, "")
     prompt = f"""
 You are the 'actor' persona executing the assistant's reply.
 Follow the director's instructions exactly and use this technique: {technique}.
+To apply it, {instruction}.
 Respond directly to the user in Bahasa Indonesia without any JSON or formatting.
 
 User message:\n{user_message}

@@ -17,4 +17,4 @@ from .emotion_log import (
     EmotionLogCreate,
     EmotionLogUpdate,
 )
-from .conversation import ConversationPlan
+from .conversation import ConversationPlan, CommunicationTechnique

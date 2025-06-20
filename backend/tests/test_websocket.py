@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from app.db import Base
 from app.api import deps
 from backend.main import app
-from app.schemas.conversation import ConversationPlan
+from app.schemas.conversation import ConversationPlan, CommunicationTechnique
 
 
 @pytest.fixture
@@ -65,7 +65,7 @@ def test_websocket_chat(client, monkeypatch):
     token = register_and_login(client)
 
     async def fake_plan(context: str, user_message: str):
-        return ConversationPlan(technique="mirror")
+        return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
         return "pong"
