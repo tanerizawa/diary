@@ -90,6 +90,7 @@ async def chat_with_ai(
 
     # Removed artificial delay to improve responsiveness.
     return schemas.ChatResponse(
+        message_id=created_user_msg.id,
         reply_text=reply,
         sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
         key_emotions=analysis_result.get("key_emotions") if analysis_result else None,
@@ -151,6 +152,7 @@ async def create_message(
     # The simple message endpoint does not store AI responses
 
     return schemas.ChatResponse(
+        message_id=created_msg.id,
         reply_text=reply,
         sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
         key_emotions=analysis_result.get("key_emotions") if analysis_result else None,
@@ -198,9 +200,11 @@ async def prompt_chat(
         is_user=False,
         timestamp=now_ts,
     )
-    crud.chat_message.create_with_owner(db, obj_in=ai_msg, owner_id=current_user.id)
+    created_ai_msg = crud.chat_message.create_with_owner(
+        db, obj_in=ai_msg, owner_id=current_user.id
+    )
 
-    return schemas.ChatResponse(reply_text=reply)
+    return schemas.ChatResponse(message_id=created_ai_msg.id, reply_text=reply)
 
 
 @router.get(

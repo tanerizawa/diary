@@ -94,7 +94,7 @@ class HomeChatViewModel @Inject constructor(
     fun sendMessage(text: String) {
         viewModelScope.launch {
             // 1. Tambahkan pesan pengguna ke history
-            chatRepository.addMessage(text, isUser = true)
+            val userMsg = chatRepository.addMessage(text, isUser = true)
 
             // 2. Sisipkan pesan sementara sebagai indikator mengetik
             val placeholder = chatRepository.addMessage(
@@ -110,7 +110,9 @@ class HomeChatViewModel @Inject constructor(
             // 4. Panggil API dengan batas waktu lebih lama agar server punya waktu
             //    yang cukup untuk merespons. Batas lama sebelumnya kadang terlalu
             //    singkat sehingga balasan AI tidak sempat diterima sepenuhnya.
-            val result = withTimeoutOrNull(30_000) { chatRepository.sendMessage(text) }
+            val result = withTimeoutOrNull(30_000) {
+                chatRepository.sendMessage(text, userMsg.id)
+            }
 
             // 5. Ganti pesan placeholder dengan hasil atau pesan kesalahan
             when (result) {

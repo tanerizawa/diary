@@ -132,6 +132,7 @@ def test_chat_sentiment_response(client, monkeypatch):
     resp = client.post("/api/v1/chat/", json={"message": "hello"}, headers=headers)
     assert resp.status_code == 200
     data = resp.json()
+    assert data["message_id"] > 0
     assert data["reply_text"] == "hi"
     assert data["sentiment_score"] == 0.5
     assert data["key_emotions"] == "happy"
@@ -167,6 +168,7 @@ def test_message_post_handler(client, monkeypatch):
     )
     assert resp.status_code == 200
     data = resp.json()
+    assert data["message_id"] > 0
     assert data["reply_text"] == "reply"
     assert data["sentiment_score"] == 0.2
     assert data["key_emotions"] == "calm"
@@ -220,7 +222,9 @@ def test_prompt_endpoint_rate_limit(client, monkeypatch):
 
     resp = client.post("/api/v1/chat/prompt", headers=headers)
     assert resp.status_code == 200
-    assert resp.json()["reply_text"] == "hey?"
+    data = resp.json()
+    assert data["reply_text"] == "hey?"
+    assert data["message_id"] > 0
 
     second = client.post("/api/v1/chat/prompt", headers=headers)
     assert second.status_code == 429
