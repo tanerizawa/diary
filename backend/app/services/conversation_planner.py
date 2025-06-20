@@ -1,5 +1,6 @@
 import json
 import httpx
+import structlog
 
 from app.core.config import settings
 
@@ -27,6 +28,12 @@ SYNONYMS = {
 
 async def plan_conversation_strategy(context: str, user_message: str) -> ConversationPlan | None:
     """Request a conversation technique suggestion from the AI service."""
+    log = structlog.get_logger(__name__)
+    log.info(
+        "planning_conversation",
+        context_length=len(context),
+        user_message=user_message,
+    )
     available = ", ".join(t.value for t in CommunicationTechnique)
     prompt = f"""
 You are the 'director' persona guiding how the assistant should reply next.
@@ -78,7 +85,8 @@ User message:\n{user_message}
                     ),
                     CommunicationTechnique.PROBING,
                 )
+            log.info("planner_success", technique=tech_enum.value)
             return ConversationPlan(technique=tech_enum)
     except (httpx.RequestError, httpx.HTTPStatusError, json.JSONDecodeError, KeyError, ValueError, AttributeError) as e:
-        print(f"Error calling conversation planner: {e}")
+        log.error("planner_error", error=str(e))
         return None
