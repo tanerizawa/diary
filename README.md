@@ -90,7 +90,7 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
 
 ### Konfigurasi Environment
 
-1. Salin berkas `.env.example` di direktori root menjadi `.env` dan isi variabel di bawah ini:
+1. Salin berkas `.env.example` di direktori root menjadi `.env` dan isi variabel di bawah ini. File contoh kini hanya tersedia di direktori root:
 
    - `DATABASE_URL` – URL koneksi database
    - `SECRET_KEY` – kunci rahasia untuk JWT
