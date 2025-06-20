@@ -122,8 +122,23 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    suspend fun sendMessage(text: String): Result<AiChatResponse> {
-        return fetchReply(text)
+    suspend fun sendMessage(text: String, localId: Int): Result<AiChatResponse> {
+        val result = fetchReply(text)
+        if (result is Result.Success) {
+            val body = result.data
+            body.messageId?.let { remoteId ->
+                withContext(Dispatchers.IO) {
+                    chatMessageDao.markAsSynced(
+                        localId,
+                        remoteId,
+                        body.sentimentScore,
+                        body.keyEmotions,
+                        body.detectedMood
+                    )
+                }
+            }
+        }
+        return result
     }
 
     suspend fun promptChat(): Result<AiChatResponse> {
@@ -167,6 +182,7 @@ class ChatRepository @Inject constructor(
                 val uid = userPreferencesRepository.userId.first() ?: return@withContext Result.Error("User not logged in")
                 val unsynced = chatMessageDao.getUnsyncedMessages(uid)
                 for (msg in unsynced) {
+                    if (msg.isSynced) continue
                     val response = chatApiService.postMessage(msg.toCreateRequest())
                     if (response.isSuccessful && response.body() != null) {
                         val body = response.body()!!

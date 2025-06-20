@@ -32,7 +32,10 @@ data class ChatMessageCreateRequest(
 
 data class AiChatResponse(
     @SerializedName("reply_text") val replyText: String,
-    @SerializedName("detected_mood") val detectedMood: String? = null
+    @SerializedName("detected_mood") val detectedMood: String? = null,
+    @SerializedName("sentiment_score") val sentimentScore: Float? = null,
+    @SerializedName("key_emotions") val keyEmotions: String? = null,
+    @SerializedName("message_id") val messageId: Int? = null
 )
 
 data class DeleteMessagesRequest(
