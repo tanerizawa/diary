@@ -45,6 +45,7 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToCrisisSupport: () -> Unit,
     onNavigateToEditor: () -> Unit,
+    onNavigateToEditorWithPrompt: (String) -> Unit,
     mainViewModel: com.psy.deardiary.features.main.MainViewModel,
     viewModel: HomeViewModel = hiltViewModel(),
     chatViewModel: HomeChatViewModel = hiltViewModel()
@@ -62,11 +63,15 @@ fun HomeScreen(
     var showBreathing by remember { mutableStateOf(false) }
 
     val pendingAction by chatViewModel.pendingAction.collectAsState()
+    val journalTemplate by chatViewModel.journalTemplate.collectAsState()
 
     LaunchedEffect(pendingAction) {
         when (pendingAction) {
             "suggest_breathing_exercise" -> showBreathing = true
-            "open_journal_editor" -> onNavigateToEditor()
+            "open_journal_editor" -> {
+                journalTemplate?.let { onNavigateToEditorWithPrompt(it) }
+                    ?: onNavigateToEditor()
+            }
             "show_crisis_contact" -> onNavigateToCrisisSupport()
         }
         if (pendingAction != null) chatViewModel.consumeAction()

@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import com.psy.deardiary.data.network.ChatApiService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -45,6 +47,8 @@ class ChatRepository @Inject constructor(
         }
 
     val lastPromptTime: Flow<Long?> = userPreferencesRepository.lastAiPrompt
+    private val _journalTemplate = MutableStateFlow<String?>(null)
+    val journalTemplate = _journalTemplate.asStateFlow()
 
     fun getConversation(): Flow<List<ChatMessage>> =
         messages.onEach { history ->
@@ -134,6 +138,9 @@ class ChatRepository @Inject constructor(
         val result = fetchReply(text)
         if (result is Result.Success) {
             val body = result.data
+            if (body.action == "open_journal_editor") {
+                _journalTemplate.value = body.journalTemplate
+            }
             body.messageId?.let { remoteId ->
                 withContext(Dispatchers.IO) {
                     chatMessageDao.markAsSynced(
@@ -155,6 +162,9 @@ class ChatRepository @Inject constructor(
                 val response = chatApiService.requestPrompt()
                 if (response.isSuccessful && response.body() != null) {
                     val body = response.body()!!
+                    if (body.action == "open_journal_editor") {
+                        _journalTemplate.value = body.journalTemplate
+                    }
                     val uid = userPreferencesRepository.userId.first() ?: 0
                     chatMessageDao.insertMessage(
                         ChatMessage(
@@ -263,5 +273,9 @@ class ChatRepository @Inject constructor(
                 Result.Error("Terjadi kesalahan: ${e.message}")
             }
         }
+    }
+
+    fun clearJournalTemplate() {
+        _journalTemplate.value = null
     }
 }

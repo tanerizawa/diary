@@ -36,6 +36,7 @@ class HomeChatViewModel @Inject constructor(
 
     private val _pendingAction = MutableStateFlow<String?>(null)
     val pendingAction = _pendingAction.asStateFlow()
+    val journalTemplate = chatRepository.journalTemplate
 
     private val _selectedIds = MutableStateFlow<Set<Int>>(emptySet())
     val selectedIds = _selectedIds.asStateFlow()
@@ -153,5 +154,6 @@ class HomeChatViewModel @Inject constructor(
 
     fun consumeAction() {
         _pendingAction.value = null
+        chatRepository.clearJournalTemplate()
     }
 }

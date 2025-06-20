@@ -29,3 +29,6 @@ class ChatResponse(BaseModel):
     tone: str | None = Field(
         None, description="Estimated user tone"
     )
+    journal_template: str | None = Field(
+        None, description="Suggested journal template when opening the editor"
+    )

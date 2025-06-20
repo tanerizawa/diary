@@ -70,14 +70,23 @@ async def get_ai_reply(message: str, context: str = "", relationship_level: int 
             parsed = json.loads(reply)
             action = parsed.get("action", Action.balas_teks.value)
             text = parsed.get("text_response", "")
+            journal_template = (
+                parsed.get("journal_template")
+                if action == Action.open_journal_editor.value
+                else None
+            )
         except json.JSONDecodeError:
             action = Action.balas_teks.value
             text = reply
+            journal_template = None
 
         if len(text) > MAX_REPLY_LENGTH:
             text = text[:MAX_REPLY_LENGTH]
 
-        return {"action": action, "text_response": text}
+        result = {"action": action, "text_response": text}
+        if journal_template is not None:
+            result["journal_template"] = journal_template
+        return result
 
     # --- BLOK EXCEPT YANG DISEMPURNAKAN ---
 

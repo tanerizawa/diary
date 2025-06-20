@@ -88,6 +88,10 @@ fun MainScreen(
                     onNavigateToSettings = { mainNavController.navigate(Screen.Settings.route) },
                     onNavigateToCrisisSupport = { mainNavController.navigate(Screen.CrisisSupport.route) },
                     onNavigateToEditor = { mainNavController.navigate(Screen.Editor.createRoute(null)) },
+                    onNavigateToEditorWithPrompt = { prompt ->
+                        val encodedPrompt = URLEncoder.encode(prompt, "UTF-8")
+                        mainNavController.navigate(Screen.Editor.createRoute(prompt = encodedPrompt))
+                    },
                     mainViewModel = mainViewModel
                 )
             }
