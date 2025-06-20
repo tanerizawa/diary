@@ -5,6 +5,9 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     message_id: int = Field(..., description="ID of the created message")
+    ai_message_id: int | None = Field(
+        None, description="ID of the AI-generated reply message"
+    )
     reply_text: str = Field(..., description="Assistant reply text")
     sentiment_score: float | None = Field(
         None, description="Sentiment score for the reply"

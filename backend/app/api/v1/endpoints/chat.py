@@ -57,7 +57,9 @@ async def chat_with_ai(
         is_user=False,
         timestamp=int(asyncio.get_event_loop().time() * 1000),
     )
-    crud.chat_message.create_with_owner(db, obj_in=ai_msg, owner_id=current_user.id)
+    created_ai_msg = crud.chat_message.create_with_owner(
+        db, obj_in=ai_msg, owner_id=current_user.id
+    )
 
     # Classify user's mood using the heuristic classifier
     detected_mood = detect_mood(chat_in.message)
@@ -80,6 +82,7 @@ async def chat_with_ai(
     # Removed artificial delay to improve responsiveness.
     return schemas.ChatResponse(
         message_id=created_user_msg.id,
+        ai_message_id=created_ai_msg.id,
         reply_text=reply,
         sentiment_score=None,
         key_emotions=None,
@@ -142,6 +145,7 @@ async def create_message(
 
     return schemas.ChatResponse(
         message_id=created_msg.id,
+        ai_message_id=None,
         reply_text=reply,
         sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
         key_emotions=analysis_result.get("key_emotions") if analysis_result else None,
@@ -193,7 +197,11 @@ async def prompt_chat(
         db, obj_in=ai_msg, owner_id=current_user.id
     )
 
-    return schemas.ChatResponse(message_id=created_ai_msg.id, reply_text=reply)
+    return schemas.ChatResponse(
+        message_id=created_ai_msg.id,
+        ai_message_id=created_ai_msg.id,
+        reply_text=reply,
+    )
 
 
 @router.get(

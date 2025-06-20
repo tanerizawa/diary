@@ -119,9 +119,10 @@ class HomeChatViewModel @Inject constructor(
                 is Result.Success -> {
                     val response = result.data
                     chatRepository.updateMessageWithReply(
-                        placeholder.id,
-                        response.replyText,
-                        response.detectedMood
+                        id = placeholder.id,
+                        replyText = response.replyText,
+                        detectedMood = response.detectedMood,
+                        remoteId = response.replyId
                     )
                 }
                 is Result.Error, null -> {

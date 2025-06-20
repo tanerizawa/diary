@@ -49,7 +49,9 @@ class ChatRepositoryTest {
 
     @Test
     fun fetchReplySuccess_returnsSuccess() = runTest {
-        whenever(api.sendMessage(any())).thenReturn(Response.success(AiChatResponse("hi")))
+        whenever(api.sendMessage(any())).thenReturn(
+            Response.success(AiChatResponse("hi", replyId = 1))
+        )
 
         val result = repository.fetchReply("hello")
 

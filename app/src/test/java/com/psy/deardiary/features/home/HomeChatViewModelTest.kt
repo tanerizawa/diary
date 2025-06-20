@@ -63,14 +63,14 @@ class HomeChatViewModelTest {
         whenever(repository.addMessage(any(), eq(true), eq(false))).thenReturn(userMsg)
         whenever(repository.addMessage(any(), eq(false), eq(true))).thenReturn(ChatMessage(id=2, text="placeholder", isUser=false, isPlaceholder=true, userId = 1))
         whenever(repository.sendMessage("hi", userMsg.id)).thenReturn(
-            Result.Success(AiChatResponse("hello", "happy"))
+            Result.Success(AiChatResponse("hello", "happy", replyId = 3))
         )
         viewModel.sendMessage("hi")
         advanceUntilIdle()
         verify(repository).addMessage("hi", true, false)
         verify(repository).addMessage("Sedang mengetik jawaban...", false, true)
         verify(repository).sendMessage("hi", userMsg.id)
-        verify(repository).updateMessageWithReply(2, "hello", "happy")
+        verify(repository).updateMessageWithReply(2, "hello", "happy", 3)
     }
 
     @Test
