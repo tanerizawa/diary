@@ -23,7 +23,9 @@ async def analyze_sentiment_with_ai(text: str) -> dict | None:
 
     headers = {
         "Authorization": f"Bearer {settings.AI_API_KEY}",
-        "Content-Type": "application/json"
+        "HTTP-Referer": settings.AI_HTTP_REFERER,
+        "X-Title": settings.AI_TITLE,
+        "Content-Type": "application/json",
     }
 
     # Model yang akan digunakan (contoh: Google Gemini Flash)
