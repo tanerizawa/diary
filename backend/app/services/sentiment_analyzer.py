@@ -29,7 +29,7 @@ async def analyze_sentiment_with_ai(text: str) -> dict | None:
     # Model yang akan digunakan (contoh: Google Gemini Flash)
     # Anda bisa menggantinya dengan model lain yang tersedia di OpenRouter
     body = {
-        "model": "google/gemini-flash-1.5",
+        "model": settings.AI_MODEL,
         "messages": [
             {"role": "user", "content": prompt}
         ],
