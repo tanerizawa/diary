@@ -32,7 +32,8 @@ class Settings(BaseSettings):
     # saat aplikasi dijalankan (yaitu dari dalam folder 'backend')
     model_config = SettingsConfigDict(
         env_file=".env",
-        env_file_encoding="utf-8"
+        env_file_encoding="utf-8",
+        extra="ignore",
     )
 
 settings = Settings()
