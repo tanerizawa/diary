@@ -20,3 +20,12 @@ class ChatResponse(BaseModel):
     detected_mood: str | None = Field(
         None, description="Overall mood detected from the conversation"
     )
+    issue_type: str | None = Field(
+        None, description="Detected issue type from the message"
+    )
+    recommended_technique: str | None = Field(
+        None, description="Suggested coping technique"
+    )
+    tone: str | None = Field(
+        None, description="Estimated user tone"
+    )

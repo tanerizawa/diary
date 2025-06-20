@@ -2,6 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.orm import Session
 import asyncio
+import json
 
 from app import crud, models, schemas
 from app.schemas.chat_message import ChatMessageDeleteRequest
@@ -9,7 +10,7 @@ from app.api import deps
 from app.services.chat_responder import get_ai_reply
 from app.services.sentiment_analyzer import analyze_sentiment_with_ai
 from app.services.emotion_classifier import detect_mood
-from app.services import build_chat_context
+from app.services import build_chat_context, analyze_message
 from app.tasks import process_chat_sentiment
 
 router = APIRouter()
@@ -30,7 +31,10 @@ async def chat_with_ai(
     Adds a short delay to mimic typing behavior. This delay can be
     removed or shortened once the client implements its own waiting
     logic so responses remain snappy."""
+    analysis = await analyze_message(chat_in.message)
     context = build_chat_context(db, current_user, chat_in.message)
+    if analysis:
+        context += "\nAnalysis: " + json.dumps(analysis, ensure_ascii=False)
 
     reply = await get_ai_reply(
         chat_in.message,
@@ -90,6 +94,9 @@ async def chat_with_ai(
         sentiment_score=None,
         key_emotions=None,
         detected_mood=detected_mood,
+        issue_type=analysis.get("issue_type") if analysis else None,
+        recommended_technique=analysis.get("technique") if analysis else None,
+        tone=analysis.get("tone") if analysis else None,
     )
 
 
@@ -156,6 +163,9 @@ async def create_message(
         sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
         key_emotions=analysis_result.get("key_emotions") if analysis_result else None,
         detected_mood=detected_mood,
+        issue_type=None,
+        recommended_technique=None,
+        tone=None,
     )
 
 
