@@ -4,6 +4,8 @@ os.environ.setdefault("SECRET_KEY", "test")
 os.environ.setdefault("AI_API_KEY", "test")
 os.environ.setdefault("AI_API_URL", "http://test")
 os.environ.setdefault("AI_MODEL", "test-model")
+os.environ.setdefault("AI_PLANNER_MODEL", "test-model")
+os.environ.setdefault("AI_GENERATOR_MODEL", "test-model")
 import sys
 import pytest
 from sqlalchemy import create_engine

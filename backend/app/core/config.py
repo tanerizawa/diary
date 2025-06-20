@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     AI_API_KEY: str
     AI_API_URL: str
     AI_MODEL: str  # Perbaikan untuk error 'AttributeError' sebelumnya
+    # Model khusus untuk perencana percakapan dan generator respons
+    AI_PLANNER_MODEL: str
+    AI_GENERATOR_MODEL: str
 
     @field_validator("AI_API_KEY")
     @classmethod
