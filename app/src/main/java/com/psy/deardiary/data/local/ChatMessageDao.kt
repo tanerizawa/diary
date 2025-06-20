@@ -32,6 +32,9 @@ interface ChatMessageDao {
     @Query("SELECT * FROM chat_messages WHERE id = :id AND userId = :userId LIMIT 1")
     suspend fun getMessageById(id: Int, userId: Int): ChatMessage?
 
+    @Query("SELECT * FROM chat_messages WHERE remoteId IS :remoteId AND userId = :userId LIMIT 1")
+    suspend fun getMessageByRemoteId(remoteId: Int?, userId: Int): ChatMessage?
+
     @Query("DELETE FROM chat_messages WHERE userId = :userId")
     suspend fun deleteAllMessages(userId: Int)
 
@@ -41,7 +44,7 @@ interface ChatMessageDao {
     @Transaction
     suspend fun upsertAll(messages: List<ChatMessage>) {
         messages.forEach { message ->
-            val existing = getMessageById(message.id, message.userId)
+            val existing = getMessageByRemoteId(message.remoteId, message.userId)
             if (existing == null) {
                 insertMessage(message)
             } else {

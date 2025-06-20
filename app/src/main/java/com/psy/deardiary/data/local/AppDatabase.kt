@@ -13,7 +13,7 @@ import com.psy.deardiary.data.model.ChatMessage
 // --- PERBAIKAN: Naikkan versi database dari 2 menjadi 3 ---
 @Database(
     entities = [JournalEntry::class, ChatMessage::class],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -39,6 +39,14 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_5_6 = object : Migration(5, 6) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE chat_messages ADD COLUMN detectedMood TEXT")
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS index_chat_messages_remoteId_userId ON chat_messages(remoteId, userId)"
+                )
             }
         }
     }

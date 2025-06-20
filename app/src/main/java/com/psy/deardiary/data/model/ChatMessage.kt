@@ -1,9 +1,13 @@
 package com.psy.deardiary.data.model
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "chat_messages")
+@Entity(
+    tableName = "chat_messages",
+    indices = [Index(value = ["remoteId", "userId"], unique = true)]
+)
 data class ChatMessage(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
