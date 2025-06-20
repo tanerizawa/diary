@@ -38,9 +38,8 @@ def build_chat_context(db: Session, user: models.User, text: str | None = None) 
         info_parts.append(user.name)
     if user.bio:
         info_parts.append(user.bio)
-    mbti = getattr(user, "mbti", None)
-    if mbti:
-        info_parts.append(f"MBTI: {mbti}")
+    if user.mbti_type:
+        info_parts.append(f"MBTI: {user.mbti_type}")
     if info_parts:
         sections.append("User info: " + ", ".join(info_parts))
 
