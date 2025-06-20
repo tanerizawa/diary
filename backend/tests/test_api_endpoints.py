@@ -116,8 +116,13 @@ def test_feed_endpoint(client):
 def test_chat_sentiment_response(client, monkeypatch):
     headers = register_and_login(client, email="chat@example.com")
 
+    captured = {}
     async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
+        captured["ctx"] = context
         return {"action": "balas_teks", "text_response": "hi"}
+
+    async def fake_analysis(text: str):
+        return {"issue_type": "stress", "technique": "breathing", "tone": "tense"}
 
     async def fake_sentiment(text: str):
         return {"sentiment_score": 0.5, "key_emotions": "happy"}
@@ -125,6 +130,9 @@ def test_chat_sentiment_response(client, monkeypatch):
     monkeypatch.setattr("app.api.v1.endpoints.chat.get_ai_reply", fake_reply)
     monkeypatch.setattr(
         "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_sentiment
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.analyze_message", fake_analysis
     )
     from app.tasks import process_chat_sentiment
     monkeypatch.setattr(process_chat_sentiment, "delay", lambda *a, **k: None)
@@ -140,6 +148,10 @@ def test_chat_sentiment_response(client, monkeypatch):
     assert data["sentiment_score"] is None
     assert data["key_emotions"] is None
     assert data["detected_mood"] == "\U0001F610"
+    assert data["issue_type"] == "stress"
+    assert data["recommended_technique"] == "breathing"
+    assert data["tone"] == "tense"
+    assert "issue_type" in captured["ctx"]
 
     logs_resp = client.get("/api/v1/emotion/", headers=headers)
     assert logs_resp.status_code == 200
@@ -148,6 +160,31 @@ def test_chat_sentiment_response(client, monkeypatch):
     assert logs[0]["detected_mood"] == "\U0001F610"
     assert logs[0]["sentiment_score"] is None
     assert logs[0]["key_emotions_detected"] is None
+
+
+def test_chat_analysis_failure(client, monkeypatch):
+    headers = register_and_login(client, email="fail@example.com")
+
+    async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
+        return {"action": "balas_teks", "text_response": "ok"}
+
+    async def fail_analysis(text: str):
+        return None
+
+    monkeypatch.setattr("app.api.v1.endpoints.chat.get_ai_reply", fake_reply)
+    monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_message", fail_analysis)
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", lambda *a, **k: None
+    )
+    from app.tasks import process_chat_sentiment
+    monkeypatch.setattr(process_chat_sentiment, "delay", lambda *a, **k: None)
+
+    resp = client.post("/api/v1/chat/", json={"message": "hi"}, headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["issue_type"] is None
+    assert data["recommended_technique"] is None
+    assert data["tone"] is None
 
 
 def test_message_post_handler(client, monkeypatch):
@@ -178,6 +215,9 @@ def test_message_post_handler(client, monkeypatch):
     assert data["sentiment_score"] == 0.2
     assert data["key_emotions"] == "calm"
     assert data["detected_mood"] == "\U0001F610"
+    assert data["issue_type"] is None
+    assert data["recommended_technique"] is None
+    assert data["tone"] is None
 
     logs_resp = client.get("/api/v1/emotion/", headers=headers)
     assert logs_resp.status_code == 200
@@ -191,7 +231,7 @@ def test_delete_messages_endpoint(client, monkeypatch):
     headers = register_and_login(client, email="delmsg@example.com")
 
     async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
-        return "ok"
+        return {"action": "balas_teks", "text_response": "ok"}
 
     async def fake_sentiment(text: str):
         return None
@@ -232,6 +272,9 @@ def test_prompt_endpoint_rate_limit(client, monkeypatch):
     assert data["text_response"] == "hey?"
     assert data["message_id"] > 0
     assert data["ai_message_id"] == data["message_id"]
+    assert data["issue_type"] is None
+    assert data["recommended_technique"] is None
+    assert data["tone"] is None
 
     second = client.post("/api/v1/chat/prompt", headers=headers)
     assert second.status_code == 429

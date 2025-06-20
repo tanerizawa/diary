@@ -13,9 +13,9 @@ async def get_ai_reply(message: str, context: str = "", relationship_level: int 
     instructions = (
         "Jawablah dengan kalimat personal dan hangat dalam Bahasa Indonesia "
         "dengan format JSON berikut: "
-        '{"action": "<balas_teks|suggest_breathing_exercise|open_journal_editor|show_crisis_contact>",'
-        ' "text_response": "<pesan singkat>"}'. '
-        f" Panjang text_response maksimum {MAX_REPLY_LENGTH} karakter."
+        '{"action": "<balas_teks|suggest_breathing_exercise|open_journal_editor|show_crisis_contact>",' 
+        ' "text_response": "<pesan singkat>"} '
+        f"Panjang text_response maksimum {MAX_REPLY_LENGTH} karakter."
     )
 
     if relationship_level > 30:
