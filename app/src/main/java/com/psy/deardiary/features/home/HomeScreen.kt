@@ -17,9 +17,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.CrisisAlert
 import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.SentimentNeutral
-import androidx.compose.material.icons.outlined.Mood
-import androidx.compose.material.icons.outlined.MoodBad
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -312,6 +309,8 @@ internal fun ChatBubble(
             } else {
                 Column(modifier = Modifier.padding(8.dp)) {
                     Text(text = message.text)
+                    // Sentiment display disabled but data kept for statistics
+                    /*
                     if (message.sentimentScore != null || message.keyEmotions != null) {
                         Spacer(Modifier.height(4.dp))
                         val score = message.sentimentScore
@@ -344,6 +343,7 @@ internal fun ChatBubble(
                             }
                         }
                     }
+                    */
                 }
             }
         }
