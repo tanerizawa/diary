@@ -91,7 +91,8 @@ class ChatRepository @Inject constructor(
         newText: String,
         sentimentScore: Float? = null,
         keyEmotions: String? = null,
-        detectedMood: String? = null
+        detectedMood: String? = null,
+        remoteId: Int? = null
     ) {
         val uid = userPreferencesRepository.userId.first() ?: return
         val existing = chatMessageDao.getMessageById(id, uid) ?: return
@@ -100,7 +101,9 @@ class ChatRepository @Inject constructor(
             isPlaceholder = false,
             sentimentScore = sentimentScore,
             keyEmotions = keyEmotions,
-            detectedMood = detectedMood
+            detectedMood = detectedMood,
+            remoteId = remoteId ?: existing.remoteId,
+            isSynced = remoteId != null || existing.isSynced
         )
         chatMessageDao.updateMessage(updated)
     }
@@ -172,8 +175,13 @@ class ChatRepository @Inject constructor(
         }
     }
 
-    suspend fun updateMessageWithReply(id: Int, replyText: String, detectedMood: String? = null) {
-        replaceMessage(id, replyText, detectedMood = detectedMood)
+    suspend fun updateMessageWithReply(
+        id: Int,
+        replyText: String,
+        detectedMood: String? = null,
+        remoteId: Int? = null
+    ) {
+        replaceMessage(id, replyText, detectedMood = detectedMood, remoteId = remoteId)
     }
 
     suspend fun syncPendingMessages(): Result<Unit> {

@@ -133,6 +133,7 @@ def test_chat_sentiment_response(client, monkeypatch):
     assert resp.status_code == 200
     data = resp.json()
     assert data["message_id"] > 0
+    assert data["ai_message_id"] > 0
     assert data["reply_text"] == "hi"
     # Sentiment analysis now runs asynchronously so values are not returned immediately
     assert data["sentiment_score"] is None
@@ -170,6 +171,7 @@ def test_message_post_handler(client, monkeypatch):
     assert resp.status_code == 200
     data = resp.json()
     assert data["message_id"] > 0
+    assert data["ai_message_id"] is None
     assert data["reply_text"] == "reply"
     assert data["sentiment_score"] == 0.2
     assert data["key_emotions"] == "calm"
@@ -226,6 +228,7 @@ def test_prompt_endpoint_rate_limit(client, monkeypatch):
     data = resp.json()
     assert data["reply_text"] == "hey?"
     assert data["message_id"] > 0
+    assert data["ai_message_id"] == data["message_id"]
 
     second = client.post("/api/v1/chat/prompt", headers=headers)
     assert second.status_code == 429
