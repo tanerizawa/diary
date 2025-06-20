@@ -96,7 +96,9 @@ Backend menggunakan FastAPI dan SQLAlchemy. Skema database dikelola melalui Alem
    - `SECRET_KEY` – kunci rahasia untuk JWT
    - `AI_API_KEY` – kunci API layanan AI
    - `AI_API_URL` – endpoint layanan AI
-   - `AI_MODEL` – model AI yang digunakan
+   - `AI_MODEL` – model AI default
+   - `AI_PLANNER_MODEL` – model AI untuk perencana percakapan
+   - `AI_GENERATOR_MODEL` – model AI untuk generator balasan
    - `LOG_LEVEL` – level log aplikasi (opsional)
 
    Contoh nilai default dapat dilihat pada berkas `.env.example`.

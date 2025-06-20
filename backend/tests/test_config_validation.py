@@ -10,6 +10,8 @@ os.environ["DATABASE_URL"] = "sqlite:///./test.db"
 os.environ["SECRET_KEY"] = "test"
 os.environ["AI_API_URL"] = "http://test"
 os.environ["AI_MODEL"] = "test-model"
+os.environ["AI_PLANNER_MODEL"] = "test-model"
+os.environ["AI_GENERATOR_MODEL"] = "test-model"
 os.environ["AI_API_KEY"] = "initial"
 
 from app.core import config
