@@ -264,18 +264,10 @@ private fun ChatBubble(
             MaterialTheme.colorScheme.secondaryContainer
         }
 
-        // Highlight color for detected mood (overlay)
-        val moodHighlight = when (message.detectedMood) {
-            "\uD83D\uDE00", "\uD83D\uDE42" -> Color(0xFFFFF59D) // happy tones
-            "\uD83D\uDE22" -> Color(0xFFB3E5FC) // sad tones
-            "\uD83D\uDE21" -> Color(0xFFFFCDD2) // angry tones
-            else -> null
-        }
-
         val bubbleColor = if (message.isPlaceholder) {
             Color.Gray.copy(alpha = 0.5f)
         } else {
-            moodHighlight?.copy(alpha = 0.4f)?.compositeOver(baseColor) ?: baseColor
+            baseColor
         }
 
         val contentColor = if (message.isUser) {
@@ -294,28 +286,7 @@ private fun ChatBubble(
                 TypingIndicator(modifier = Modifier.padding(8.dp))
             } else {
                 Column(modifier = Modifier.padding(8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = message.text)
-                        message.detectedMood?.takeIf { it.isNotBlank() }?.let { mood ->
-                            Text(text = " $mood", fontSize = MaterialTheme.typography.bodyLarge.fontSize)
-                        }
-                    }
-                    message.sentimentScore?.let { score ->
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Sentimen: " + String.format("%.2f", score),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    message.keyEmotions?.takeIf { it.isNotBlank() }?.let { emotions ->
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = emotions,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Text(text = message.text)
                 }
             }
         }
