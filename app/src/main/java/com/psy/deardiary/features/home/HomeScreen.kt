@@ -334,11 +334,8 @@ private fun composeGreeting(
     timeOfDay: String,
     name: String,
     lastMood: String?,
-    sentiment: Float?
+    sentiment: Float?,
 ): String {
-    return when {
-        sentiment != null && sentiment < 0 -> "Aku di sini untukmu, $name. Ceritakan apa yang kamu rasakan."
-        lastMood == "\uD83D\uDE22" -> "Aku di sini untukmu, $name. Ceritakan apa yang kamu rasakan."
-        else -> "$timeOfDay, $name."
-    }
+    return "$timeOfDay, $name."
+}
 }
