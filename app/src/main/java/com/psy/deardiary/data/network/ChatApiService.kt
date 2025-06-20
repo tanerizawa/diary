@@ -12,7 +12,7 @@ import retrofit2.http.GET
 import retrofit2.http.HTTP
 
 interface ChatApiService {
-    @POST("api/v1/chat")
+    @POST("api/v1/chat/")
     suspend fun sendMessage(@Body request: ChatRequest): Response<AiChatResponse>
 
     @GET("api/v1/chat/messages")
