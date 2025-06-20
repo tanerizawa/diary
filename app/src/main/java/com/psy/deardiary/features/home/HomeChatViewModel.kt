@@ -109,13 +109,9 @@ class HomeChatViewModel @Inject constructor(
                     isPlaceholder = true
                 )
 
-                // 3. Tunda pengiriman pesan sekitar 5 detik untuk meniru jeda ketik
-                //    manusia mengetik. Setelah itu baru teruskan ke server.
-                delay(5_000)
-
-                // 4. Panggil API dengan batas waktu lebih lama agar server punya waktu
-                //    yang cukup untuk merespons. Batas lama sebelumnya kadang terlalu
-                //    singkat sehingga balasan AI tidak sempat diterima sepenuhnya.
+                // 3. Panggil API dengan batas waktu yang cukup agar server dapat
+                //    merespons sambil placeholder tetap ditampilkan sebagai efek
+                //    "sedang mengetik".
                 val result = withTimeoutOrNull(30_000) {
                     chatRepository.sendMessage(text, userMsg.id)
                 }
