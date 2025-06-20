@@ -55,7 +55,7 @@ fun HomeScreen(
     val feedItems by viewModel.feedItems.collectAsState()
     val listState = rememberLazyListState()
     val context = LocalContext.current
-    var previousCount by remember { mutableStateOf(0) }
+    var previousAiCount by remember { mutableStateOf<Int?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(chatUiState.errorMessage) {
@@ -73,13 +73,13 @@ fun HomeScreen(
     }
 
     LaunchedEffect(messages) {
-        if (messages.size > previousCount) {
-            val newMsgs = messages.subList(previousCount, messages.size)
-            if (newMsgs.any { !it.isUser && !it.isPlaceholder }) {
+        val aiCount = messages.count { !it.isUser && !it.isPlaceholder }
+        previousAiCount?.let { prev ->
+            if (aiCount > prev) {
                 playNotificationFeedback(context)
             }
         }
-        previousCount = messages.size
+        previousAiCount = aiCount
     }
 
     Scaffold(
