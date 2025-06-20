@@ -216,3 +216,30 @@ Balasan dari endpoint `/api/v1/chat/` kini mempertimbangkan konteks profil.
 Informasi nama, bio, MBTI (jika ada), waktu saat ini, statistik mood, riwayat
 jurnal terkini, serta percakapan terakhir disusun menjadi satu string dan
 dikirim ke model AI. Hal ini membuat respons terasa lebih personal dan relevan.
+
+### Field `action` di Endpoint `/api/v1/chat/`
+
+Balasan dari endpoint `/api/v1/chat/` menyertakan field `action` yang menentukan tindakan apa yang sebaiknya dilakukan oleh aplikasi. Nilai yang tersedia meliputi:
+
+- `balas_teks` &ndash; hanya menampilkan `text_response` sebagai balasan biasa.
+- `suggest_breathing_exercise` &ndash; menyarankan latihan pernapasan untuk meredakan stres.
+- `open_journal_editor` &ndash; membuka editor jurnal dengan teks awal pada `journal_template`.
+- `show_crisis_contact` &ndash; menampilkan informasi kontak bantuan krisis.
+
+Contoh balasan JSON:
+
+```json
+{
+  "message_id": 42,
+  "ai_message_id": 43,
+  "action": "open_journal_editor",
+  "text_response": "Coba tulis apa yang kamu rasakan hari ini.",
+  "sentiment_score": null,
+  "key_emotions": null,
+  "detected_mood": "😊",
+  "issue_type": null,
+  "recommended_technique": null,
+  "tone": null,
+  "journal_template": "Tuliskan pemicu emosimu dan langkah untuk mengatasinya."
+}
+```
