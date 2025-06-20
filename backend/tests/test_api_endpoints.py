@@ -134,8 +134,9 @@ def test_chat_sentiment_response(client, monkeypatch):
     data = resp.json()
     assert data["message_id"] > 0
     assert data["reply_text"] == "hi"
-    assert data["sentiment_score"] == 0.5
-    assert data["key_emotions"] == "happy"
+    # Sentiment analysis now runs asynchronously so values are not returned immediately
+    assert data["sentiment_score"] is None
+    assert data["key_emotions"] is None
     assert data["detected_mood"] == "\U0001F610"
 
     logs_resp = client.get("/api/v1/emotion/", headers=headers)
@@ -143,8 +144,8 @@ def test_chat_sentiment_response(client, monkeypatch):
     logs = logs_resp.json()
     assert len(logs) == 1
     assert logs[0]["detected_mood"] == "\U0001F610"
-    assert logs[0]["sentiment_score"] == 0.5
-    assert logs[0]["key_emotions_detected"] == ["happy"]
+    assert logs[0]["sentiment_score"] is None
+    assert logs[0]["key_emotions_detected"] is None
 
 
 def test_message_post_handler(client, monkeypatch):

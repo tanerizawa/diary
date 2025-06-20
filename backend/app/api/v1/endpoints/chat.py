@@ -49,16 +49,7 @@ async def chat_with_ai(
         db, obj_in=user_msg, owner_id=current_user.id
     )
 
-    analysis_result = await analyze_sentiment_with_ai(chat_in.message)
-    if analysis_result:
-        crud.chat_message.update(
-            db,
-            db_obj=created_user_msg,
-            obj_in={
-                "sentiment_score": analysis_result.get("sentiment_score"),
-                "key_emotions": analysis_result.get("key_emotions"),
-            },
-        )
+    # Sentiment analysis is now handled asynchronously via Celery
     process_chat_sentiment.delay(created_user_msg.id)
 
     ai_msg = schemas.ChatMessageCreate(
@@ -82,8 +73,6 @@ async def chat_with_ai(
             detected_mood=detected_mood,
             source_text=chat_in.message,
             source_feature="chat_home",
-            sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
-            key_emotions_detected=(analysis_result.get("key_emotions").split(",") if analysis_result and analysis_result.get("key_emotions") else None),
         ),
         owner_id=current_user.id,
     )
@@ -92,8 +81,8 @@ async def chat_with_ai(
     return schemas.ChatResponse(
         message_id=created_user_msg.id,
         reply_text=reply,
-        sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
-        key_emotions=analysis_result.get("key_emotions") if analysis_result else None,
+        sentiment_score=None,
+        key_emotions=None,
         detected_mood=detected_mood,
     )
 
