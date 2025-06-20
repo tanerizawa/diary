@@ -87,6 +87,7 @@ fun MainScreen(
                 HomeScreen(
                     onNavigateToSettings = { mainNavController.navigate(Screen.Settings.route) },
                     onNavigateToCrisisSupport = { mainNavController.navigate(Screen.CrisisSupport.route) },
+                    onNavigateToEditor = { mainNavController.navigate(Screen.Editor.createRoute(null)) },
                     mainViewModel = mainViewModel
                 )
             }

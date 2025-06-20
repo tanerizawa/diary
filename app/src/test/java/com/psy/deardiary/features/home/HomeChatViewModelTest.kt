@@ -47,7 +47,7 @@ class HomeChatViewModelTest {
         whenever(repository.messages).thenReturn(messagesFlow)
         whenever(prefRepo.lastAiPrompt).thenReturn(lastPromptFlow)
         whenever(repository.userPreferencesRepository).thenReturn(prefRepo)
-        whenever(repository.promptChat()).thenReturn(Result.Success(AiChatResponse("p", null)))
+        whenever(repository.promptChat()).thenReturn(Result.Success(AiChatResponse("balas_teks", "p", null)))
         whenever(repository.refreshMessages()).thenReturn(Result.Success(Unit))
         viewModel = HomeChatViewModel(repository)
     }
@@ -63,7 +63,7 @@ class HomeChatViewModelTest {
         whenever(repository.addMessage(any(), eq(true), eq(false))).thenReturn(userMsg)
         whenever(repository.addMessage(any(), eq(false), eq(true))).thenReturn(ChatMessage(id=2, text="placeholder", isUser=false, isPlaceholder=true, userId = 1))
         whenever(repository.sendMessage("hi", userMsg.id)).thenReturn(
-            Result.Success(AiChatResponse("hello", "happy", replyId = 3))
+            Result.Success(AiChatResponse("balas_teks", "hello", "happy", replyId = 3))
         )
         viewModel.sendMessage("hi")
         advanceUntilIdle()

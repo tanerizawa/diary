@@ -34,6 +34,9 @@ class HomeChatViewModel @Inject constructor(
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages = _messages.asStateFlow()
 
+    private val _pendingAction = MutableStateFlow<String?>(null)
+    val pendingAction = _pendingAction.asStateFlow()
+
     private val _selectedIds = MutableStateFlow<Set<Int>>(emptySet())
     val selectedIds = _selectedIds.asStateFlow()
 
@@ -120,10 +123,13 @@ class HomeChatViewModel @Inject constructor(
                     val response = result.data
                     chatRepository.updateMessageWithReply(
                         id = placeholder.id,
-                        replyText = response.replyText,
+                        replyText = response.textResponse,
                         detectedMood = response.detectedMood,
                         remoteId = response.replyId
                     )
+                    if (response.action != "balas_teks") {
+                        _pendingAction.value = response.action
+                    }
                 }
                 is Result.Error, null -> {
                     chatRepository.replaceMessage(
@@ -143,5 +149,9 @@ class HomeChatViewModel @Inject constructor(
 
     fun clearErrorMessage() {
         _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    fun consumeAction() {
+        _pendingAction.value = null
     }
 }

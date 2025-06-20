@@ -117,7 +117,7 @@ def test_chat_sentiment_response(client, monkeypatch):
     headers = register_and_login(client, email="chat@example.com")
 
     async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
-        return "hi"
+        return {"action": "balas_teks", "text_response": "hi"}
 
     async def fake_sentiment(text: str):
         return {"sentiment_score": 0.5, "key_emotions": "happy"}
@@ -134,7 +134,8 @@ def test_chat_sentiment_response(client, monkeypatch):
     data = resp.json()
     assert data["message_id"] > 0
     assert data["ai_message_id"] > 0
-    assert data["reply_text"] == "hi"
+    assert data["action"] == "balas_teks"
+    assert data["text_response"] == "hi"
     # Sentiment analysis now runs asynchronously so values are not returned immediately
     assert data["sentiment_score"] is None
     assert data["key_emotions"] is None
@@ -153,7 +154,7 @@ def test_message_post_handler(client, monkeypatch):
     headers = register_and_login(client, email="msg@example.com")
 
     async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
-        return "reply"
+        return {"action": "balas_teks", "text_response": "reply"}
 
     async def fake_sentiment(text: str):
         return {"sentiment_score": 0.2, "key_emotions": "calm"}
@@ -172,7 +173,8 @@ def test_message_post_handler(client, monkeypatch):
     data = resp.json()
     assert data["message_id"] > 0
     assert data["ai_message_id"] is None
-    assert data["reply_text"] == "reply"
+    assert data["action"] == "balas_teks"
+    assert data["text_response"] == "reply"
     assert data["sentiment_score"] == 0.2
     assert data["key_emotions"] == "calm"
     assert data["detected_mood"] == "\U0001F610"
@@ -219,14 +221,15 @@ def test_prompt_endpoint_rate_limit(client, monkeypatch):
     headers = register_and_login(client, email="prompt@example.com")
 
     async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
-        return "hey?"
+        return {"action": "balas_teks", "text_response": "hey?"}
 
     monkeypatch.setattr("app.api.v1.endpoints.chat.get_ai_reply", fake_reply)
 
     resp = client.post("/api/v1/chat/prompt", headers=headers)
     assert resp.status_code == 200
     data = resp.json()
-    assert data["reply_text"] == "hey?"
+    assert data["action"] == "balas_teks"
+    assert data["text_response"] == "hey?"
     assert data["message_id"] > 0
     assert data["ai_message_id"] == data["message_id"]
 
