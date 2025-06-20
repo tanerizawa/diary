@@ -3,14 +3,35 @@ import httpx
 
 from app.core.config import settings
 
-from app.schemas.conversation import ConversationPlan
+from app.schemas.conversation import (
+    ConversationPlan,
+    CommunicationTechnique,
+)
+
+TOOLBOX: dict[CommunicationTechnique, str] = {
+    CommunicationTechnique.PROBING: "ask short clarifying questions",
+    CommunicationTechnique.CLARIFYING: "confirm your understanding",
+    CommunicationTechnique.PARAPHRASING: "rephrase the user's message",
+    CommunicationTechnique.REFLECTING: "mirror the user's feelings",
+    CommunicationTechnique.OPEN_ENDED_QUESTIONS: "invite more details",
+    CommunicationTechnique.CLOSED_ENDED_QUESTIONS: "get specific facts",
+    CommunicationTechnique.SUMMARIZING: "briefly recap key points",
+    CommunicationTechnique.CONFRONTATION: "gently note inconsistencies",
+    CommunicationTechnique.REASSURANCE_ENCOURAGEMENT: "offer reassurance",
+}
+
+SYNONYMS = {
+    "reflection": CommunicationTechnique.REFLECTING,
+    "mirroring": CommunicationTechnique.REFLECTING,
+}
 
 async def plan_conversation_strategy(context: str, user_message: str) -> ConversationPlan | None:
     """Request a conversation technique suggestion from the AI service."""
+    available = ", ".join(t.value for t in CommunicationTechnique)
     prompt = f"""
 You are the 'director' persona guiding how the assistant should reply next.
-Given the current conversation context and the latest user message, choose the most suitable communication technique the assistant should use.
-Respond only with raw JSON containing a single key named \"technique\".
+Choose one communication technique from the following list and respond only with JSON key 'technique'.
+Available techniques: {available}
 
 Context:\n{context}
 
@@ -43,10 +64,21 @@ User message:\n{user_message}
             parsed = json.loads(content)
             if not isinstance(parsed, dict):
                 raise ValueError("Invalid JSON structure")
-            technique = parsed.get("technique")
-            if not isinstance(technique, str):
+            technique_str = parsed.get("technique")
+            if not isinstance(technique_str, str):
                 raise ValueError("Invalid technique")
-            return ConversationPlan(technique=technique)
+            lower = technique_str.lower()
+            tech_enum = SYNONYMS.get(lower)
+            if tech_enum is None:
+                tech_enum = next(
+                    (
+                        t
+                        for t in CommunicationTechnique
+                        if lower in {t.value.lower(), t.name.lower()}
+                    ),
+                    CommunicationTechnique.PROBING,
+                )
+            return ConversationPlan(technique=tech_enum)
     except (httpx.RequestError, httpx.HTTPStatusError, json.JSONDecodeError, KeyError, ValueError, AttributeError) as e:
         print(f"Error calling conversation planner: {e}")
         return None

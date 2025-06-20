@@ -59,7 +59,7 @@ def register_and_login(client, email="user@example.com", password="pass"):
     return {"Authorization": f"Bearer {token}"}
 
 
-from app.schemas.conversation import ConversationPlan
+from app.schemas.conversation import ConversationPlan, CommunicationTechnique
 
 
 def test_chat_context_assembly(client, monkeypatch):
@@ -67,7 +67,7 @@ def test_chat_context_assembly(client, monkeypatch):
 
     async def fake_plan(context: str, user_message: str):
         captured["context"] = context
-        return ConversationPlan(technique="mirror")
+        return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
         return "ok"
@@ -125,7 +125,7 @@ def test_prompt_context_assembly(client, monkeypatch):
 
     async def fake_plan(context: str, user_message: str):
         captured["context"] = context
-        return ConversationPlan(technique="mirror")
+        return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
         return "ok"
