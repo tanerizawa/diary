@@ -60,7 +60,7 @@ def register_and_login(client, email="user@example.com", password="pass"):
 def test_chat_context_assembly(client, monkeypatch):
     captured = {}
 
-    async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
+    async def fake_reply(message: str, context: str = "", relationship_level: int = 0, analysis=None):
         captured["context"] = context
         return {"action": "balas_teks", "text_response": "ok"}
 
@@ -114,7 +114,7 @@ def test_chat_context_assembly(client, monkeypatch):
 def test_prompt_context_assembly(client, monkeypatch):
     captured = {}
 
-    async def fake_reply(message: str, context: str = "", relationship_level: int = 0):
+    async def fake_reply(message: str, context: str = "", relationship_level: int = 0, analysis=None):
         captured["context"] = context
         return {"action": "balas_teks", "text_response": "ok"}
 
