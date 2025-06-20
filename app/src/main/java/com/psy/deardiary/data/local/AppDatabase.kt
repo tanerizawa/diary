@@ -45,6 +45,17 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(
+                    """
+                    DELETE FROM chat_messages
+                    WHERE remoteId IS NOT NULL AND rowid NOT IN (
+                        SELECT MIN(rowid)
+                        FROM chat_messages
+                        WHERE remoteId IS NOT NULL
+                        GROUP BY remoteId, userId
+                    )
+                    """.trimIndent()
+                )
+                database.execSQL(
                     "CREATE UNIQUE INDEX IF NOT EXISTS index_chat_messages_remoteId_userId ON chat_messages(remoteId, userId)"
                 )
             }
