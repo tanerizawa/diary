@@ -6,6 +6,8 @@ from app.crud.base import CRUDBase
 from app.db.models.journal import JournalEntry
 from app.schemas.journal import JournalCreate, JournalUpdate
 from .crud_user import user as crud_user
+from .crud_embedding import embedding as crud_embedding
+from app.services.embedding import generate_embedding
 
 
 class CRUDJournal(CRUDBase[JournalEntry, JournalCreate, JournalUpdate]):
@@ -20,6 +22,15 @@ class CRUDJournal(CRUDBase[JournalEntry, JournalCreate, JournalUpdate]):
         owner = crud_user.get(db, id=owner_id)
         if owner:
             crud_user.increment_relationship_level(db, db_obj=owner)
+        # Store embedding for semantic search
+        vector = generate_embedding(db_obj.content)
+        crud_embedding.create(
+            db,
+            owner_id=owner_id,
+            source_type="journal",
+            source_id=db_obj.id,
+            embedding=vector,
+        )
         return db_obj
 
     def get_multi_by_owner(

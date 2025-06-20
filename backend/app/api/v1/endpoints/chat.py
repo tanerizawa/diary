@@ -30,7 +30,7 @@ async def chat_with_ai(
     Adds a short delay to mimic typing behavior. This delay can be
     removed or shortened once the client implements its own waiting
     logic so responses remain snappy."""
-    context = build_chat_context(db, current_user)
+    context = build_chat_context(db, current_user, chat_in.message)
 
     reply = await get_ai_reply(
         chat_in.message,
