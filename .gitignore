@@ -55,4 +55,3 @@ test.db
 # Environment variables
 .env
 backend/.env
-backend/.env
