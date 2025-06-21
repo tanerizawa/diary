@@ -75,9 +75,12 @@ def test_websocket_chat(client, monkeypatch):
     ):
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
+    captured_trait = [None]
+
     async def fake_generate(
         plan: ConversationPlan, user_message: str, context: str, persona_trait: str
     ):
+        captured_trait[0] = persona_trait
         return "pong"
 
     async def fake_analysis(text: str):
@@ -98,3 +101,7 @@ def test_websocket_chat(client, monkeypatch):
         ws.send_text("hello")
         data = ws.receive_json()
         assert data["text_response"] == "pong"
+        assert (
+            captured_trait[0]
+            == "You are still getting to know the user, so maintain a supportive but slightly formal tone."
+        )

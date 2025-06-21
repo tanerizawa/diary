@@ -136,6 +136,7 @@ def test_chat_sentiment_response(client, monkeypatch):
     async def fake_generate(
         plan: ConversationPlan, user_message: str, context: str, persona_trait: str
     ):
+        captured["trait"] = persona_trait
         return "hi"
 
     async def fake_analysis(text: str):
@@ -169,6 +170,10 @@ def test_chat_sentiment_response(client, monkeypatch):
     assert data["message_id"] > 0
     assert data["ai_message_id"] > 0
     assert data["text_response"] == "hi"
+    assert (
+        captured["trait"]
+        == "You are still getting to know the user, so maintain a supportive but slightly formal tone."
+    )
     assert captured["analysis"] == {
         "issue_type": "stress",
         "technique": "breathing",
@@ -230,9 +235,12 @@ def test_message_post_handler(client, monkeypatch):
     ):
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
+    captured = {}
+
     async def fake_generate(
         plan: ConversationPlan, user_message: str, context: str, persona_trait: str
     ):
+        captured["trait"] = persona_trait
         return "reply"
 
     async def fake_sentiment(text: str):
@@ -258,6 +266,10 @@ def test_message_post_handler(client, monkeypatch):
     assert data["message_id"] > 0
     assert data["ai_message_id"] is None
     assert data["text_response"] == "reply"
+    assert (
+        captured["trait"]
+        == "You are still getting to know the user, so maintain a supportive but slightly formal tone."
+    )
 
     logs_resp = client.get("/api/v1/emotion/", headers=headers)
     assert logs_resp.status_code == 200
@@ -316,6 +328,8 @@ def test_delete_messages_endpoint(client, monkeypatch):
 def test_prompt_endpoint_rate_limit(client, monkeypatch):
     headers = register_and_login(client, email="prompt@example.com")
 
+    captured_trait = [None]
+
     async def fake_plan(
         context: str, user_message: str, previous_ai_text: str | None = None
     ):
@@ -324,6 +338,7 @@ def test_prompt_endpoint_rate_limit(client, monkeypatch):
     async def fake_generate(
         plan: ConversationPlan, user_message: str, context: str, persona_trait: str
     ):
+        captured_trait[0] = persona_trait
         return "hey?"
 
     monkeypatch.setattr(
@@ -339,6 +354,10 @@ def test_prompt_endpoint_rate_limit(client, monkeypatch):
     assert data["text_response"] == "hey?"
     assert data["message_id"] > 0
     assert data["ai_message_id"] == data["message_id"]
+    assert (
+        captured_trait[0]
+        == "You are still getting to know the user, so maintain a supportive but slightly formal tone."
+    )
 
     second = client.post("/api/v1/chat/prompt", headers=headers)
     assert second.status_code == 429
