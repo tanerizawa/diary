@@ -76,3 +76,5 @@ and a `synonyms` section for alternative names. `conversation_planner` loads thi
 at startup (or the path specified via the `PLANNER_CONFIG_FILE` setting) and exposes
 the resulting `TOOLBOX` dictionary for the response generator. To add or modify
 techniques, edit this YAML file and extend the `CommunicationTechnique` enum.
+If `PLANNER_CONFIG_FILE` points to a missing or malformed file, the planner
+logs a warning and falls back to empty dictionaries.
