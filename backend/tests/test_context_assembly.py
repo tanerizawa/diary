@@ -74,12 +74,13 @@ def test_chat_context_assembly(client, monkeypatch):
     async def fake_plan(
         context: str, user_message: str, previous_ai_text: str | None = None
     ):
-        captured["context"] = context
+        captured["plan_input"] = context
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(
         plan: ConversationPlan, user_message: str, context: str, persona_trait: str
     ):
+        captured["context"] = context
         return "ok"
 
     monkeypatch.setattr(
@@ -145,12 +146,13 @@ def test_prompt_context_assembly(client, monkeypatch):
     async def fake_plan(
         context: str, user_message: str, previous_ai_text: str | None = None
     ):
-        captured["context"] = context
+        captured["plan_input"] = context
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(
         plan: ConversationPlan, user_message: str, context: str, persona_trait: str
     ):
+        captured["context"] = context
         return "ok"
 
     monkeypatch.setattr(
@@ -208,6 +210,6 @@ def test_prompt_context_assembly(client, monkeypatch):
         "Recent conversation:\n"
         "m2\n"
         "m1\n"
-        "Akhiri jawaban dengan pertanyaan singkat yang bersifat probing."
+        "Akhiri jawaban dengan teknik Reflecting."
     )
     assert captured["context"] == expected
