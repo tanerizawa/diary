@@ -27,7 +27,7 @@ def test_plan_conversation_strategy_parses_json(monkeypatch):
                 def raise_for_status(self):
                     pass
                 def json(self):
-                    return {"choices": [{"message": {"content": '{"technique":"reflection"}'}}]}
+                    return {"choices": [{"message": {"content": '{"reasoning":"ok","technique":"reflection"}'}}]}
             return Resp()
 
     monkeypatch.setattr("app.services.conversation_planner.httpx.AsyncClient", DummyClient)
@@ -67,7 +67,7 @@ def test_plan_conversation_strategy_unknown(monkeypatch):
                     pass
 
                 def json(self):
-                    return {"choices": [{"message": {"content": '{"technique":"nonsense"}'}}]}
+                    return {"choices": [{"message": {"content": '{"reasoning":"?","technique":"nonsense"}'}}]}
 
             return Resp()
 
