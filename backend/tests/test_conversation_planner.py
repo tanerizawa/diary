@@ -74,3 +74,51 @@ def test_plan_conversation_strategy_unknown(monkeypatch):
     monkeypatch.setattr("app.services.conversation_planner.httpx.AsyncClient", DummyClient)
     plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
     assert plan.technique == CommunicationTechnique.PROBING
+
+
+def test_plan_conversation_strategy_long_context(monkeypatch):
+    calls = []
+    counter = {"i": 0}
+
+    class DummyClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+        async def post(self, url, headers=None, json=None, timeout=None):
+            counter["i"] += 1
+            calls.append(json["messages"][0]["content"])
+
+            class Resp:
+                def __init__(self, content):
+                    self._content = content
+
+                def raise_for_status(self):
+                    pass
+
+                def json(self):
+                    if counter["i"] == 1:
+                        return {"choices": [{"message": {"content": "summary"}}]}
+                    return {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": '{"technique":"clarifying"}'
+                                }
+                            }
+                        ]
+                    }
+
+            return Resp("")
+
+    monkeypatch.setattr(
+        "app.services.conversation_planner.httpx.AsyncClient", lambda: DummyClient()
+    )
+
+    long_ctx = "x" * 4000
+    plan = asyncio.run(plan_conversation_strategy(long_ctx, "hi"))
+    assert counter["i"] == 2
+    assert "Ringkas konteks" in calls[0]
+    assert plan.technique == CommunicationTechnique.CLARIFYING
