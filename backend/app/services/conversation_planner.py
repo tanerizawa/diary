@@ -1,6 +1,7 @@
 import json
 import httpx
 import structlog
+from thefuzz import process
 
 from app.core.config import settings
 
@@ -120,15 +121,26 @@ User message:\n{user_message}
             lower = technique_str.lower()
             tech_enum = SYNONYMS.get(lower)
             if tech_enum is None:
-                tech_enum = next(
-                    (
-                        t
-                        for t in CommunicationTechnique
-                        if lower in {t.value.lower(), t.name.lower()}
-                    ),
-                    CommunicationTechnique.PROBING,
+                choices: dict[str, CommunicationTechnique] = {
+                    t.name: t for t in CommunicationTechnique
+                }
+                choices.update({t.value: t for t in CommunicationTechnique})
+                match = process.extractOne(
+                    technique_str,
+                    choices.keys(),
+                    processor=str.lower,
                 )
-            log.info("planner_success", technique=tech_enum.value, reasoning=reasoning)
+                if match and match[1] > 80:
+                    tech_enum = choices[match[0]]
+                else:
+                    log.warning(
+                        "planner_new_technique_suggestion",
+                        suggestion=technique_str,
+                    )
+                    tech_enum = CommunicationTechnique.PROBING
+            log.info(
+                "planner_success", technique=tech_enum.value, reasoning=reasoning
+            )
             return ConversationPlan(technique=tech_enum)
     except (httpx.RequestError, httpx.HTTPStatusError, json.JSONDecodeError, KeyError, ValueError, AttributeError) as e:
         log.error("planner_error", error=str(e))
