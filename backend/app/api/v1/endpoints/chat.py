@@ -68,7 +68,7 @@ async def chat_with_ai(
     removed or shortened once the client implements its own waiting
     logic so responses remain snappy."""
     analysis = await analyze_message(chat_in.message)
-    context = build_chat_context(db, current_user, chat_in.message)
+    context = build_chat_context(db, current_user, chat_in.message, recent_msg_limit=10)
 
     last_msg = crud.chat_message.get_recent_messages(
         db, owner_id=current_user.id, limit=1
@@ -267,7 +267,7 @@ async def prompt_chat(
             detail="Prompt recently generated",
         )
 
-    context = build_chat_context(db, current_user)
+    context = build_chat_context(db, current_user, recent_msg_limit=10)
     context += "\nAkhiri jawaban dengan pertanyaan singkat yang bersifat probing."
 
     previous_ai_text = None
@@ -373,7 +373,7 @@ async def websocket_chat(websocket: WebSocket, token: str):
                 break
 
             analysis = await analyze_message(text)
-            context = build_chat_context(db, user, text)
+            context = build_chat_context(db, user, text, recent_msg_limit=10)
 
             last_msg = crud.chat_message.get_recent_messages(
                 db, owner_id=user.id, limit=1

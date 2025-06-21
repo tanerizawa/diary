@@ -18,8 +18,17 @@ def _time_of_day() -> str:
     return "night"
 
 
-def build_chat_context(db: Session, user: models.User, text: str | None = None) -> str:
-    """Assemble a string summarizing user info and recent activity."""
+def build_chat_context(
+    db: Session,
+    user: models.User,
+    text: str | None = None,
+    recent_msg_limit: int = 4,
+) -> str:
+    """Assemble a string summarizing user info and recent activity.
+
+    The ``recent_msg_limit`` parameter controls how many of the user's most
+    recent messages to include in the context.
+    """
     journals = crud.journal.get_multi_by_owner(db, owner_id=user.id, limit=5)
     context_lines = [j.content for j in journals]
 
@@ -27,7 +36,9 @@ def build_chat_context(db: Session, user: models.User, text: str | None = None) 
     for j in journals:
         moods[j.mood] = moods.get(j.mood, 0) + 1
 
-    recent_msgs = crud.chat_message.get_last_user_messages(db, owner_id=user.id, limit=4)
+    recent_msgs = crud.chat_message.get_last_user_messages(
+        db, owner_id=user.id, limit=recent_msg_limit
+    )
     message_lines = [m.text for m in recent_msgs]
 
     mood_summary = ", ".join(f"{m}:{c}" for m, c in moods.items())
@@ -53,7 +64,8 @@ def build_chat_context(db: Session, user: models.User, text: str | None = None) 
     else:
         if context_lines:
             sections.append("Recent journal entries:\n" + "\n".join(context_lines))
-        if message_lines:
-            sections.append("Recent conversation:\n" + "\n".join(message_lines))
+
+    if message_lines:
+        sections.append("Recent conversation:\n" + "\n".join(message_lines))
 
     return "\n".join(sections)
