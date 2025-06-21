@@ -17,6 +17,7 @@ class JournalEntry(Base):
     # Kolom untuk menyimpan hasil analisis AI, bisa null
     sentiment_score = Column(Float, nullable=True)
     key_emotions = Column(String, nullable=True)
+    primary_emotion = Column(String, nullable=True)
     # --- AKHIR PENAMBAHAN ---
 
     owner = relationship("User", back_populates="journals")

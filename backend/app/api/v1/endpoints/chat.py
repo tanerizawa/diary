@@ -17,8 +17,7 @@ import structlog
 from app import crud, models, schemas
 from app.schemas.chat_message import ChatMessageDeleteRequest
 from app.api import deps
-from app.services.sentiment_analyzer import analyze_sentiment_with_ai
-from app.services.emotion_classifier import detect_mood
+from app.services.sentiment_emotion_analyzer import analyze_sentiment_and_emotions
 from app.services import (
     build_chat_context,
     analyze_message,
@@ -119,20 +118,22 @@ async def chat_with_ai(
         db, obj_in=ai_msg, owner_id=current_user.id
     )
 
-    # Classify user's mood using the heuristic classifier
-    detected_mood = detect_mood(chat_in.message)
+    analysis_result = await analyze_sentiment_and_emotions(chat_in.message)
     crud.chat_message.update(
         db,
         db_obj=created_user_msg,
-        obj_in={"detected_mood": detected_mood},
+        obj_in={"primary_emotion": analysis_result.get("primary_emotion") if analysis_result else None},
     )
     crud.emotion_log.create_with_owner(
         db,
         obj_in=schemas.EmotionLogCreate(
             timestamp=int(asyncio.get_event_loop().time() * 1000),
-            detected_mood=detected_mood,
+            detected_mood=analysis_result.get("primary_emotion") if analysis_result else None,
             source_text=chat_in.message,
             source_feature="chat_home",
+            sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
+            key_emotions_detected=(analysis_result.get("emotions").split(",") if analysis_result and analysis_result.get("emotions") else None),
+            primary_emotion=analysis_result.get("primary_emotion") if analysis_result else None,
         ),
         owner_id=current_user.id,
     )
@@ -163,8 +164,7 @@ async def create_message(
         db=db, obj_in=message_in, owner_id=current_user.id
     )
 
-    analysis_result = await analyze_sentiment_with_ai(message_in.text)
-    detected_mood = detect_mood(message_in.text)
+    analysis_result = await analyze_sentiment_and_emotions(message_in.text)
 
     crud.chat_message.update(
         db,
@@ -174,9 +174,11 @@ async def create_message(
                 analysis_result.get("sentiment_score") if analysis_result else None
             ),
             "key_emotions": (
-                analysis_result.get("key_emotions") if analysis_result else None
+                analysis_result.get("emotions") if analysis_result else None
             ),
-            "detected_mood": detected_mood,
+            "primary_emotion": (
+                analysis_result.get("primary_emotion") if analysis_result else None
+            ),
         },
     )
 
@@ -184,16 +186,19 @@ async def create_message(
         db,
         obj_in=schemas.EmotionLogCreate(
             timestamp=message_in.timestamp,
-            detected_mood=detected_mood,
+            detected_mood=analysis_result.get("primary_emotion") if analysis_result else None,
             source_text=message_in.text,
             source_feature="chat_home",
             sentiment_score=(
                 analysis_result.get("sentiment_score") if analysis_result else None
             ),
             key_emotions_detected=(
-                analysis_result.get("key_emotions").split(",")
-                if analysis_result and analysis_result.get("key_emotions")
+                analysis_result.get("emotions").split(",")
+                if analysis_result and analysis_result.get("emotions")
                 else None
+            ),
+            primary_emotion=(
+                analysis_result.get("primary_emotion") if analysis_result else None
             ),
         ),
         owner_id=current_user.id,
@@ -426,19 +431,22 @@ async def websocket_chat(websocket: WebSocket, token: str):
                 db, obj_in=ai_msg, owner_id=user.id
             )
 
-            detected_mood = detect_mood(text)
+            analysis_result = await analyze_sentiment_and_emotions(text)
             crud.chat_message.update(
                 db,
                 db_obj=created_user_msg,
-                obj_in={"detected_mood": detected_mood},
+                obj_in={"primary_emotion": analysis_result.get("primary_emotion") if analysis_result else None},
             )
             crud.emotion_log.create_with_owner(
                 db,
                 obj_in=schemas.EmotionLogCreate(
                     timestamp=int(asyncio.get_event_loop().time() * 1000),
-                    detected_mood=detected_mood,
+                    detected_mood=analysis_result.get("primary_emotion") if analysis_result else None,
                     source_text=text,
                     source_feature="chat_home",
+                    sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
+                    key_emotions_detected=(analysis_result.get("emotions").split(",") if analysis_result and analysis_result.get("emotions") else None),
+                    primary_emotion=analysis_result.get("primary_emotion") if analysis_result else None,
                 ),
                 owner_id=user.id,
             )

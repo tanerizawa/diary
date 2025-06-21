@@ -26,6 +26,9 @@ class Journal(JournalBase):
     key_emotions: str | None = Field(
         None, description="Key emotions extracted from the entry"
     )
+    primary_emotion: str | None = Field(
+        None, description="Primary emotion detected from the entry"
+    )
     # --- AKHIR PENAMBAHAN ---
 
     # Config untuk kompatibilitas dengan ORM

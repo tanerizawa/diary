@@ -14,5 +14,6 @@ class ChatMessage(Base):
     sentiment_score = Column(Float, nullable=True)
     key_emotions = Column(Text, nullable=True)
     detected_mood = Column(String, nullable=True)
+    primary_emotion = Column(String, nullable=True)
 
     owner = relationship("User")

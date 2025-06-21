@@ -93,8 +93,11 @@ def test_websocket_chat(client, monkeypatch):
         "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
     )
     monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_message", fake_analysis)
+    async def fake_sentiment_none(*a, **k):
+        return None
+
     monkeypatch.setattr(
-        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", lambda *a, **k: None
+        "app.api.v1.endpoints.chat.analyze_sentiment_and_emotions", fake_sentiment_none
     )
 
     with client.websocket_connect(f"/api/v1/chat/ws?token={token}") as ws:
