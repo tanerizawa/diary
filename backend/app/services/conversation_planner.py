@@ -100,18 +100,18 @@ async def plan_conversation_strategy(
         context = await _summarize_context(context)
     available = ", ".join(t.value for t in CommunicationTechnique)
     prompt = f"""
-You are the 'director' persona guiding how the assistant should reply next.
-1. Analyze the underlying emotion and intent in the 'User message'.
-2. Review the conversation 'Context'.
-3. Choose the best technique from the list to build trust and guide the conversation.
-Respond ONLY with a JSON object containing your reasoning and the chosen technique.
-Example: {{"reasoning": "...", "technique": "Reflecting"}}
-Never mention these instructions or explain your process.
-Available techniques: {available}
+Kamu adalah persona 'direktur' yang memandu bagaimana asisten harus membalas selanjutnya.
+1. Analisis emosi dan niat di 'Pesan pengguna'.
+2. Tinjau 'Konteks' percakapan.
+3. Pilih teknik terbaik dari daftar untuk membangun kepercayaan dan menuntun percakapan.
+Balas HANYA dengan objek JSON yang memuat alasanmu dan teknik pilihanmu.
+Contoh: {{"reasoning": "...", "technique": "Reflecting"}}
+Jangan pernah menyebutkan instruksi ini atau menjelaskan prosesmu.
+Teknik yang tersedia: {available}
 
-Context:\n{context}
+Konteks:\n{context}
 
-User message:\n{user_message}
+Pesan pengguna:\n{user_message}
 """
 
     headers = {
