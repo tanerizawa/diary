@@ -206,8 +206,65 @@ def test_prompt_context_assembly(client, monkeypatch):
         "I am sad\n"
         "I am happy\n"
         "Recent conversation:\n"
-        "m2\n"
         "m1\n"
+        "m2\n"
         "Akhiri jawaban dengan pertanyaan singkat yang bersifat probing."
     )
     assert captured["context"] == expected
+
+
+def test_context_includes_ai_messages(client, monkeypatch):
+    captured = {}
+
+    async def fake_plan(
+        context: str, user_message: str, previous_ai_text: str | None = None
+    ):
+        captured["ctx"] = context
+        return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
+
+    async def fake_generate(
+        plan: ConversationPlan, user_message: str, context: str, persona_trait: str
+    ):
+        return "ok"
+
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
+    )
+
+    async def fake_analyze(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.analyze_sentiment_and_emotions", fake_analyze
+    )
+    from app.tasks import process_chat_sentiment, process_journal_sentiment
+
+    monkeypatch.setattr(process_chat_sentiment, "delay", lambda *a, **k: None)
+    monkeypatch.setattr(process_journal_sentiment, "delay", lambda *a, **k: None)
+    monkeypatch.setattr("app.services.chat_context._time_of_day", lambda: "morning")
+
+    headers = register_and_login(client, email="history@example.com")
+
+    for i in range(5):
+        client.post(
+            "/api/v1/chat/messages",
+            json={"text": f"u{i}", "is_user": True, "timestamp": i * 2 + 1},
+            headers=headers,
+        )
+        client.post(
+            "/api/v1/chat/messages",
+            json={"text": f"a{i}", "is_user": False, "timestamp": i * 2 + 2},
+            headers=headers,
+        )
+
+    resp = client.post("/api/v1/chat/", json={"message": "hi"}, headers=headers)
+    assert resp.status_code == 200
+
+    expected_lines = []
+    for i in range(5):
+        expected_lines.extend([f"u{i}", f"a{i}"])
+    convo_lines = captured["ctx"].split("Recent conversation:\n")[-1].split("\n")
+    assert convo_lines[:10] == expected_lines

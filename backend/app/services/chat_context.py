@@ -22,12 +22,13 @@ def build_chat_context(
     db: Session,
     user: models.User,
     text: str | None = None,
-    recent_msg_limit: int = 4,
+    recent_msg_limit: int = 10,
 ) -> str:
     """Assemble a string summarizing user info and recent activity.
 
-    The ``recent_msg_limit`` parameter controls how many of the user's most
-    recent messages to include in the context.
+    The ``recent_msg_limit`` parameter controls how many recent conversation
+    messages (both user and assistant) to include in the context. Messages are
+    ordered from oldest to newest.
     """
     journals = crud.journal.get_multi_by_owner(db, owner_id=user.id, limit=5)
     context_lines = [j.content for j in journals]
@@ -36,10 +37,10 @@ def build_chat_context(
     for j in journals:
         moods[j.mood] = moods.get(j.mood, 0) + 1
 
-    recent_msgs = crud.chat_message.get_last_user_messages(
+    recent_msgs = crud.chat_message.get_recent_messages(
         db, owner_id=user.id, limit=recent_msg_limit
     )
-    message_lines = [m.text for m in recent_msgs]
+    message_lines = [m.text for m in reversed(recent_msgs)]
 
     mood_summary = ", ".join(f"{m}:{c}" for m, c in moods.items())
 
