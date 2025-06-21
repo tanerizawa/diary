@@ -188,3 +188,253 @@ def test_plan_conversation_strategy_long_context(monkeypatch):
     assert counter["i"] == 2
     assert "Ringkas konteks" in calls[0]
     assert plan.technique == CommunicationTechnique.CLARIFYING
+
+
+def test_plan_conversation_strategy_perfect_json(monkeypatch):
+    class DummyClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+        async def post(self, url, headers=None, json=None, timeout=None):
+            class Resp:
+                def raise_for_status(self):
+                    pass
+
+                def json(self):
+                    return {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": '{"reasoning":"ok","technique":"Reflecting"}'
+                                }
+                            }
+                        ]
+                    }
+
+            return Resp()
+
+    monkeypatch.setattr(
+        "app.services.conversation_planner.httpx.AsyncClient", DummyClient
+    )
+    plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
+    assert plan is not None
+    assert plan.technique == CommunicationTechnique.REFLECTING
+
+
+def test_plan_conversation_strategy_synonym(monkeypatch):
+    class DummyClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+        async def post(self, url, headers=None, json=None, timeout=None):
+            class Resp:
+                def raise_for_status(self):
+                    pass
+
+                def json(self):
+                    return {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": '{"reasoning":"ok","technique":"reflection"}'
+                                }
+                            }
+                        ]
+                    }
+
+            return Resp()
+
+    monkeypatch.setattr(
+        "app.services.conversation_planner.httpx.AsyncClient", DummyClient
+    )
+    plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
+    assert plan.technique == CommunicationTechnique.REFLECTING
+
+
+def test_plan_conversation_strategy_case_insensitive(monkeypatch):
+    class DummyClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+        async def post(self, url, headers=None, json=None, timeout=None):
+            class Resp:
+                def raise_for_status(self):
+                    pass
+
+                def json(self):
+                    return {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": '{"technique":"SuMmAriZinG"}'
+                                }
+                            }
+                        ]
+                    }
+
+            return Resp()
+
+    monkeypatch.setattr(
+        "app.services.conversation_planner.httpx.AsyncClient", DummyClient
+    )
+    plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
+    assert plan.technique == CommunicationTechnique.SUMMARIZING
+
+
+def test_plan_conversation_strategy_unknown_value(monkeypatch):
+    class DummyClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+        async def post(self, url, headers=None, json=None, timeout=None):
+            class Resp:
+                def raise_for_status(self):
+                    pass
+
+                def json(self):
+                    return {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": '{"technique":"unknown"}'
+                                }
+                            }
+                        ]
+                    }
+
+            return Resp()
+
+    monkeypatch.setattr(
+        "app.services.conversation_planner.httpx.AsyncClient", DummyClient
+    )
+    plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
+    assert plan.technique == CommunicationTechnique.PROBING
+
+
+def test_plan_conversation_strategy_invalid_json(monkeypatch):
+    class DummyClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+        async def post(self, url, headers=None, json=None, timeout=None):
+            class Resp:
+                def raise_for_status(self):
+                    pass
+
+                def json(self):
+                    return {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": '{"technique":"reflecting",}'
+                                }
+                            }
+                        ]
+                    }
+
+            return Resp()
+
+    monkeypatch.setattr(
+        "app.services.conversation_planner.httpx.AsyncClient", DummyClient
+    )
+    plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
+    assert plan is None
+
+
+def test_plan_conversation_strategy_non_json(monkeypatch):
+    class DummyClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+        async def post(self, url, headers=None, json=None, timeout=None):
+            class Resp:
+                def raise_for_status(self):
+                    pass
+
+                def json(self):
+                    return {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": "I am not JSON"
+                                }
+                            }
+                        ]
+                    }
+
+            return Resp()
+
+    monkeypatch.setattr(
+        "app.services.conversation_planner.httpx.AsyncClient", DummyClient
+    )
+    plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
+    assert plan is None
+
+
+def test_plan_conversation_strategy_missing_key(monkeypatch):
+    class DummyClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+        async def post(self, url, headers=None, json=None, timeout=None):
+            class Resp:
+                def raise_for_status(self):
+                    pass
+
+                def json(self):
+                    return {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": '{"reasoning":"ok"}'
+                                }
+                            }
+                        ]
+                    }
+
+            return Resp()
+
+    monkeypatch.setattr(
+        "app.services.conversation_planner.httpx.AsyncClient", DummyClient
+    )
+    plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
+    assert plan is None
+
+
+def test_plan_conversation_strategy_connection_failure(monkeypatch):
+    class DummyClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+        async def post(self, url, headers=None, json=None, timeout=None):
+            raise httpx.RequestError("connection failed", request=None)
+
+    monkeypatch.setattr(
+        "app.services.conversation_planner.httpx.AsyncClient", DummyClient
+    )
+    plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
+    assert plan is None
