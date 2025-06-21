@@ -14,6 +14,7 @@ class CommunicationTechnique(str, Enum):
     SUMMARIZING = "Summarizing"
     CONFRONTATION = "Confrontation"
     REASSURANCE_ENCOURAGEMENT = "Reassurance and encouragement"
+    NEUTRAL_ACKNOWLEDGEMENT = "Neutral acknowledgement"
 
 
 class ConversationPlan(BaseModel):
