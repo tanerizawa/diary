@@ -1,4 +1,5 @@
 import os
+
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
 os.environ.setdefault("SECRET_KEY", "test")
 os.environ.setdefault("AI_API_KEY", "test")
@@ -42,6 +43,7 @@ def client():
     app.dependency_overrides[deps.get_db] = override_get_db
 
     from app.tasks import process_journal_sentiment, process_chat_sentiment
+
     process_journal_sentiment.delay = lambda *a, **k: None
     process_chat_sentiment.delay = lambda *a, **k: None
 
@@ -52,9 +54,13 @@ def client():
 
 
 def register_and_login(client, email="user@example.com", password="pass"):
-    reg = client.post("/api/v1/users/register", json={"email": email, "password": password})
+    reg = client.post(
+        "/api/v1/users/register", json={"email": email, "password": password}
+    )
     assert reg.status_code == 200
-    login = client.post("/api/v1/users/login", json={"email": email, "password": password})
+    login = client.post(
+        "/api/v1/users/login", json={"email": email, "password": password}
+    )
     assert login.status_code == 200
     token = login.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
@@ -120,7 +126,10 @@ def test_chat_sentiment_response(client, monkeypatch):
     headers = register_and_login(client, email="chat@example.com")
 
     captured = {}
-    async def fake_plan(context: str, user_message: str):
+
+    async def fake_plan(
+        context: str, user_message: str, previous_ai_text: str | None = None
+    ):
         captured["ctx"] = context
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
@@ -138,15 +147,18 @@ def test_chat_sentiment_response(client, monkeypatch):
     async def fake_sentiment(text: str):
         return {"sentiment_score": 0.5, "key_emotions": "happy"}
 
-    monkeypatch.setattr("app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan)
-    monkeypatch.setattr("app.api.v1.endpoints.chat.generate_pure_response", fake_generate)
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
+    )
     monkeypatch.setattr(
         "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_sentiment
     )
-    monkeypatch.setattr(
-        "app.api.v1.endpoints.chat.analyze_message", fake_analysis
-    )
+    monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_message", fake_analysis)
     from app.tasks import process_chat_sentiment
+
     monkeypatch.setattr(process_chat_sentiment, "delay", lambda *a, **k: None)
 
     resp = client.post("/api/v1/chat/", json={"message": "hello"}, headers=headers)
@@ -165,7 +177,7 @@ def test_chat_sentiment_response(client, monkeypatch):
     assert logs_resp.status_code == 200
     logs = logs_resp.json()
     assert len(logs) == 1
-    assert logs[0]["detected_mood"] == "\U0001F610"
+    assert logs[0]["detected_mood"] == "\U0001f610"
     assert logs[0]["sentiment_score"] is None
     assert logs[0]["key_emotions_detected"] is None
 
@@ -173,7 +185,9 @@ def test_chat_sentiment_response(client, monkeypatch):
 def test_chat_analysis_failure(client, monkeypatch):
     headers = register_and_login(client, email="fail@example.com")
 
-    async def fake_plan(context: str, user_message: str):
+    async def fake_plan(
+        context: str, user_message: str, previous_ai_text: str | None = None
+    ):
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
@@ -182,13 +196,18 @@ def test_chat_analysis_failure(client, monkeypatch):
     async def fail_analysis(text: str):
         return None
 
-    monkeypatch.setattr("app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan)
-    monkeypatch.setattr("app.api.v1.endpoints.chat.generate_pure_response", fake_generate)
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
+    )
     monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_message", fail_analysis)
     monkeypatch.setattr(
         "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", lambda *a, **k: None
     )
     from app.tasks import process_chat_sentiment
+
     monkeypatch.setattr(process_chat_sentiment, "delay", lambda *a, **k: None)
 
     resp = client.post("/api/v1/chat/", json={"message": "hi"}, headers=headers)
@@ -202,7 +221,9 @@ def test_chat_analysis_failure(client, monkeypatch):
 def test_message_post_handler(client, monkeypatch):
     headers = register_and_login(client, email="msg@example.com")
 
-    async def fake_plan(context: str, user_message: str):
+    async def fake_plan(
+        context: str, user_message: str, previous_ai_text: str | None = None
+    ):
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
@@ -211,8 +232,12 @@ def test_message_post_handler(client, monkeypatch):
     async def fake_sentiment(text: str):
         return {"sentiment_score": 0.2, "key_emotions": "calm"}
 
-    monkeypatch.setattr("app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan)
-    monkeypatch.setattr("app.api.v1.endpoints.chat.generate_pure_response", fake_generate)
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
+    )
     monkeypatch.setattr(
         "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_sentiment
     )
@@ -239,7 +264,9 @@ def test_message_post_handler(client, monkeypatch):
 def test_delete_messages_endpoint(client, monkeypatch):
     headers = register_and_login(client, email="delmsg@example.com")
 
-    async def fake_plan(context: str, user_message: str):
+    async def fake_plan(
+        context: str, user_message: str, previous_ai_text: str | None = None
+    ):
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
@@ -248,9 +275,15 @@ def test_delete_messages_endpoint(client, monkeypatch):
     async def fake_sentiment(text: str):
         return None
 
-    monkeypatch.setattr("app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan)
-    monkeypatch.setattr("app.api.v1.endpoints.chat.generate_pure_response", fake_generate)
-    monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_sentiment)
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_sentiment
+    )
 
     for i in range(3):
         client.post(
@@ -261,7 +294,9 @@ def test_delete_messages_endpoint(client, monkeypatch):
 
     resp = client.get("/api/v1/chat/messages", headers=headers)
     ids = [m["id"] for m in resp.json()]
-    del_resp = client.request("DELETE", "/api/v1/chat/messages", json={"ids": ids[:2]}, headers=headers)
+    del_resp = client.request(
+        "DELETE", "/api/v1/chat/messages", json={"ids": ids[:2]}, headers=headers
+    )
     assert del_resp.status_code == 200
     assert del_resp.json() == 2
 
@@ -273,14 +308,20 @@ def test_delete_messages_endpoint(client, monkeypatch):
 def test_prompt_endpoint_rate_limit(client, monkeypatch):
     headers = register_and_login(client, email="prompt@example.com")
 
-    async def fake_plan(context: str, user_message: str):
+    async def fake_plan(
+        context: str, user_message: str, previous_ai_text: str | None = None
+    ):
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
         return "hey?"
 
-    monkeypatch.setattr("app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan)
-    monkeypatch.setattr("app.api.v1.endpoints.chat.generate_pure_response", fake_generate)
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
+    )
 
     resp = client.post("/api/v1/chat/prompt", headers=headers)
     assert resp.status_code == 200
@@ -297,22 +338,28 @@ def test_relationship_level_prompt_variation(client, monkeypatch):
     headers = register_and_login(client, email="rel@example.com")
     prompts = []
 
-    async def fake_plan(context: str, user_message: str):
+    async def fake_plan(
+        context: str, user_message: str, previous_ai_text: str | None = None
+    ):
         prompts.append(context)
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
         return "ok"
 
-    monkeypatch.setattr("app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan)
-    monkeypatch.setattr("app.api.v1.endpoints.chat.generate_pure_response", fake_generate)
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
+    )
+
     async def noop(*args, **kwargs):
         return None
 
-    monkeypatch.setattr(
-        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", noop
-    )
+    monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_sentiment_with_ai", noop)
     from app.tasks import process_chat_sentiment, process_journal_sentiment
+
     monkeypatch.setattr(process_chat_sentiment, "delay", lambda *a, **k: None)
     monkeypatch.setattr(process_journal_sentiment, "delay", lambda *a, **k: None)
 

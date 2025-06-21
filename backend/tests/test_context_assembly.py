@@ -1,4 +1,5 @@
 import os
+
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
 os.environ.setdefault("SECRET_KEY", "test")
 os.environ.setdefault("AI_API_KEY", "test")
@@ -41,6 +42,7 @@ def client():
     app.dependency_overrides[deps.get_db] = override_get_db
 
     from app.tasks import process_journal_sentiment, process_chat_sentiment
+
     process_journal_sentiment.delay = lambda *a, **k: None
     process_chat_sentiment.delay = lambda *a, **k: None
 
@@ -51,9 +53,13 @@ def client():
 
 
 def register_and_login(client, email="user@example.com", password="pass"):
-    reg = client.post("/api/v1/users/register", json={"email": email, "password": password})
+    reg = client.post(
+        "/api/v1/users/register", json={"email": email, "password": password}
+    )
     assert reg.status_code == 200
-    login = client.post("/api/v1/users/login", json={"email": email, "password": password})
+    login = client.post(
+        "/api/v1/users/login", json={"email": email, "password": password}
+    )
     assert login.status_code == 200
     token = login.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
@@ -65,19 +71,30 @@ from app.schemas.conversation import ConversationPlan, CommunicationTechnique
 def test_chat_context_assembly(client, monkeypatch):
     captured = {}
 
-    async def fake_plan(context: str, user_message: str):
+    async def fake_plan(
+        context: str, user_message: str, previous_ai_text: str | None = None
+    ):
         captured["context"] = context
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
         return "ok"
 
-    monkeypatch.setattr("app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan)
-    monkeypatch.setattr("app.api.v1.endpoints.chat.generate_pure_response", fake_generate)
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
+    )
+
     async def fake_analyze(*args, **kwargs):
         return None
-    monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_analyze)
+
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_analyze
+    )
     from app.tasks import process_chat_sentiment, process_journal_sentiment
+
     monkeypatch.setattr(process_chat_sentiment, "delay", lambda *a, **k: None)
     monkeypatch.setattr(process_journal_sentiment, "delay", lambda *a, **k: None)
     monkeypatch.setattr("app.services.chat_context._time_of_day", lambda: "morning")
@@ -123,19 +140,30 @@ def test_chat_context_assembly(client, monkeypatch):
 def test_prompt_context_assembly(client, monkeypatch):
     captured = {}
 
-    async def fake_plan(context: str, user_message: str):
+    async def fake_plan(
+        context: str, user_message: str, previous_ai_text: str | None = None
+    ):
         captured["context"] = context
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
     async def fake_generate(plan: ConversationPlan, user_message: str):
         return "ok"
 
-    monkeypatch.setattr("app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan)
-    monkeypatch.setattr("app.api.v1.endpoints.chat.generate_pure_response", fake_generate)
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
+    )
+
     async def fake_analyze(*args, **kwargs):
         return None
-    monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_analyze)
+
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_analyze
+    )
     from app.tasks import process_chat_sentiment, process_journal_sentiment
+
     monkeypatch.setattr(process_chat_sentiment, "delay", lambda *a, **k: None)
     monkeypatch.setattr(process_journal_sentiment, "delay", lambda *a, **k: None)
     monkeypatch.setattr("app.services.chat_context._time_of_day", lambda: "morning")
