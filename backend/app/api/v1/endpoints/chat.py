@@ -24,6 +24,7 @@ from app.services import (
     plan_conversation_strategy,
     generate_pure_response,
 )
+from app.schemas.conversation import CommunicationTechnique, ConversationPlan
 from app.tasks import process_chat_sentiment
 
 router = APIRouter()
@@ -273,7 +274,6 @@ async def prompt_chat(
         )
 
     context = build_chat_context(db, current_user, recent_msg_limit=10)
-    context += "\nAkhiri jawaban dengan pertanyaan singkat yang bersifat probing."
 
     previous_ai_text = None
     if recent:
@@ -285,9 +285,11 @@ async def prompt_chat(
         context, "", previous_ai_text=previous_ai_text
     )
     if plan is None:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
+        plan = ConversationPlan(
+            technique=CommunicationTechnique.NEUTRAL_ACKNOWLEDGEMENT
         )
+
+    context += f"\nAkhiri jawaban dengan teknik {plan.technique.value}."
     persona_trait = _persona_trait(current_user.relationship_level)
     reply_text = await generate_pure_response(
         plan,
