@@ -73,7 +73,7 @@ def test_plan_conversation_strategy_unknown(monkeypatch):
 
     monkeypatch.setattr("app.services.conversation_planner.httpx.AsyncClient", DummyClient)
     plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
-    assert plan.technique == CommunicationTechnique.PROBING
+    assert plan.technique == CommunicationTechnique.NEUTRAL_ACKNOWLEDGEMENT
 
 
 def test_plan_conversation_strategy_fuzzy_match(monkeypatch):

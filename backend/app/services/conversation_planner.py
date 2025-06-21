@@ -20,6 +20,7 @@ TOOLBOX: dict[CommunicationTechnique, str] = {
     CommunicationTechnique.SUMMARIZING: "briefly recap key points",
     CommunicationTechnique.CONFRONTATION: "gently note inconsistencies",
     CommunicationTechnique.REASSURANCE_ENCOURAGEMENT: "offer reassurance",
+    CommunicationTechnique.NEUTRAL_ACKNOWLEDGEMENT: "give a brief neutral acknowledgement",
 }
 
 SYNONYMS = {
@@ -137,7 +138,7 @@ User message:\n{user_message}
                         "planner_new_technique_suggestion",
                         suggestion=technique_str,
                     )
-                    tech_enum = CommunicationTechnique.PROBING
+                    tech_enum = CommunicationTechnique.NEUTRAL_ACKNOWLEDGEMENT
             log.info(
                 "planner_success", technique=tech_enum.value, reasoning=reasoning
             )

@@ -72,5 +72,6 @@ Pull requests are welcome. Please open an issue first to discuss major changes. 
 The backend includes a small "toolbox" of communication techniques used by the
 AI assistant. Each technique is defined in `CommunicationTechnique` and mapped
 to a short instruction in `conversation_planner.TOOLBOX`. The planner chooses
-one technique for each reply (for example *Reflecting* or *Summarizing*). To add
-new techniques, extend this enum and dictionary.
+one technique for each reply (for example *Reflecting*, *Summarizing* or the
+new *Neutral acknowledgement* technique). To add new techniques, extend this
+enum and dictionary.
