@@ -7,11 +7,17 @@ log_setup.setup_logging()
 from fastapi import FastAPI
 from app.api.v1.api import api_router
 from app.core.config import settings
+from app.db.migrations import upgrade_to_latest
 # Database schema now managed via Alembic migrations
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+@app.on_event("startup")
+def run_migrations() -> None:
+    """Ensure database schema is up to date."""
+    upgrade_to_latest()
 
 @app.get("/")
 def read_root():
