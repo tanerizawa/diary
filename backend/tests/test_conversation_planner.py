@@ -14,6 +14,8 @@ import httpx
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from app.services.conversation_planner import plan_conversation_strategy
+import app.services.conversation_planner as conversation_planner
+import app.core.config as config
 from app.schemas.conversation import CommunicationTechnique
 
 
@@ -438,3 +440,26 @@ def test_plan_conversation_strategy_connection_failure(monkeypatch):
     )
     plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
     assert plan is None
+
+
+def test_load_config_missing_or_invalid(monkeypatch, tmp_path):
+    import importlib
+
+    missing = tmp_path / "missing.yaml"
+    monkeypatch.setenv("PLANNER_CONFIG_FILE", str(missing))
+    importlib.reload(config)
+    module = importlib.reload(conversation_planner)
+    assert module.TOOLBOX == {}
+    assert module.SYNONYMS == {}
+
+    bad = tmp_path / "bad.yaml"
+    bad.write_text("{not: [valid", encoding="utf-8")
+    monkeypatch.setenv("PLANNER_CONFIG_FILE", str(bad))
+    importlib.reload(config)
+    module = importlib.reload(conversation_planner)
+    assert module.TOOLBOX == {}
+    assert module.SYNONYMS == {}
+
+    monkeypatch.delenv("PLANNER_CONFIG_FILE", raising=False)
+    importlib.reload(config)
+    importlib.reload(conversation_planner)

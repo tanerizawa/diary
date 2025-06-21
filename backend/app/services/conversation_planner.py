@@ -16,13 +16,23 @@ from app.schemas.conversation import (
 
 def _load_config() -> tuple[dict[CommunicationTechnique, str], dict[str, CommunicationTechnique]]:
     """Load toolbox and synonym configuration from YAML."""
+    log = structlog.get_logger(__name__)
     path = settings.PLANNER_CONFIG_FILE
-    if path and os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-    else:
-        with importlib.resources.files("app").joinpath("planner_config.yaml").open("r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
+    try:
+        if path:
+            with open(path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+        else:
+            with importlib.resources.files("app").joinpath("planner_config.yaml").open(
+                "r", encoding="utf-8"
+            ) as f:
+                data = yaml.safe_load(f)
+    except FileNotFoundError:
+        log.warning("planner_config_missing", path=path)
+        return {}, {}
+    except yaml.YAMLError as e:
+        log.warning("planner_config_invalid", path=path, error=str(e))
+        return {}, {}
     toolbox_raw: dict[str, str] = data.get("toolbox", {}) if isinstance(data, dict) else {}
     synonyms_raw: dict[str, str] = data.get("synonyms", {}) if isinstance(data, dict) else {}
 
