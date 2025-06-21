@@ -40,7 +40,11 @@ def test_generate_pure_response_prompt(monkeypatch):
 
     monkeypatch.setattr("app.services.response_generator.httpx.AsyncClient", DummyClient)
     plan = ConversationPlan(technique=CommunicationTechnique.REFLECTING)
-    result = asyncio.run(generate_pure_response(plan, "hi"))
+    result = asyncio.run(
+        generate_pure_response(plan, "hi", "ctx", "persona")
+    )
     assert result == "reply"
-    assert "Reflecting" in captured['json']['messages'][0]['content']
+    msg = captured['json']['messages'][0]['content']
+    assert "Reflecting" in msg
+    assert "Kai" in msg
     assert 'response_format' not in captured['json']

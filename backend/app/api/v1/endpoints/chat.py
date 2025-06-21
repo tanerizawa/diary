@@ -28,6 +28,15 @@ from app.tasks import process_chat_sentiment
 router = APIRouter()
 
 
+def _persona_trait(relationship_level: int) -> str:
+    """Return a short trait description based on relationship level."""
+    if relationship_level > 30:
+        return "You are the user's close confidant."
+    if relationship_level > 10:
+        return "You and the user are becoming good friends."
+    return "You are just getting to know the user."
+
+
 @router.post(
     "/",
     response_model=schemas.FinalChatResponse,
@@ -62,7 +71,13 @@ async def chat_with_ai(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
         )
 
-    reply_text = await generate_pure_response(plan, chat_in.message)
+    persona_trait = _persona_trait(current_user.relationship_level)
+    reply_text = await generate_pure_response(
+        plan,
+        chat_in.message,
+        context,
+        persona_trait,
+    )
     if not reply_text:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
@@ -186,7 +201,13 @@ async def create_message(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
         )
 
-    reply_text = await generate_pure_response(plan, message_in.text)
+    persona_trait = _persona_trait(current_user.relationship_level)
+    reply_text = await generate_pure_response(
+        plan,
+        message_in.text,
+        "",
+        persona_trait,
+    )
     if not reply_text:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
@@ -250,7 +271,13 @@ async def prompt_chat(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
         )
-    reply_text = await generate_pure_response(plan, "")
+    persona_trait = _persona_trait(current_user.relationship_level)
+    reply_text = await generate_pure_response(
+        plan,
+        "",
+        context,
+        persona_trait,
+    )
     if not reply_text:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
@@ -350,7 +377,13 @@ async def websocket_chat(websocket: WebSocket, token: str):
             if plan is None:
                 await websocket.send_json({"error": "AI service error"})
                 continue
-            reply_text = await generate_pure_response(plan, text)
+            persona_trait = _persona_trait(user.relationship_level)
+            reply_text = await generate_pure_response(
+                plan,
+                text,
+                context,
+                persona_trait,
+            )
             if not reply_text:
                 await websocket.send_json({"error": "AI service error"})
                 continue

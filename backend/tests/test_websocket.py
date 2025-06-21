@@ -75,7 +75,9 @@ def test_websocket_chat(client, monkeypatch):
     ):
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
-    async def fake_generate(plan: ConversationPlan, user_message: str):
+    async def fake_generate(
+        plan: ConversationPlan, user_message: str, context: str, persona_trait: str
+    ):
         return "pong"
 
     async def fake_analysis(text: str):

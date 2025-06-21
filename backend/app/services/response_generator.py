@@ -8,16 +8,22 @@ from app.schemas.conversation import ConversationPlan
 from app.services.conversation_planner import TOOLBOX
 
 
-async def generate_pure_response(plan: ConversationPlan, user_message: str) -> str:
+async def generate_pure_response(
+    plan: ConversationPlan,
+    user_message: str,
+    context: str,
+    persona_trait: str,
+) -> str:
     """Generate a plain text reply applying the given conversation technique."""
     log = structlog.get_logger(__name__)
     technique = plan.technique_to_use
     instruction = TOOLBOX.get(plan.technique, "")
     prompt = f"""
-You are the 'actor' persona executing the assistant's reply.
-Follow the director's instructions exactly and use this technique: {technique}.
-To apply it, {instruction}.
+You are Kai, a warm, empathetic, and non-judgmental friend. {persona_trait}
+The conversation director has decided you should use the '{plan.technique.value}' technique when responding. To apply it, {instruction}.
 Respond directly to the user in Bahasa Indonesia without any JSON or formatting.
+
+Context:\n{context}
 
 User message:\n{user_message}
 """
@@ -37,6 +43,7 @@ User message:\n{user_message}
         "generator_request",
         technique=technique,
         user_message=user_message,
+        context_length=len(context),
     )
 
     try:
