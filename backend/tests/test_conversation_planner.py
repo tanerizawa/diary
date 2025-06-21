@@ -1,4 +1,5 @@
 import os
+
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
 os.environ.setdefault("SECRET_KEY", "test")
 os.environ.setdefault("AI_API_KEY", "test")
@@ -20,17 +21,31 @@ def test_plan_conversation_strategy_parses_json(monkeypatch):
     class DummyClient:
         async def __aenter__(self):
             return self
+
         async def __aexit__(self, exc_type, exc, tb):
             pass
+
         async def post(self, url, headers=None, json=None, timeout=None):
             class Resp:
                 def raise_for_status(self):
                     pass
+
                 def json(self):
-                    return {"choices": [{"message": {"content": '{"reasoning":"ok","technique":"reflection"}'}}]}
+                    return {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": '{"reasoning":"ok","technique":"reflection"}'
+                                }
+                            }
+                        ]
+                    }
+
             return Resp()
 
-    monkeypatch.setattr("app.services.conversation_planner.httpx.AsyncClient", DummyClient)
+    monkeypatch.setattr(
+        "app.services.conversation_planner.httpx.AsyncClient", DummyClient
+    )
     plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
     assert plan is not None
     assert plan.technique == CommunicationTechnique.REFLECTING
@@ -40,15 +55,20 @@ def test_plan_conversation_strategy_api_error(monkeypatch):
     class DummyClient:
         async def __aenter__(self):
             return self
+
         async def __aexit__(self, exc_type, exc, tb):
             pass
+
         async def post(self, url, headers=None, json=None, timeout=None):
             class Resp:
                 def raise_for_status(self):
                     raise httpx.HTTPStatusError("bad", request=None, response=None)
+
             return Resp()
 
-    monkeypatch.setattr("app.services.conversation_planner.httpx.AsyncClient", DummyClient)
+    monkeypatch.setattr(
+        "app.services.conversation_planner.httpx.AsyncClient", DummyClient
+    )
     plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
     assert plan is None
 
@@ -67,13 +87,30 @@ def test_plan_conversation_strategy_unknown(monkeypatch):
                     pass
 
                 def json(self):
-                    return {"choices": [{"message": {"content": '{"reasoning":"?","technique":"nonsense"}'}}]}
+                    return {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": '{"reasoning":"?","technique":"nonsense"}'
+                                }
+                            }
+                        ]
+                    }
 
             return Resp()
 
-    monkeypatch.setattr("app.services.conversation_planner.httpx.AsyncClient", DummyClient)
-    plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
-    assert plan.technique == CommunicationTechnique.NEUTRAL_ACKNOWLEDGEMENT
+    monkeypatch.setattr(
+        "app.services.conversation_planner.httpx.AsyncClient", DummyClient
+    )
+    plan = asyncio.run(
+        plan_conversation_strategy("ctx", "hi", previous_ai_text="Hello")
+    )
+    assert plan.technique == CommunicationTechnique.PROBING
+
+    plan_question = asyncio.run(
+        plan_conversation_strategy("ctx", "hi", previous_ai_text="Okay?")
+    )
+    assert plan_question.technique == CommunicationTechnique.NEUTRAL_ACKNOWLEDGEMENT
 
 
 def test_plan_conversation_strategy_fuzzy_match(monkeypatch):
@@ -136,11 +173,7 @@ def test_plan_conversation_strategy_long_context(monkeypatch):
                         return {"choices": [{"message": {"content": "summary"}}]}
                     return {
                         "choices": [
-                            {
-                                "message": {
-                                    "content": '{"technique":"clarifying"}'
-                                }
-                            }
+                            {"message": {"content": '{"technique":"clarifying"}'}}
                         ]
                     }
 

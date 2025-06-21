@@ -1,5 +1,13 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Body, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status,
+    Body,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from sqlalchemy.orm import Session
 import asyncio
 import json
@@ -18,6 +26,7 @@ from app.services import (
 from app.tasks import process_chat_sentiment
 
 router = APIRouter()
+
 
 @router.post(
     "/",
@@ -38,13 +47,26 @@ async def chat_with_ai(
     analysis = await analyze_message(chat_in.message)
     context = build_chat_context(db, current_user, chat_in.message)
 
-    plan = await plan_conversation_strategy(context, chat_in.message)
+    last_msg = crud.chat_message.get_recent_messages(
+        db, owner_id=current_user.id, limit=1
+    )
+    previous_ai_text = None
+    if last_msg and not last_msg[0].is_user:
+        previous_ai_text = last_msg[0].text
+
+    plan = await plan_conversation_strategy(
+        context, chat_in.message, previous_ai_text=previous_ai_text
+    )
     if plan is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
+        )
 
     reply_text = await generate_pure_response(plan, chat_in.message)
     if not reply_text:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
+        )
     action = schemas.Action.balas_teks
     journal_template = None
     # Persist conversation
@@ -120,8 +142,12 @@ async def create_message(
         db,
         db_obj=created_msg,
         obj_in={
-            "sentiment_score": analysis_result.get("sentiment_score") if analysis_result else None,
-            "key_emotions": analysis_result.get("key_emotions") if analysis_result else None,
+            "sentiment_score": (
+                analysis_result.get("sentiment_score") if analysis_result else None
+            ),
+            "key_emotions": (
+                analysis_result.get("key_emotions") if analysis_result else None
+            ),
             "detected_mood": detected_mood,
         },
     )
@@ -133,19 +159,38 @@ async def create_message(
             detected_mood=detected_mood,
             source_text=message_in.text,
             source_feature="chat_home",
-            sentiment_score=analysis_result.get("sentiment_score") if analysis_result else None,
-            key_emotions_detected=(analysis_result.get("key_emotions").split(",") if analysis_result and analysis_result.get("key_emotions") else None),
+            sentiment_score=(
+                analysis_result.get("sentiment_score") if analysis_result else None
+            ),
+            key_emotions_detected=(
+                analysis_result.get("key_emotions").split(",")
+                if analysis_result and analysis_result.get("key_emotions")
+                else None
+            ),
         ),
         owner_id=current_user.id,
     )
 
-    plan = await plan_conversation_strategy("", message_in.text)
+    last_msg = crud.chat_message.get_recent_messages(
+        db, owner_id=current_user.id, limit=1
+    )
+    previous_ai_text = None
+    if last_msg and not last_msg[0].is_user:
+        previous_ai_text = last_msg[0].text
+
+    plan = await plan_conversation_strategy(
+        "", message_in.text, previous_ai_text=previous_ai_text
+    )
     if plan is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
+        )
 
     reply_text = await generate_pure_response(plan, message_in.text)
     if not reply_text:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
+        )
     action = schemas.Action.balas_teks
     journal_template = None
 
@@ -171,7 +216,9 @@ async def prompt_chat(
 ):
     """Generate a proactive AI message using recent context."""
     # Rate limit: avoid sending if last auto prompt was within 6 hours
-    recent = crud.chat_message.get_recent_messages(db, owner_id=current_user.id, limit=10)
+    recent = crud.chat_message.get_recent_messages(
+        db, owner_id=current_user.id, limit=10
+    )
     last_prompt_ts = None
     for i, msg in enumerate(recent):
         if not msg.is_user:
@@ -182,17 +229,32 @@ async def prompt_chat(
 
     now_ts = int(asyncio.get_event_loop().time() * 1000)
     if last_prompt_ts and now_ts - last_prompt_ts < 6 * 60 * 60 * 1000:
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Prompt recently generated")
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Prompt recently generated",
+        )
 
     context = build_chat_context(db, current_user)
     context += "\nAkhiri jawaban dengan pertanyaan singkat yang bersifat probing."
 
-    plan = await plan_conversation_strategy(context, "")
+    previous_ai_text = None
+    if recent:
+        first = recent[0]
+        if not first.is_user:
+            previous_ai_text = first.text
+
+    plan = await plan_conversation_strategy(
+        context, "", previous_ai_text=previous_ai_text
+    )
     if plan is None:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
+        )
     reply_text = await generate_pure_response(plan, "")
     if not reply_text:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
+        )
     action = schemas.Action.balas_teks
     journal_template = None
 
@@ -250,7 +312,9 @@ def delete_messages(
         db, ids=delete_in.ids, owner_id=current_user.id
     )
     if deleted == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Messages not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Messages not found"
+        )
     return deleted
 
 
@@ -273,7 +337,16 @@ async def websocket_chat(websocket: WebSocket, token: str):
             analysis = await analyze_message(text)
             context = build_chat_context(db, user, text)
 
-            plan = await plan_conversation_strategy(context, text)
+            last_msg = crud.chat_message.get_recent_messages(
+                db, owner_id=user.id, limit=1
+            )
+            previous_ai_text = None
+            if last_msg and not last_msg[0].is_user:
+                previous_ai_text = last_msg[0].text
+
+            plan = await plan_conversation_strategy(
+                context, text, previous_ai_text=previous_ai_text
+            )
             if plan is None:
                 await websocket.send_json({"error": "AI service error"})
                 continue

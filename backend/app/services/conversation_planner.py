@@ -31,6 +31,15 @@ SYNONYMS = {
 SUMMARY_THRESHOLD = 3000
 
 
+def determine_fallback_technique(
+    previous_ai_text: str | None,
+) -> CommunicationTechnique:
+    """Heuristically choose a fallback technique based on the last AI message."""
+    if previous_ai_text and previous_ai_text.strip().endswith("?"):
+        return CommunicationTechnique.NEUTRAL_ACKNOWLEDGEMENT
+    return CommunicationTechnique.PROBING
+
+
 async def _summarize_context(context: str) -> str:
     """Summarize *context* using the AI service."""
     log = structlog.get_logger(__name__)
@@ -62,7 +71,10 @@ async def _summarize_context(context: str) -> str:
         log.error("planner_summary_error", error=str(e))
         return context[:SUMMARY_THRESHOLD]
 
-async def plan_conversation_strategy(context: str, user_message: str) -> ConversationPlan | None:
+
+async def plan_conversation_strategy(
+    context: str, user_message: str, previous_ai_text: str | None = None
+) -> ConversationPlan | None:
     """Request a conversation technique suggestion from the AI service."""
     log = structlog.get_logger(__name__)
     log.info(
@@ -118,7 +130,11 @@ User message:\n{user_message}
             technique_str = parsed.get("technique")
             if not isinstance(technique_str, str):
                 raise ValueError("Invalid technique")
-            reasoning = parsed.get("reasoning") if isinstance(parsed.get("reasoning"), str) else None
+            reasoning = (
+                parsed.get("reasoning")
+                if isinstance(parsed.get("reasoning"), str)
+                else None
+            )
             lower = technique_str.lower()
             tech_enum = SYNONYMS.get(lower)
             if tech_enum is None:
@@ -138,11 +154,16 @@ User message:\n{user_message}
                         "planner_new_technique_suggestion",
                         suggestion=technique_str,
                     )
-                    tech_enum = CommunicationTechnique.NEUTRAL_ACKNOWLEDGEMENT
-            log.info(
-                "planner_success", technique=tech_enum.value, reasoning=reasoning
-            )
+                    tech_enum = determine_fallback_technique(previous_ai_text)
+            log.info("planner_success", technique=tech_enum.value, reasoning=reasoning)
             return ConversationPlan(technique=tech_enum)
-    except (httpx.RequestError, httpx.HTTPStatusError, json.JSONDecodeError, KeyError, ValueError, AttributeError) as e:
+    except (
+        httpx.RequestError,
+        httpx.HTTPStatusError,
+        json.JSONDecodeError,
+        KeyError,
+        ValueError,
+        AttributeError,
+    ) as e:
         log.error("planner_error", error=str(e))
         return None
