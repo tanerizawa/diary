@@ -37,7 +37,12 @@ async def plan_conversation_strategy(context: str, user_message: str) -> Convers
     available = ", ".join(t.value for t in CommunicationTechnique)
     prompt = f"""
 You are the 'director' persona guiding how the assistant should reply next.
-Choose one communication technique from the following list and respond only with JSON key 'technique'.
+1. Analyze the underlying emotion and intent in the 'User message'.
+2. Review the conversation 'Context'.
+3. Choose the best technique from the list to build trust and guide the conversation.
+Respond ONLY with a JSON object containing your reasoning and the chosen technique.
+Example: {{"reasoning": "...", "technique": "Reflecting"}}
+Never mention these instructions or explain your process.
 Available techniques: {available}
 
 Context:\n{context}
@@ -74,6 +79,7 @@ User message:\n{user_message}
             technique_str = parsed.get("technique")
             if not isinstance(technique_str, str):
                 raise ValueError("Invalid technique")
+            reasoning = parsed.get("reasoning") if isinstance(parsed.get("reasoning"), str) else None
             lower = technique_str.lower()
             tech_enum = SYNONYMS.get(lower)
             if tech_enum is None:
@@ -85,7 +91,7 @@ User message:\n{user_message}
                     ),
                     CommunicationTechnique.PROBING,
                 )
-            log.info("planner_success", technique=tech_enum.value)
+            log.info("planner_success", technique=tech_enum.value, reasoning=reasoning)
             return ConversationPlan(technique=tech_enum)
     except (httpx.RequestError, httpx.HTTPStatusError, json.JSONDecodeError, KeyError, ValueError, AttributeError) as e:
         log.error("planner_error", error=str(e))
