@@ -133,7 +133,9 @@ def test_chat_sentiment_response(client, monkeypatch):
         captured["ctx"] = context
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
-    async def fake_generate(plan: ConversationPlan, user_message: str):
+    async def fake_generate(
+        plan: ConversationPlan, user_message: str, context: str, persona_trait: str
+    ):
         return "hi"
 
     async def fake_analysis(text: str):
@@ -190,7 +192,9 @@ def test_chat_analysis_failure(client, monkeypatch):
     ):
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
-    async def fake_generate(plan: ConversationPlan, user_message: str):
+    async def fake_generate(
+        plan: ConversationPlan, user_message: str, context: str, persona_trait: str
+    ):
         return "ok"
 
     async def fail_analysis(text: str):
@@ -226,7 +230,9 @@ def test_message_post_handler(client, monkeypatch):
     ):
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
-    async def fake_generate(plan: ConversationPlan, user_message: str):
+    async def fake_generate(
+        plan: ConversationPlan, user_message: str, context: str, persona_trait: str
+    ):
         return "reply"
 
     async def fake_sentiment(text: str):
@@ -269,7 +275,9 @@ def test_delete_messages_endpoint(client, monkeypatch):
     ):
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
-    async def fake_generate(plan: ConversationPlan, user_message: str):
+    async def fake_generate(
+        plan: ConversationPlan, user_message: str, context: str, persona_trait: str
+    ):
         return "ok"
 
     async def fake_sentiment(text: str):
@@ -313,7 +321,9 @@ def test_prompt_endpoint_rate_limit(client, monkeypatch):
     ):
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
-    async def fake_generate(plan: ConversationPlan, user_message: str):
+    async def fake_generate(
+        plan: ConversationPlan, user_message: str, context: str, persona_trait: str
+    ):
         return "hey?"
 
     monkeypatch.setattr(
@@ -344,7 +354,9 @@ def test_relationship_level_prompt_variation(client, monkeypatch):
         prompts.append(context)
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
-    async def fake_generate(plan: ConversationPlan, user_message: str):
+    async def fake_generate(
+        plan: ConversationPlan, user_message: str, context: str, persona_trait: str
+    ):
         return "ok"
 
     monkeypatch.setattr(

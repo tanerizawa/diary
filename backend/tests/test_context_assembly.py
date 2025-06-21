@@ -77,7 +77,9 @@ def test_chat_context_assembly(client, monkeypatch):
         captured["context"] = context
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
-    async def fake_generate(plan: ConversationPlan, user_message: str):
+    async def fake_generate(
+        plan: ConversationPlan, user_message: str, context: str, persona_trait: str
+    ):
         return "ok"
 
     monkeypatch.setattr(
@@ -146,7 +148,9 @@ def test_prompt_context_assembly(client, monkeypatch):
         captured["context"] = context
         return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
 
-    async def fake_generate(plan: ConversationPlan, user_message: str):
+    async def fake_generate(
+        plan: ConversationPlan, user_message: str, context: str, persona_trait: str
+    ):
         return "ok"
 
     monkeypatch.setattr(
