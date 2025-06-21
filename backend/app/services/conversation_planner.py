@@ -1,6 +1,9 @@
 import json
+import importlib.resources
+import os
 import httpx
 import structlog
+import yaml
 from thefuzz import process
 
 from app.core.config import settings
@@ -10,23 +13,33 @@ from app.schemas.conversation import (
     CommunicationTechnique,
 )
 
-TOOLBOX: dict[CommunicationTechnique, str] = {
-    CommunicationTechnique.PROBING: "ask short clarifying questions",
-    CommunicationTechnique.CLARIFYING: "confirm your understanding",
-    CommunicationTechnique.PARAPHRASING: "rephrase the user's message",
-    CommunicationTechnique.REFLECTING: "mirror the user's feelings",
-    CommunicationTechnique.OPEN_ENDED_QUESTIONS: "invite more details",
-    CommunicationTechnique.CLOSED_ENDED_QUESTIONS: "get specific facts",
-    CommunicationTechnique.SUMMARIZING: "briefly recap key points",
-    CommunicationTechnique.CONFRONTATION: "gently note inconsistencies",
-    CommunicationTechnique.REASSURANCE_ENCOURAGEMENT: "offer reassurance",
-    CommunicationTechnique.NEUTRAL_ACKNOWLEDGEMENT: "give a brief neutral acknowledgement",
-}
 
-SYNONYMS = {
-    "reflection": CommunicationTechnique.REFLECTING,
-    "mirroring": CommunicationTechnique.REFLECTING,
-}
+def _load_config() -> tuple[dict[CommunicationTechnique, str], dict[str, CommunicationTechnique]]:
+    """Load toolbox and synonym configuration from YAML."""
+    path = settings.PLANNER_CONFIG_FILE
+    if path and os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+    else:
+        with importlib.resources.files("app").joinpath("planner_config.yaml").open("r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+    toolbox_raw: dict[str, str] = data.get("toolbox", {}) if isinstance(data, dict) else {}
+    synonyms_raw: dict[str, str] = data.get("synonyms", {}) if isinstance(data, dict) else {}
+
+    toolbox = {
+        CommunicationTechnique[key]: val
+        for key, val in toolbox_raw.items()
+        if key in CommunicationTechnique.__members__
+    }
+    synonyms = {
+        syn.lower(): CommunicationTechnique[val]
+        for syn, val in synonyms_raw.items()
+        if val in CommunicationTechnique.__members__
+    }
+    return toolbox, synonyms
+
+
+TOOLBOX, SYNONYMS = _load_config()
 
 SUMMARY_THRESHOLD = 3000
 

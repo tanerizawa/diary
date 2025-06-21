@@ -1,0 +1,15 @@
+toolbox:
+  PROBING: "ask short clarifying questions"
+  CLARIFYING: "confirm your understanding"
+  PARAPHRASING: "rephrase the user's message"
+  REFLECTING: "mirror the user's feelings"
+  OPEN_ENDED_QUESTIONS: "invite more details"
+  CLOSED_ENDED_QUESTIONS: "get specific facts"
+  SUMMARIZING: "briefly recap key points"
+  CONFRONTATION: "gently note inconsistencies"
+  REASSURANCE_ENCOURAGEMENT: "offer reassurance"
+  NEUTRAL_ACKNOWLEDGEMENT: "give a brief neutral acknowledgement"
+
+synonyms:
+  reflection: REFLECTING
+  mirroring: REFLECTING

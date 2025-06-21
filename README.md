@@ -69,9 +69,10 @@ Pull requests are welcome. Please open an issue first to discuss major changes. 
 
 ## Conversation toolbox
 
-The backend includes a small "toolbox" of communication techniques used by the
-AI assistant. Each technique is defined in `CommunicationTechnique` and mapped
-to a short instruction in `conversation_planner.TOOLBOX`. The planner chooses
-one technique for each reply (for example *Reflecting*, *Summarizing* or the
-new *Neutral acknowledgement* technique). To add new techniques, extend this
-enum and dictionary.
+The backend includes a configurable "toolbox" of communication techniques used by the
+AI assistant. The default configuration is stored in `backend/app/planner_config.yaml`.
+It defines a `toolbox` section mapping technique names to short instruction strings
+and a `synonyms` section for alternative names. `conversation_planner` loads this file
+at startup (or the path specified via the `PLANNER_CONFIG_FILE` setting) and exposes
+the resulting `TOOLBOX` dictionary for the response generator. To add or modify
+techniques, edit this YAML file and extend the `CommunicationTechnique` enum.

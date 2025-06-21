@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     AI_GENERATOR_MODEL: str
     AI_HTTP_REFERER: str = "https://github.com/tanerizawa/diary"
     AI_TITLE: str = "Dear Diary App"
+    # Optional path to planner config YAML
+    PLANNER_CONFIG_FILE: str | None = None
 
     @field_validator("AI_API_KEY")
     @classmethod
