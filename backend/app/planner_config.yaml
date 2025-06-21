@@ -1,14 +1,14 @@
 toolbox:
-  PROBING: "ask short clarifying questions"
-  CLARIFYING: "confirm your understanding"
-  PARAPHRASING: "rephrase the user's message"
-  REFLECTING: "mirror the user's feelings"
-  OPEN_ENDED_QUESTIONS: "invite more details"
-  CLOSED_ENDED_QUESTIONS: "get specific facts"
-  SUMMARIZING: "briefly recap key points"
-  CONFRONTATION: "gently note inconsistencies"
-  REASSURANCE_ENCOURAGEMENT: "offer reassurance"
-  NEUTRAL_ACKNOWLEDGEMENT: "give a brief neutral acknowledgement"
+  PROBING: "ajukan pertanyaan klarifikasi singkat"
+  CLARIFYING: "konfirmasi pemahamanmu"
+  PARAPHRASING: "parafrase pesan pengguna"
+  REFLECTING: "cerminkan perasaan pengguna"
+  OPEN_ENDED_QUESTIONS: "ajak pengguna memberi lebih banyak detail"
+  CLOSED_ENDED_QUESTIONS: "dapatkan fakta-fakta spesifik"
+  SUMMARIZING: "ringkas secara singkat poin-poin utama"
+  CONFRONTATION: "ingatkan dengan lembut jika ada ketidakkonsistenan"
+  REASSURANCE_ENCOURAGEMENT: "beri dukungan dan penenangan"
+  NEUTRAL_ACKNOWLEDGEMENT: "berikan pengakuan singkat yang netral"
 
 synonyms:
   reflection: REFLECTING
