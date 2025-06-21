@@ -1,6 +1,5 @@
 import json
 import importlib.resources
-import os
 import httpx
 import structlog
 import yaml
@@ -165,6 +164,7 @@ Pesan pengguna:\n{user_message}
                 )
                 tech_enum = determine_fallback_technique(previous_ai_text)
             else:
+                technique_str = technique_str.strip()
                 lower = technique_str.lower()
                 tech_enum = SYNONYMS.get(lower)
                 if tech_enum is None:
