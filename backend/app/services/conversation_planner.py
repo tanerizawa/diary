@@ -150,39 +150,50 @@ Pesan pengguna:\n{user_message}
             parsed = json.loads(content)
             if not isinstance(parsed, dict):
                 raise ValueError("Invalid JSON structure")
+
             technique_str = parsed.get("technique")
-            if not isinstance(technique_str, str):
-                raise ValueError("Invalid technique")
             reasoning = (
                 parsed.get("reasoning")
                 if isinstance(parsed.get("reasoning"), str)
                 else None
             )
-            lower = technique_str.lower()
-            tech_enum = SYNONYMS.get(lower)
-            if tech_enum is None:
-                choices: dict[str, CommunicationTechnique] = {
-                    t.name: t for t in CommunicationTechnique
-                }
-                choices.update({t.value: t for t in CommunicationTechnique})
-                match = process.extractOne(
-                    technique_str,
-                    choices.keys(),
-                    processor=str.lower,
+
+            if not isinstance(technique_str, str):
+                log.warning(
+                    "planner_invalid_technique_value",
+                    value=technique_str,
                 )
-                if match and match[1] > 80:
-                    tech_enum = choices[match[0]]
-                else:
-                    log.warning(
-                        "planner_new_technique_suggestion",
-                        suggestion=technique_str,
+                tech_enum = determine_fallback_technique(previous_ai_text)
+            else:
+                lower = technique_str.lower()
+                tech_enum = SYNONYMS.get(lower)
+                if tech_enum is None:
+                    choices: dict[str, CommunicationTechnique] = {
+                        t.name: t for t in CommunicationTechnique
+                    }
+                    choices.update({t.value: t for t in CommunicationTechnique})
+                    match = process.extractOne(
+                        technique_str,
+                        choices.keys(),
+                        processor=str.lower,
                     )
-                    tech_enum = determine_fallback_technique(previous_ai_text)
+                    if match and match[1] > 80:
+                        tech_enum = choices[match[0]]
+                    else:
+                        log.warning(
+                            "planner_new_technique_suggestion",
+                            suggestion=technique_str,
+                        )
+                        tech_enum = determine_fallback_technique(previous_ai_text)
             log.info("planner_success", technique=tech_enum.value, reasoning=reasoning)
             return ConversationPlan(technique=tech_enum)
+    except httpx.HTTPStatusError as e:
+        log.error("planner_error", error=str(e))
+        return ConversationPlan(
+            technique=determine_fallback_technique(previous_ai_text)
+        )
     except (
         httpx.RequestError,
-        httpx.HTTPStatusError,
         json.JSONDecodeError,
         KeyError,
         ValueError,
