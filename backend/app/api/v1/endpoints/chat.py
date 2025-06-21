@@ -11,6 +11,8 @@ from fastapi import (
 from sqlalchemy.orm import Session
 import asyncio
 import json
+import random
+import structlog
 
 from app import crud, models, schemas
 from app.schemas.chat_message import ChatMessageDeleteRequest
@@ -26,6 +28,14 @@ from app.services import (
 from app.tasks import process_chat_sentiment
 
 router = APIRouter()
+
+log = structlog.get_logger(__name__)
+
+FALLBACK_RESPONSES = [
+    "Aku mengerti. Terima kasih sudah berbagi denganku.",
+    "Terima kasih sudah berbagi. Aku mendengarkan.",
+    "Aku paham. Cerita ini penting bagimu.",
+]
 
 
 def _persona_trait(relationship_level: int) -> str:
@@ -79,9 +89,8 @@ async def chat_with_ai(
         persona_trait,
     )
     if not reply_text:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
-        )
+        log.warning("empty_reply", endpoint="chat_with_ai", user_id=current_user.id)
+        reply_text = random.choice(FALLBACK_RESPONSES)
     action = schemas.Action.balas_teks
     journal_template = None
     # Persist conversation
@@ -209,9 +218,8 @@ async def create_message(
         persona_trait,
     )
     if not reply_text:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
-        )
+        log.warning("empty_reply", endpoint="create_message", user_id=current_user.id)
+        reply_text = random.choice(FALLBACK_RESPONSES)
     action = schemas.Action.balas_teks
     journal_template = None
 
@@ -279,9 +287,8 @@ async def prompt_chat(
         persona_trait,
     )
     if not reply_text:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="AI service error"
-        )
+        log.warning("empty_reply", endpoint="prompt_chat", user_id=current_user.id)
+        reply_text = random.choice(FALLBACK_RESPONSES)
     action = schemas.Action.balas_teks
     journal_template = None
 
@@ -385,9 +392,13 @@ async def websocket_chat(websocket: WebSocket, token: str):
                 persona_trait,
             )
             if not reply_text:
-                await websocket.send_json({"error": "AI service error"})
-                continue
-
+                log.warning(
+                    "empty_reply",
+                    endpoint="websocket_chat",
+                    user_id=user.id,
+                )
+                reply_text = random.choice(FALLBACK_RESPONSES)
+            
             action = schemas.Action.balas_teks
             journal_template = None
 

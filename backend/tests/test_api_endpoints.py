@@ -411,3 +411,37 @@ def test_relationship_level_prompt_variation(client, monkeypatch):
         headers=headers,
     )
     assert len(prompts) == 1
+
+
+def test_empty_generator_fallback(client, monkeypatch):
+    headers = register_and_login(client, email="fallback@example.com")
+
+    async def fake_plan(
+        context: str, user_message: str, previous_ai_text: str | None = None
+    ):
+        return ConversationPlan(technique=CommunicationTechnique.REFLECTING)
+
+    async def fake_generate(
+        plan: ConversationPlan, user_message: str, context: str, persona_trait: str
+    ):
+        return ""
+
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
+    )
+    monkeypatch.setattr(
+        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", lambda *a, **k: None
+    )
+    from app.tasks import process_chat_sentiment
+
+    monkeypatch.setattr(process_chat_sentiment, "delay", lambda *a, **k: None)
+
+    import app.api.v1.endpoints.chat as chat_endpoint
+
+    resp = client.post("/api/v1/chat/", json={"message": "hi"}, headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["text_response"] in chat_endpoint.FALLBACK_RESPONSES
