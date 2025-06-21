@@ -12,6 +12,7 @@ Dear Diary provides daily journaling, mood tracking and AI-assisted conversation
 - Chat interface using AI models
 - Mood calendar and statistics
 - Voice journal and media library
+- Automatic database migrations on API startup
 
 ## Tech Stack
 
@@ -50,10 +51,9 @@ source .venv/bin/activate
 pip install -r backend/requirements.txt
 ```
 
-2. Apply database migrations and start services:
+2. Start the services (migrations run automatically on API startup):
 
 ```bash
-alembic -c backend/alembic.ini upgrade head
 uvicorn backend.main:app --reload
 celery -A backend.app.celery_app.celery_app worker --loglevel=info
 ```
