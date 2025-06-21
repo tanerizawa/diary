@@ -76,6 +76,39 @@ def test_plan_conversation_strategy_unknown(monkeypatch):
     assert plan.technique == CommunicationTechnique.PROBING
 
 
+def test_plan_conversation_strategy_fuzzy_match(monkeypatch):
+    class DummyClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            pass
+
+        async def post(self, url, headers=None, json=None, timeout=None):
+            class Resp:
+                def raise_for_status(self):
+                    pass
+
+                def json(self):
+                    return {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": '{"reasoning":"ok","technique":"sumarizing"}'
+                                }
+                            }
+                        ]
+                    }
+
+            return Resp()
+
+    monkeypatch.setattr(
+        "app.services.conversation_planner.httpx.AsyncClient", DummyClient
+    )
+    plan = asyncio.run(plan_conversation_strategy("ctx", "hi"))
+    assert plan.technique == CommunicationTechnique.SUMMARIZING
+
+
 def test_plan_conversation_strategy_long_context(monkeypatch):
     calls = []
     counter = {"i": 0}
