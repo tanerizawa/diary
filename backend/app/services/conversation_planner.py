@@ -26,6 +26,40 @@ SYNONYMS = {
     "mirroring": CommunicationTechnique.REFLECTING,
 }
 
+SUMMARY_THRESHOLD = 3000
+
+
+async def _summarize_context(context: str) -> str:
+    """Summarize *context* using the AI service."""
+    log = structlog.get_logger(__name__)
+    prompt = "Ringkas konteks percakapan berikut dalam Bahasa Indonesia:\n" + context
+    headers = {
+        "Authorization": f"Bearer {settings.AI_API_KEY}",
+        "HTTP-Referer": settings.AI_HTTP_REFERER,
+        "X-Title": settings.AI_TITLE,
+        "Content-Type": "application/json",
+    }
+    body = {
+        "model": settings.AI_PLANNER_MODEL,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                url=settings.AI_API_URL,
+                headers=headers,
+                json=body,
+                timeout=30.0,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            summary = data["choices"][0]["message"]["content"].strip()
+            log.info("planner_summary_success")
+            return summary
+    except (httpx.RequestError, httpx.HTTPStatusError, KeyError) as e:
+        log.error("planner_summary_error", error=str(e))
+        return context[:SUMMARY_THRESHOLD]
+
 async def plan_conversation_strategy(context: str, user_message: str) -> ConversationPlan | None:
     """Request a conversation technique suggestion from the AI service."""
     log = structlog.get_logger(__name__)
@@ -34,6 +68,9 @@ async def plan_conversation_strategy(context: str, user_message: str) -> Convers
         context_length=len(context),
         user_message=user_message,
     )
+
+    if len(context) > SUMMARY_THRESHOLD:
+        context = await _summarize_context(context)
     available = ", ".join(t.value for t in CommunicationTechnique)
     prompt = f"""
 You are the 'director' persona guiding how the assistant should reply next.
