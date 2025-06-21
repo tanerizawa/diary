@@ -10,6 +10,9 @@ class ChatMessageBase(BaseModel):
     key_emotions: str | None = Field(
         None, description="Key emotions extracted from the message"
     )
+    primary_emotion: str | None = Field(
+        None, description="Primary emotion detected from the message"
+    )
     detected_mood: str | None = Field(
         None, description="Detected mood from the message"
     )

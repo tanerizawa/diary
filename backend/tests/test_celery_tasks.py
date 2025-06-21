@@ -49,9 +49,9 @@ def test_process_journal_sentiment(db, monkeypatch):
     journal = crud.journal.create_with_owner(db, obj_in=schemas.JournalCreate(title="t", content="c", mood="ok", timestamp=1), owner_id=user.id)
 
     async def fake_analyze(text: str):
-        return {"sentiment_score": 1.0, "key_emotions": "happy"}
+        return {"sentiment_score": 1.0, "emotions": "happy", "primary_emotion": "happy"}
 
-    monkeypatch.setattr("app.tasks.analyze_sentiment_with_ai", fake_analyze)
+    monkeypatch.setattr("app.tasks.analyze_sentiment_and_emotions", fake_analyze)
     from backend.app.celery_app import celery_app
     celery_app.conf.task_always_eager = True
 
@@ -62,6 +62,7 @@ def test_process_journal_sentiment(db, monkeypatch):
     session.close()
     assert updated.sentiment_score == 1.0
     assert updated.key_emotions == "happy"
+    assert updated.primary_emotion == "happy"
 
 
 def test_process_chat_sentiment(db, monkeypatch):
@@ -69,9 +70,9 @@ def test_process_chat_sentiment(db, monkeypatch):
     msg = crud.chat_message.create_with_owner(db, obj_in=schemas.ChatMessageCreate(text="hi", is_user=True, timestamp=1), owner_id=user.id)
 
     async def fake_analyze(text: str):
-        return {"sentiment_score": -0.5, "key_emotions": "sad"}
+        return {"sentiment_score": -0.5, "emotions": "sad", "primary_emotion": "sad"}
 
-    monkeypatch.setattr("app.tasks.analyze_sentiment_with_ai", fake_analyze)
+    monkeypatch.setattr("app.tasks.analyze_sentiment_and_emotions", fake_analyze)
     from backend.app.celery_app import celery_app
     celery_app.conf.task_always_eager = True
 
@@ -82,3 +83,4 @@ def test_process_chat_sentiment(db, monkeypatch):
     session.close()
     assert updated.sentiment_score == -0.5
     assert updated.key_emotions == "sad"
+    assert updated.primary_emotion == "sad"

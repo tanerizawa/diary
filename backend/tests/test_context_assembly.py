@@ -93,7 +93,7 @@ def test_chat_context_assembly(client, monkeypatch):
         return None
 
     monkeypatch.setattr(
-        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_analyze
+        "app.api.v1.endpoints.chat.analyze_sentiment_and_emotions", fake_analyze
     )
     from app.tasks import process_chat_sentiment, process_journal_sentiment
 
@@ -164,7 +164,7 @@ def test_prompt_context_assembly(client, monkeypatch):
         return None
 
     monkeypatch.setattr(
-        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_analyze
+        "app.api.v1.endpoints.chat.analyze_sentiment_and_emotions", fake_analyze
     )
     from app.tasks import process_chat_sentiment, process_journal_sentiment
 

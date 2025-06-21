@@ -13,6 +13,9 @@ class EmotionLogBase(BaseModel):
     key_emotions_detected: list[str] | None = Field(
         None, description="List of key emotions extracted"
     )
+    primary_emotion: str | None = Field(
+        None, description="Primary emotion identified"
+    )
 
 class EmotionLogCreate(EmotionLogBase):
     pass

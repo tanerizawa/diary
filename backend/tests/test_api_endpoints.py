@@ -148,7 +148,7 @@ def test_chat_sentiment_response(client, monkeypatch):
         return captured["analysis"]
 
     async def fake_sentiment(text: str):
-        return {"sentiment_score": 0.5, "key_emotions": "happy"}
+        return {"sentiment_score": 0.5, "emotions": "happy", "primary_emotion": "happy"}
 
     monkeypatch.setattr(
         "app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan
@@ -157,7 +157,7 @@ def test_chat_sentiment_response(client, monkeypatch):
         "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
     )
     monkeypatch.setattr(
-        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_sentiment
+        "app.api.v1.endpoints.chat.analyze_sentiment_and_emotions", fake_sentiment
     )
     monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_message", fake_analysis)
     from app.tasks import process_chat_sentiment
@@ -184,9 +184,9 @@ def test_chat_sentiment_response(client, monkeypatch):
     assert logs_resp.status_code == 200
     logs = logs_resp.json()
     assert len(logs) == 1
-    assert logs[0]["detected_mood"] == "\U0001f610"
-    assert logs[0]["sentiment_score"] is None
-    assert logs[0]["key_emotions_detected"] is None
+    assert logs[0]["detected_mood"] == "happy"
+    assert logs[0]["sentiment_score"] == 0.5
+    assert logs[0]["key_emotions_detected"] == ["happy"]
 
 
 def test_chat_analysis_failure(client, monkeypatch):
@@ -212,8 +212,11 @@ def test_chat_analysis_failure(client, monkeypatch):
         "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
     )
     monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_message", fail_analysis)
+    async def fake_sentiment_none(*a, **k):
+        return None
+
     monkeypatch.setattr(
-        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", lambda *a, **k: None
+        "app.api.v1.endpoints.chat.analyze_sentiment_and_emotions", fake_sentiment_none
     )
     from app.tasks import process_chat_sentiment
 
@@ -244,7 +247,7 @@ def test_message_post_handler(client, monkeypatch):
         return "reply"
 
     async def fake_sentiment(text: str):
-        return {"sentiment_score": 0.2, "key_emotions": "calm"}
+        return {"sentiment_score": 0.2, "emotions": "calm", "primary_emotion": "calm"}
 
     monkeypatch.setattr(
         "app.api.v1.endpoints.chat.plan_conversation_strategy", fake_plan
@@ -253,7 +256,7 @@ def test_message_post_handler(client, monkeypatch):
         "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
     )
     monkeypatch.setattr(
-        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_sentiment
+        "app.api.v1.endpoints.chat.analyze_sentiment_and_emotions", fake_sentiment
     )
 
     resp = client.post(
@@ -277,6 +280,7 @@ def test_message_post_handler(client, monkeypatch):
     assert len(logs) == 1
     assert logs[0]["sentiment_score"] == 0.2
     assert logs[0]["key_emotions_detected"] == ["calm"]
+    assert logs[0]["primary_emotion"] == "calm"
 
 
 def test_delete_messages_endpoint(client, monkeypatch):
@@ -302,7 +306,7 @@ def test_delete_messages_endpoint(client, monkeypatch):
         "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
     )
     monkeypatch.setattr(
-        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", fake_sentiment
+        "app.api.v1.endpoints.chat.analyze_sentiment_and_emotions", fake_sentiment
     )
 
     for i in range(3):
@@ -388,7 +392,7 @@ def test_relationship_level_prompt_variation(client, monkeypatch):
     async def noop(*args, **kwargs):
         return None
 
-    monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_sentiment_with_ai", noop)
+    monkeypatch.setattr("app.api.v1.endpoints.chat.analyze_sentiment_and_emotions", noop)
     from app.tasks import process_chat_sentiment, process_journal_sentiment
 
     monkeypatch.setattr(process_chat_sentiment, "delay", lambda *a, **k: None)
@@ -451,8 +455,11 @@ def test_empty_generator_fallback(client, monkeypatch):
     monkeypatch.setattr(
         "app.api.v1.endpoints.chat.generate_pure_response", fake_generate
     )
+    async def fake_sentiment_none(*a, **k):
+        return None
+
     monkeypatch.setattr(
-        "app.api.v1.endpoints.chat.analyze_sentiment_with_ai", lambda *a, **k: None
+        "app.api.v1.endpoints.chat.analyze_sentiment_and_emotions", fake_sentiment_none
     )
     from app.tasks import process_chat_sentiment
 

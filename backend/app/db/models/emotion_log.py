@@ -14,5 +14,6 @@ class EmotionLog(Base):
     source_feature = Column(String)
     sentiment_score = Column(Float, nullable=True)
     key_emotions_detected = Column(JSON, nullable=True)
+    primary_emotion = Column(String, nullable=True)
 
     user = relationship("User")
