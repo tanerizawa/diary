@@ -12,6 +12,7 @@ httpx # PENAMBAHAN BARU
 structlog
 transformers
 thefuzz[speedup]
+PyYAML
 
 # Task queue
 celery
