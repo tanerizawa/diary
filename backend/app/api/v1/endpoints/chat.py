@@ -40,11 +40,15 @@ FALLBACK_RESPONSES = [
 
 def _persona_trait(relationship_level: int) -> str:
     """Return a short trait description based on relationship level."""
-    if relationship_level > 30:
-        return "You are the user's close confidant."
-    if relationship_level > 10:
-        return "You and the user are becoming good friends."
-    return "You are just getting to know the user."
+    if relationship_level > 5:
+        return (
+            "You know the user quite well, so you can be a bit more familiar and "
+            "use their name."
+        )
+    return (
+        "You are still getting to know the user, so maintain a supportive but "
+        "slightly formal tone."
+    )
 
 
 @router.post(
